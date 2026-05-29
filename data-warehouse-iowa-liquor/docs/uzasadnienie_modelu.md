@@ -55,35 +55,6 @@ Aby model byl jednoznaczny, w projekcie przyjeto nastepujace definicje:
 - `sklep` - punkt detaliczny identyfikowany przez `store_number`,
 - `opakowanie` - cechy fizyczne produktu, przede wszystkim `pack` i `bottle_volume_ml`.
 
-Takie definicje sa potrzebne, aby pozniej poprawnie zbudowac ziarno faktu, wymiary i raporty.
-
-## Dlaczego zastosowano schemat gwiazdy
-
-W projekcie zastosowano schemat gwiazdy, poniewaz jest to najbardziej naturalny i najczytelniejszy model dla analizy sprzedazy.
-
-Schemat gwiazdy zostal wybrany, bo:
-
-1. Jest prosty do wyjasnienia podczas prezentacji projektu.
-2. Dobrze wspiera agregacje i filtrowanie danych.
-3. Jest standardowym rozwiazaniem w klasycznych hurtowniach danych typu ROLAP.
-4. Oddziela zdarzenia biznesowe od kontekstu opisowego.
-5. Ulatwia budowe warstwy semantycznej i dashboardu.
-
-W centrum modelu znajduje sie tabela faktow, a wokol niej tabele wymiarow. Taki uklad odpowiada klasycznej logice analitycznej: najpierw mamy zdarzenie biznesowe, a potem perspektywy, wedlug ktorych to zdarzenie analizujemy.
-
-## Dlaczego nie wybrano bardziej zlozonego modelu
-
-Mozliwe byloby zastosowanie modelu platka sniegu albo bardziej rozbudowanej normalizacji, ale w tym projekcie nie byloby to najlepsze rozwiazanie.
-
-Powody sa nastepujace:
-
-- projekt ma byc czytelny i demonstracyjny,
-- rozwiazanie ma byc mozliwe do uruchomienia na zwyklym laptopie,
-- zbyt duza normalizacja utrudnilaby raportowanie i prezentacje,
-- projekt studencki powinien pokazac poprawne podstawy hurtowni danych, a nie niepotrzebna zlozonosc.
-
-Dlatego wybrano model prosty, ale poprawny architektonicznie.
-
 ## Dlaczego tabela faktow ma taka postac
 
 Centralna tabela modelu to:
