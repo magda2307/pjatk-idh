@@ -1,0 +1,78 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: iowa-liquor-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrongPassword123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/1433'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: iowa-liquor-airflow
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      PYTHONPATH: /opt/airflow/project
+      PROJECT_ROOT: /opt/airflow/project
+      IOWA_START_DATE: "2023-01-01"
+      IOWA_END_DATE: "2023-12-31"
+      SOCRATA_LIMIT: "50000"
+      SQLSERVER_HOST: sqlserver
+      SQLSERVER_PORT: "1433"
+      SQLSERVER_DATABASE: IowaLiquorDW
+      SQLSERVER_USER: sa
+      SQLSERVER_PASSWORD: YourStrongPassword123
+      SQLSERVER_DRIVER: ODBC Driver 18 for SQL Server
+      SQLSERVER_TRUST_CERTIFICATE: "yes"
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/opt/airflow/project
+    command: standalone
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: iowa-liquor-streamlit
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      PYTHONPATH: /opt/airflow/project
+      PROJECT_ROOT: /opt/airflow/project
+      SQLSERVER_HOST: sqlserver
+      SQLSERVER_PORT: "1433"
+      SQLSERVER_DATABASE: IowaLiquorDW
+      SQLSERVER_USER: sa
+      SQLSERVER_PASSWORD: YourStrongPassword123
+      SQLSERVER_DRIVER: ODBC Driver 18 for SQL Server
+      SQLSERVER_TRUST_CERTIFICATE: "yes"
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/opt/airflow/project
+    entrypoint: []
+    command:
+      - streamlit
+      - run
+      - /opt/airflow/project/app/streamlit_app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+
+volumes:
+  sqlserver_data:

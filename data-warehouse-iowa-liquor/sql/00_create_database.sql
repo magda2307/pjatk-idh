@@ -1,0 +1,5 @@
+IF DB_ID(N'IowaLiquorDW') IS NULL
+BEGIN
+    CREATE DATABASE IowaLiquorDW;
+END;
+GO

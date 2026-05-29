@@ -1,0 +1,8 @@
+apache-airflow
+pandas
+pyodbc
+python-dotenv
+requests
+SQLAlchemy
+streamlit
+plotly
