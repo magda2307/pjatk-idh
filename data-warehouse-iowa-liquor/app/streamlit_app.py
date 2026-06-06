@@ -549,7 +549,7 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
         volume,
         x="total_volume_liters",
         y="total_sales",
-        size="store_count",
+        size="total_volume_liters",
         hover_name="county",
         title="Volume vs revenue by county",
     )
