@@ -1706,3 +1706,41 @@
 [ 1984961ms] [ERROR] Client Error in reaching server endpoint - No response received when attempting to reach /_stcore/health @ http://localhost:8501/static/js/index.dkY5s53S.js:182
 [ 1984962ms] [ERROR] Is Streamlit still running? If you accidentally stopped Streamlit, just restart it in your terminal: @ http://localhost:8501/static/js/index.dkY5s53S.js:187
 [ 1984967ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2378609ms] [WARNING] WebSocket onclose @ http://localhost:8501/static/js/index.dkY5s53S.js:183
+[ 2378620ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2378620ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2378729ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2378730ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2378900ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2378900ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2379361ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2379361ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2380118ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2380119ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2381496ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2381496ms] [ERROR] Client Error in reaching server endpoint - No response received when attempting to reach /_stcore/health @ http://localhost:8501/static/js/index.dkY5s53S.js:182
+[ 2381496ms] [ERROR] Is Streamlit still running? If you accidentally stopped Streamlit, just restart it in your terminal: @ http://localhost:8501/static/js/index.dkY5s53S.js:187
+[ 2381510ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2813545ms] [WARNING] WebSocket onclose @ http://localhost:8501/static/js/index.dkY5s53S.js:183
+[ 2813554ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2813555ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2813660ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2813660ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2813879ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2813879ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2814280ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2814280ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2814994ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2814994ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2816668ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0
+[ 2816668ms] [ERROR] Client Error in reaching server endpoint - No response received when attempting to reach /_stcore/host-config @ http://localhost:8501/static/js/index.dkY5s53S.js:182
+[ 2816668ms] [ERROR] Is Streamlit still running? If you accidentally stopped Streamlit, just restart it in your terminal: @ http://localhost:8501/static/js/index.dkY5s53S.js:187
+[ 2816669ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2822854ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8501/_stcore/health:0
+[ 2822854ms] [ERROR] Client Error in reaching server endpoint - No response received when attempting to reach /_stcore/health @ http://localhost:8501/static/js/index.dkY5s53S.js:182
+[ 2822854ms] [ERROR] Is Streamlit still running? If you accidentally stopped Streamlit, just restart it in your terminal: @ http://localhost:8501/static/js/index.dkY5s53S.js:187
+[ 2822859ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:8501/_stcore/host-config:0
+[ 2824876ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/health:0
+[ 2824877ms] [ERROR] Client Error in reaching server endpoint - No response received when attempting to reach /_stcore/health @ http://localhost:8501/static/js/index.dkY5s53S.js:182
+[ 2824877ms] [ERROR] Is Streamlit still running? If you accidentally stopped Streamlit, just restart it in your terminal: @ http://localhost:8501/static/js/index.dkY5s53S.js:187
+[ 2824877ms] [ERROR] Failed to load resource: net::ERR_EMPTY_RESPONSE @ http://localhost:8501/_stcore/host-config:0

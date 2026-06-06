@@ -47,7 +47,7 @@ services:
   streamlit:
     build:
       context: .
-      dockerfile: Dockerfile.airflow
+      dockerfile: Dockerfile.streamlit
     container_name: iowa-liquor-streamlit
     depends_on:
       sqlserver:
