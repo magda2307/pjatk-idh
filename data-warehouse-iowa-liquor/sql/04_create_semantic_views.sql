@@ -14,11 +14,9 @@ SELECT
     s.store_number,
     s.store_name,
     s.address,
-    s.city AS store_city,
-    s.county AS store_county,
-    s.state_name,
-    s.county,
     s.city,
+    s.county,
+    s.state_name,
     s.zip_code,
     s.latitude,
     s.longitude,
@@ -244,10 +242,7 @@ JOIN dw.dim_vendor v ON v.vendor_key = f.vendor_key
 GROUP BY p.item_number, p.item_description, c.category_name, v.vendor_name;
 GO
 
-DROP VIEW IF EXISTS sem.vw_margin_analysis;
-GO
-
-CREATE VIEW sem.vw_margin_analysis AS
+CREATE OR ALTER VIEW sem.vw_margin_analysis AS
 SELECT
     c.category_name,
     v.vendor_name,

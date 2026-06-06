@@ -51,6 +51,7 @@ st.markdown(
 )
 
 
+@st.cache_resource
 def get_engine():
     config = SqlServerConfig()
     params = quote_plus(config.odbc_connection_string)
@@ -138,9 +139,9 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, list]]:
 
         day_types = ["Weekday", "Weekend"]
         selected_day_types = st.multiselect("Day type", day_types, default=day_types)
-        filter_state["day_type"] = selected_day_types
+        selected_is_weekend = [1 if day_type == "Weekend" else 0 for day_type in selected_day_types]
+        filter_state["is_weekend"] = selected_is_weekend
         if selected_day_types and len(selected_day_types) < len(day_types):
-            selected_is_weekend = [1 if day_type == "Weekend" else 0 for day_type in selected_day_types]
             filtered = filtered[filtered["is_weekend"].isin(selected_is_weekend)]
 
         top_n = st.slider("Top N", min_value=5, max_value=25, value=10, step=5)
@@ -473,7 +474,7 @@ def product_category_analysis(df: pd.DataFrame, category_over_time: pd.DataFrame
     )
     vendor_table = vendors.copy()
     vendor_table["sales_share_percent"] = (
-        100 * vendor_table["total_sales"] / vendor_table["total_sales"].sum()
+        100 * vendor_table["total_sales"] / df["total_sales"].sum()
     ).round(2)
     show_report_table(
         "Vendor sales summary",
@@ -523,8 +524,14 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
     volume = aggregate(df, ["county"]).sort_values("total_volume_liters", ascending=False).head(top_n)
     map_df = apply_filter_state(map_points, filter_state)
     city_map_df = (
-        map_df.groupby(["city", "county", "latitude", "longitude"], dropna=False)
-        .agg(total_sales=("total_sales", "sum"), total_volume_liters=("total_volume_liters", "sum"), store_count=("store_number", "nunique"))
+        map_df.groupby(["city", "county"], dropna=False)
+        .agg(
+            latitude=("latitude", "mean"),
+            longitude=("longitude", "mean"),
+            total_sales=("total_sales", "sum"),
+            total_volume_liters=("total_volume_liters", "sum"),
+            store_count=("store_number", "nunique")
+        )
         .reset_index()
     )
 
@@ -552,12 +559,9 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
     top_counties = county["county"].head(10).tolist()
     heatmap_df = heatmap_df[heatmap_df["county"].isin(top_counties)]
     if not heatmap_df.empty:
-        fig = px.density_heatmap(
-            heatmap_df,
-            x="year_month",
-            y="county",
-            z="total_sales",
-            histfunc="sum",
+        heatmap_matrix = heatmap_df.pivot_table(index="county", columns="year_month", values="total_sales", fill_value=0)
+        fig = px.imshow(
+            heatmap_matrix,
             title="County x month sales heatmap",
         )
         st.plotly_chart(fig, width="stretch", key="geo_county_month_heatmap")
@@ -575,7 +579,7 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
             height=520,
             title="Geographic sales map by city",
         )
-        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(mapbox_style="carto-positron")
         st.plotly_chart(fig, width="stretch", key="geo_sales_map")
         store_map = map_df.sort_values("total_sales", ascending=False).head(max(top_n, 10))
         fig = px.scatter_mapbox(
@@ -590,7 +594,7 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
             height=520,
             title="Top store locations by sales",
         )
-        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(mapbox_style="carto-positron")
         st.plotly_chart(fig, width="stretch", key="geo_store_sales_map")
     else:
         st.info("Map unavailable for current filter scope because latitude/longitude are missing.")
@@ -651,7 +655,7 @@ def store_performance(df: pd.DataFrame, avg_sales_per_store: pd.DataFrame, filte
             low_value_volume,
             x="total_volume_liters",
             y="total_sales",
-            size="store_count",
+            size="total_volume_liters",
             hover_name="store_name",
             color="county",
             title="High volume stores with lower revenue",
