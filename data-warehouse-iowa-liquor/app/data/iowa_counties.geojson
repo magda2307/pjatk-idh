@@ -1,0 +1,1061 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19001",
+        "COUNTY": "Adair"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.79, 40.65], [-94.03, 40.65], [-94.03, 40.12], [-94.79, 40.12], [-94.79, 40.65]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19003",
+        "COUNTY": "Adams"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.85, 41.53], [-94.95, 41.53], [-94.95, 41.02], [-95.85, 41.02], [-95.85, 41.53]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19005",
+        "COUNTY": "Allamakee"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.54, 43.35], [-90.36, 43.35], [-90.36, 42.79], [-91.54, 42.79], [-91.54, 43.35]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19007",
+        "COUNTY": "Appanoose"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.23, 41.26], [-92.21, 41.26], [-92.21, 40.72], [-93.23, 40.72], [-93.23, 41.26]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19009",
+        "COUNTY": "Audubon"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.43, 42.05], [-94.59, 42.05], [-94.59, 41.53], [-95.43, 41.53], [-95.43, 42.05]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19011",
+        "COUNTY": "Benton"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.55, 42.15], [-92.52, 42.15], [-92.52, 41.63], [-93.55, 41.63], [-93.55, 42.15]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19013",
+        "COUNTY": "Black Hawk"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.68, 42.60], [-92.37, 42.60], [-92.37, 42.02], [-93.68, 42.02], [-93.68, 42.60]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19015",
+        "COUNTY": "Boone"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.26, 42.23], [-93.26, 42.23], [-93.26, 41.70], [-94.26, 41.70], [-94.26, 42.23]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19017",
+        "COUNTY": "Bremer"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.21, 42.57], [-92.02, 42.57], [-92.02, 42.00], [-93.21, 42.00], [-93.21, 42.57]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19019",
+        "COUNTY": "Buchanan"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.53, 43.03], [-91.35, 43.03], [-91.35, 42.49], [-92.53, 42.49], [-92.53, 43.03]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19021",
+        "COUNTY": "Buena Vista"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.49, 43.11], [-94.51, 43.11], [-94.51, 42.55], [-95.49, 42.55], [-95.49, 43.11]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19023",
+        "COUNTY": "Butler"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.12, 42.64], [-94.22, 42.64], [-94.22, 42.11], [-95.12, 42.11], [-95.12, 42.64]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19025",
+        "COUNTY": "Calhoun"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.01, 42.52], [-94.12, 42.52], [-94.12, 42.00], [-95.01, 42.00], [-95.01, 42.52]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19027",
+        "COUNTY": "Carroll"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.55, 42.02], [-94.67, 42.02], [-94.67, 41.49], [-95.55, 41.49], [-95.55, 42.02]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19029",
+        "COUNTY": "Cass"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.92, 41.48], [-94.03, 41.48], [-94.03, 40.95], [-94.92, 40.95], [-94.92, 41.48]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19031",
+        "COUNTY": "Cedar"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.15, 41.86], [-91.05, 41.86], [-91.05, 41.32], [-92.15, 41.32], [-92.15, 41.86]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19033",
+        "COUNTY": "Cerro Gordo"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.35, 43.05], [-92.11, 43.05], [-92.11, 42.51], [-93.35, 42.51], [-93.35, 43.05]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19035",
+        "COUNTY": "Cherokee"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.92, 42.56], [-95.01, 42.56], [-95.01, 42.03], [-95.92, 42.03], [-95.92, 42.56]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19037",
+        "COUNTY": "Chickasaw"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.73, 43.28], [-91.68, 43.28], [-91.68, 42.75], [-92.73, 42.75], [-92.73, 43.28]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19039",
+        "COUNTY": "Clarke"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.81, 41.98], [-93.92, 41.98], [-93.92, 41.45], [-94.81, 41.45], [-94.81, 41.98]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19041",
+        "COUNTY": "Clay"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.85, 42.99], [-94.95, 42.99], [-94.95, 42.47], [-95.85, 42.47], [-95.85, 42.99]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19043",
+        "COUNTY": "Clayton"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.76, 42.87], [-90.39, 42.87], [-90.39, 42.31], [-91.76, 42.31], [-91.76, 42.87]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19045",
+        "COUNTY": "Clinton"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-90.80, 41.91], [-89.64, 41.91], [-89.64, 41.37], [-90.80, 41.37], [-90.80, 41.91]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19047",
+        "COUNTY": "Crawford"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.27, 42.30], [-94.38, 42.30], [-94.38, 41.77], [-95.27, 41.77], [-95.27, 42.30]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19049",
+        "COUNTY": "Dallas"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.26, 41.98], [-93.35, 41.98], [-93.35, 41.45], [-94.26, 41.45], [-94.26, 41.98]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19051",
+        "COUNTY": "Davis"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.55, 41.65], [-93.66, 41.65], [-93.66, 41.12], [-94.55, 41.12], [-94.55, 41.65]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19053",
+        "COUNTY": "Decatur"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.97, 41.49], [-94.08, 41.49], [-94.08, 40.96], [-94.97, 40.96], [-94.97, 41.49]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19055",
+        "COUNTY": "Delaware"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.98, 42.98], [-90.61, 42.98], [-90.61, 42.44], [-91.98, 42.44], [-91.98, 42.98]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19057",
+        "COUNTY": "Des Moines"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.39, 41.81], [-90.21, 41.81], [-90.21, 41.27], [-91.39, 41.27], [-91.39, 41.81]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19059",
+        "COUNTY": "Dickinson"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.83, 43.25], [-94.92, 43.25], [-94.92, 42.73], [-95.83, 42.73], [-95.83, 43.25]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19061",
+        "COUNTY": "Dubuque"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-90.92, 42.55], [-89.62, 42.55], [-89.62, 42.01], [-90.92, 42.01], [-90.92, 42.55]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19063",
+        "COUNTY": "Emmet"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.63, 43.46], [-94.72, 43.46], [-94.72, 42.93], [-95.63, 42.93], [-95.63, 43.46]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19065",
+        "COUNTY": "Fayette"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.26, 43.46], [-91.05, 43.46], [-91.05, 42.92], [-92.26, 42.92], [-92.26, 43.46]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19067",
+        "COUNTY": "Floyd"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.94, 43.16], [-91.92, 43.16], [-91.92, 42.63], [-92.94, 42.63], [-92.94, 43.16]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19069",
+        "COUNTY": "Franklin"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.73, 42.92], [-93.83, 42.92], [-93.83, 42.39], [-94.73, 42.39], [-94.73, 42.92]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19071",
+        "COUNTY": "Fremont"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.59, 41.48], [-94.70, 41.48], [-94.70, 40.95], [-95.59, 40.95], [-95.59, 41.48]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19073",
+        "COUNTY": "Greene"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.29, 42.27], [-94.40, 42.27], [-94.40, 41.74], [-95.29, 41.74], [-95.29, 42.27]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19075",
+        "COUNTY": "Grundy"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.79, 42.79], [-92.88, 42.79], [-92.88, 42.26], [-93.79, 42.26], [-93.79, 42.79]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19077",
+        "COUNTY": "Guthrie"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.13, 42.01], [-94.24, 42.01], [-94.24, 41.48], [-95.13, 41.48], [-95.13, 42.01]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19079",
+        "COUNTY": "Hamilton"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.09, 42.66], [-93.18, 42.66], [-93.18, 42.13], [-94.09, 42.13], [-94.09, 42.66]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19081",
+        "COUNTY": "Hancock"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.63, 42.75], [-93.73, 42.75], [-93.73, 42.22], [-94.63, 42.22], [-94.63, 42.75]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19083",
+        "COUNTY": "Hardin"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.94, 42.45], [-93.04, 42.45], [-93.04, 41.92], [-93.94, 41.92], [-93.94, 42.45]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19085",
+        "COUNTY": "Harrison"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.88, 41.72], [-94.98, 41.72], [-94.98, 41.19], [-95.88, 41.19], [-95.88, 41.72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19087",
+        "COUNTY": "Henry"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.78, 41.72], [-90.60, 41.72], [-90.60, 41.18], [-91.78, 41.18], [-91.78, 41.72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19089",
+        "COUNTY": "Howard"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.33, 43.08], [-93.42, 43.08], [-93.42, 42.55], [-94.33, 42.55], [-94.33, 43.08]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19091",
+        "COUNTY": "Humboldt"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.45, 43.02], [-94.55, 43.02], [-94.55, 42.49], [-95.45, 42.49], [-95.45, 43.02]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19093",
+        "COUNTY": "Imogene"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.80, 42.22], [-94.90, 42.22], [-94.90, 41.69], [-95.80, 41.69], [-95.80, 42.22]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19095",
+        "COUNTY": " Iowa"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.06, 42.11], [-90.96, 42.11], [-90.96, 41.57], [-92.06, 41.57], [-92.06, 42.11]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19097",
+        "COUNTY": "Jackson"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.35, 42.49], [-91.26, 42.49], [-91.26, 41.95], [-92.35, 41.95], [-92.35, 42.49]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19099",
+        "COUNTY": "Jasper"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.53, 42.29], [-92.63, 42.29], [-92.63, 41.76], [-93.53, 41.76], [-93.53, 42.29]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19101",
+        "COUNTY": "Jefferson"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.45, 41.66], [-93.55, 41.66], [-93.55, 41.13], [-94.45, 41.13], [-94.45, 41.66]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19103",
+        "COUNTY": "Johnson"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.72, 42.22], [-90.63, 42.22], [-90.63, 41.68], [-91.72, 41.68], [-91.72, 42.22]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19105",
+        "COUNTY": "Jones"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.07, 42.19], [-89.98, 42.19], [-89.98, 41.65], [-91.07, 41.65], [-91.07, 42.19]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19107",
+        "COUNTY": "Keokuk"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.56, 41.56], [-91.46, 41.56], [-91.46, 41.02], [-92.56, 41.02], [-92.56, 41.56]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19109",
+        "COUNTY": "Kossuth"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.60, 43.37], [-94.69, 43.37], [-94.69, 42.84], [-95.60, 42.84], [-95.60, 43.37]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19111",
+        "COUNTY": "Lee"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.66, 41.20], [-90.48, 41.20], [-90.48, 40.66], [-91.66, 40.66], [-91.66, 41.20]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19113",
+        "COUNTY": "Linn"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.81, 42.60], [-90.63, 42.60], [-90.63, 41.97], [-91.81, 41.97], [-91.81, 42.60]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19115",
+        "COUNTY": "Louisa"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.91, 41.64], [-90.73, 41.64], [-90.73, 41.10], [-91.91, 41.10], [-91.91, 41.64]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19117",
+        "COUNTY": "Lucas"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.30, 41.53], [-93.41, 41.53], [-93.41, 40.99], [-94.30, 40.99], [-94.30, 41.53]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19119",
+        "COUNTY": "Lyon"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.97, 43.10], [-95.06, 43.10], [-95.06, 42.57], [-95.97, 42.57], [-95.97, 43.10]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19121",
+        "COUNTY": "Madison"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.90, 41.97], [-93.00, 41.97], [-93.00, 41.44], [-93.90, 41.44], [-93.90, 41.97]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19123",
+        "COUNTY": "Mahaska"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.80, 41.68], [-91.70, 41.68], [-91.70, 41.14], [-92.80, 41.14], [-92.80, 41.68]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19125",
+        "COUNTY": "Marion"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.42, 41.96], [-92.52, 41.96], [-92.52, 41.43], [-93.42, 41.43], [-93.42, 41.96]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19127",
+        "COUNTY": "Marshall"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.87, 42.34], [-92.96, 42.34], [-92.96, 41.81], [-93.87, 41.81], [-93.87, 42.34]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19129",
+        "COUNTY": "Mills"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.06, 41.69], [-94.16, 41.69], [-94.16, 41.16], [-95.06, 41.16], [-95.06, 41.69]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19131",
+        "COUNTY": "Mitchell"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.90, 43.32], [-93.99, 43.32], [-93.99, 42.79], [-94.90, 42.79], [-94.90, 43.32]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19133",
+        "COUNTY": "Monona"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.81, 42.06], [-94.91, 42.06], [-94.91, 41.53], [-95.81, 41.53], [-95.81, 42.06]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19135",
+        "COUNTY": "Monroe"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.73, 41.79], [-92.83, 41.79], [-92.83, 41.26], [-93.73, 41.26], [-93.73, 41.79]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19137",
+        "COUNTY": "Montgomery"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.56, 42.37], [-94.66, 42.37], [-94.66, 41.84], [-95.56, 41.84], [-95.56, 42.37]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19139",
+        "COUNTY": "Muscatine"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.15, 41.60], [-90.06, 41.60], [-90.06, 41.06], [-91.15, 41.06], [-91.15, 41.60]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19141",
+        "COUNTY": "Osceola"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.85, 42.84], [-94.95, 42.84], [-94.95, 42.31], [-95.85, 42.31], [-95.85, 42.84]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19143",
+        "COUNTY": "Page"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.78, 41.38], [-93.89, 41.38], [-93.89, 40.85], [-94.78, 40.85], [-94.78, 41.38]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19145",
+        "COUNTY": "Palo Alto"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.42, 43.22], [-94.52, 43.22], [-94.52, 42.69], [-95.42, 42.69], [-95.42, 43.22]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19147",
+        "COUNTY": "Plymouth"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.95, 42.66], [-95.05, 42.66], [-95.05, 42.13], [-95.95, 42.13], [-95.95, 42.66]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19149",
+        "COUNTY": "Pocahontas"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.32, 42.87], [-94.42, 42.87], [-94.42, 42.34], [-95.32, 42.34], [-95.32, 42.87]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19151",
+        "COUNTY": "Polk"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.77, 41.99], [-92.87, 41.99], [-92.87, 41.46], [-93.77, 41.46], [-93.77, 41.99]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19153",
+        "COUNTY": "Pottawattamie"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.91, 41.72], [-94.72, 41.72], [-94.72, 41.18], [-95.91, 41.18], [-95.91, 41.72]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19155",
+        "COUNTY": "Poweshiek"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.68, 42.01], [-91.58, 42.01], [-91.58, 41.47], [-92.68, 41.47], [-92.68, 42.01]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19157",
+        "COUNTY": "Ringgold"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.62, 41.33], [-94.72, 41.33], [-94.72, 40.80], [-95.62, 40.80], [-95.62, 41.33]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19159",
+        "COUNTY": "Sac"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.85, 42.46], [-94.95, 42.46], [-94.95, 41.93], [-95.85, 41.93], [-95.85, 42.46]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19161",
+        "COUNTY": "Scott"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-90.87, 42.21], [-89.69, 42.21], [-89.69, 41.67], [-90.87, 41.67], [-90.87, 42.21]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19163",
+        "COUNTY": "Shelby"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.09, 41.88], [-94.19, 41.88], [-94.19, 41.35], [-95.09, 41.35], [-95.09, 41.88]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19165",
+        "COUNTY": "Sioux"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-96.15, 43.16], [-95.24, 43.16], [-95.24, 42.63], [-96.15, 42.63], [-96.15, 43.16]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19167",
+        "COUNTY": "Story"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.68, 42.53], [-92.78, 42.53], [-92.78, 42.00], [-93.68, 42.00], [-93.68, 42.53]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19169",
+        "COUNTY": "Tama"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-93.32, 42.22], [-92.42, 42.22], [-92.42, 41.69], [-93.32, 41.69], [-93.32, 42.22]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19171",
+        "COUNTY": "Taylor"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.45, 41.85], [-94.55, 41.85], [-94.55, 41.32], [-95.45, 41.32], [-95.45, 41.85]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19173",
+        "COUNTY": "Union"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.54, 41.56], [-93.65, 41.56], [-93.65, 41.03], [-94.54, 41.03], [-94.54, 41.56]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19175",
+        "COUNTY": "Van Buren"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.02, 41.34], [-90.92, 41.34], [-90.92, 40.80], [-92.02, 40.80], [-92.02, 41.34]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19177",
+        "COUNTY": "Wapello"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-91.93, 41.26], [-90.83, 41.26], [-90.83, 40.72], [-91.93, 40.72], [-91.93, 41.26]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19179",
+        "COUNTY": "Warren"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.43, 41.87], [-93.53, 41.87], [-93.53, 41.34], [-94.43, 41.34], [-94.43, 41.87]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19181",
+        "COUNTY": "Washington"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.06, 41.38], [-90.98, 41.38], [-90.98, 40.84], [-92.06, 40.84], [-92.06, 41.38]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19183",
+        "COUNTY": "Wesley"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-95.53, 43.26], [-94.63, 43.26], [-94.63, 42.73], [-95.53, 42.73], [-95.53, 43.26]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19185",
+        "COUNTY": "Winneshiek"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-92.35, 43.35], [-91.14, 43.35], [-91.14, 42.81], [-92.35, 42.81], [-92.35, 43.35]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19187",
+        "COUNTY": "Woodbury"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-96.09, 42.88], [-95.18, 42.88], [-95.18, 42.35], [-96.09, 42.35], [-96.09, 42.88]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19189",
+        "COUNTY": "Worth"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.69, 43.24], [-93.78, 43.24], [-93.78, 42.71], [-94.69, 42.71], [-94.69, 43.24]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "FIPS": "19191",
+        "COUNTY": "Wright"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-94.97, 42.74], [-94.07, 42.74], [-94.07, 42.21], [-94.97, 42.21], [-94.97, 42.74]]]
+      }
+    }
+  ]
+}
