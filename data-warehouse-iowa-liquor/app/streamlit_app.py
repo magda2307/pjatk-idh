@@ -522,9 +522,8 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
     county = aggregate(df, ["county"]).sort_values("total_sales", ascending=False).head(top_n)
     city = aggregate(df, ["city", "county"]).sort_values("total_sales", ascending=False).head(top_n)
     volume = aggregate(df, ["county"]).sort_values("total_volume_liters", ascending=False).head(top_n)
-    map_df = apply_filter_state(map_points, filter_state)
     city_map_df = (
-        map_df.groupby(["city", "county"], dropna=False)
+        map_points.groupby(["city", "county"], dropna=False)
         .agg(
             latitude=("latitude", "mean"),
             longitude=("longitude", "mean"),
