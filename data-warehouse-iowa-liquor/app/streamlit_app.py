@@ -517,6 +517,13 @@ def product_category_analysis(df: pd.DataFrame, category_over_time: pd.DataFrame
     )
 
 
+def load_iowa_counties_geojson() -> dict:
+    geojson_path = Path(__file__).parent / "data" / "iowa_counties.geojson"
+    if geojson_path.exists():
+        return json.loads(geojson_path.read_text(encoding="utf-8"))
+    return None
+
+
 def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state: dict[str, list]) -> None:
     top_n = get_top_n(filter_state, default=20)
     show_semantic_sources(["vw_sales_overview", "vw_sales_by_geography", "vw_sales_map_points", "vw_volume_vs_revenue"])
@@ -524,8 +531,9 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
     county = aggregate(df, ["county"]).sort_values("total_sales", ascending=False).head(top_n)
     city = aggregate(df, ["city", "county"]).sort_values("total_sales", ascending=False).head(top_n)
     volume = aggregate(df, ["county"]).sort_values("total_volume_liters", ascending=False).head(top_n)
+    map_df = apply_filter_state(map_points, filter_state)
     city_map_df = (
-        map_points.groupby(["city", "county"], dropna=False)
+        map_df.groupby(["city", "county"], dropna=False)
         .agg(
             latitude=("latitude", "mean"),
             longitude=("longitude", "mean"),
@@ -550,7 +558,7 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
         volume,
         x="total_volume_liters",
         y="total_sales",
-        size="total_volume_liters",
+        size="store_count",
         hover_name="county",
         title="Volume vs revenue by county",
     )
@@ -567,8 +575,52 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
         )
         st.plotly_chart(fig, width="stretch", key="geo_county_month_heatmap")
 
+    st.markdown("### Sales Map")
+    geojson_data = load_iowa_counties_geojson()
+
+    if geojson_data:
+        county_sales = df.groupby("county", dropna=False).agg(
+            total_sales=("sale_dollars", "sum"),
+            total_margin=("margin_amount", "sum"),
+            total_bottles_sold=("bottles_sold", "sum")
+        ).reset_index()
+        
+        county_sales["FIPS"] = county_sales["county"].apply(lambda x: f"19{x.zfill(3)}" if x else None)
+        
+        county_merge = county_sales.merge(
+            pd.json_normalize(geojson_data["features"])
+            .assign(FIPS=lambda df: df["properties.FIPS"]),
+            on="FIPS",
+            how="inner"
+        )
+        
+        fig_choropleth = px.choropleth_mapbox(
+            county_merge,
+            geojson=geojson_data,
+            locations="FIPS",
+            featureidkey="properties.FIPS",
+            color="total_sales",
+            color_continuous_scale="Blues",
+            range_color=(county_merge["total_sales"].min(), county_merge["total_sales"].max()),
+            mapbox_style="carto-positron",
+            zoom=5,
+            center={"lat": 42.0, "lon": -93.5},
+            hover_name="county",
+            hover_data={
+                "total_sales": ":$,.0f",
+                "total_margin": ":$,.0f",
+                "total_bottles_sold": ",.0f"
+            },
+            height=550,
+            title="County choropleth map (total sales)"
+        )
+        fig_choropleth.update_traces(locations="FIPS", featureidkey="properties.FIPS")
+        st.plotly_chart(fig_choropleth, width="stretch", key="geo_county_choropleth")
+    else:
+        st.info("GeoJSON data not available. County choropleth map unavailable.")
+
     if not city_map_df.empty:
-        fig = px.scatter_mapbox(
+        fig_city = px.scatter_mapbox(
             city_map_df,
             lat="latitude",
             lon="longitude",
@@ -577,28 +629,30 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
             hover_name="city",
             hover_data=["county", "store_count", "total_sales", "total_volume_liters"],
             zoom=5,
-            height=520,
-            title="Geographic sales map by city",
+            height=550,
+            title="City bubble map (one dot per city, size=sales)"
         )
-        fig.update_layout(mapbox_style="carto-positron")
-        st.plotly_chart(fig, width="stretch", key="geo_sales_map")
-        store_map = map_points.sort_values("total_sales", ascending=False).head(max(top_n, 10))
-        fig = px.scatter_mapbox(
+        fig_city.update_layout(mapbox_style="carto-positron")
+        st.plotly_chart(fig_city, width="stretch", key="geo_city_bubble_map")
+
+    store_map = map_df.sort_values("total_sales", ascending=False).head(max(top_n, 10))
+    if not store_map.empty:
+        fig_stores = px.scatter_mapbox(
             store_map,
             lat="latitude",
             lon="longitude",
-            size="total_sales",
+            size="total_bottles_sold",
             color="total_margin",
             hover_name="store_name",
-            hover_data=["store_number", "city", "county", "total_sales", "total_margin", "invoice_count"],
+            hover_data=["store_number", "city", "county", "total_sales", "total_margin", "total_bottles_sold", "invoice_count"],
             zoom=5,
-            height=520,
-            title="Top store locations by sales",
+            height=550,
+            title=f"Top {top_n} stores bubble map (size=bottles sold, color=margin)"
         )
-        fig.update_layout(mapbox_style="carto-positron")
-        st.plotly_chart(fig, width="stretch", key="geo_store_sales_map")
+        fig_stores.update_layout(mapbox_style="carto-positron")
+        st.plotly_chart(fig_stores, width="stretch", key="geo_store_sales_map")
     else:
-        st.info("Map unavailable for current filter scope because latitude/longitude are missing.")
+        st.info("Store map unavailable for current filter scope because latitude/longitude are missing.")
 
     show_report_table(
         f"Top {top_n} counties by sales",
