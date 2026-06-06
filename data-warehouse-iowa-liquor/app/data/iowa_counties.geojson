@@ -522,7 +522,7 @@
       "type": "Feature",
       "properties": {
         "FIPS": "19095",
-        "COUNTY": " Iowa"
+        "COUNTY": "Iowa"
       },
       "geometry": {
         "type": "Polygon",

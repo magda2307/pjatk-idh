@@ -15,4 +15,4 @@ RUN apt-get update \
 
 USER airflow
 
-RUN pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit
+RUN pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit || pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit --break-system-packages
