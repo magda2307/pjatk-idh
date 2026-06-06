@@ -474,7 +474,7 @@ def product_category_analysis(df: pd.DataFrame, category_over_time: pd.DataFrame
     )
     vendor_table = vendors.copy()
     vendor_table["sales_share_percent"] = (
-        100 * vendor_table["total_sales"] / df["total_sales"].sum()
+        100 * vendor_table["total_sales"] / df["sale_dollars"].sum()
     ).round(2)
     show_report_table(
         "Vendor sales summary",
@@ -580,7 +580,7 @@ def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state:
         )
         fig.update_layout(mapbox_style="carto-positron")
         st.plotly_chart(fig, width="stretch", key="geo_sales_map")
-        store_map = map_df.sort_values("total_sales", ascending=False).head(max(top_n, 10))
+        store_map = map_points.sort_values("total_sales", ascending=False).head(max(top_n, 10))
         fig = px.scatter_mapbox(
             store_map,
             lat="latitude",
