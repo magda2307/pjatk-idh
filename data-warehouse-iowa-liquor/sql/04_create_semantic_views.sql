@@ -5,6 +5,9 @@ SELECT
     d.month,
     d.month_name_en,
     d.month_name_pl,
+    d.day_name_en,
+    d.day_name_pl,
+    d.is_weekend,
     d.quarter,
     d.year,
     d.year_month,
@@ -44,6 +47,25 @@ JOIN dw.dim_product p ON p.product_key = f.product_key
 JOIN dw.dim_packaging pk ON pk.packaging_key = f.packaging_key
 JOIN dw.dim_category c ON c.category_key = f.category_key
 JOIN dw.dim_vendor v ON v.vendor_key = f.vendor_key;
+GO
+
+CREATE OR ALTER VIEW sem.vw_sales_by_day_type AS
+SELECT
+    d.year,
+    d.quarter,
+    d.month,
+    d.year_month,
+    d.is_weekend,
+    CASE WHEN d.is_weekend = 1 THEN 'Weekend' ELSE 'Weekday' END AS day_type,
+    SUM(f.sale_dollars) AS total_sales,
+    SUM(f.bottles_sold) AS total_bottles_sold,
+    SUM(f.volume_sold_liters) AS total_volume_liters,
+    SUM(f.margin_amount) AS total_margin,
+    SUM(f.sales_line_count) AS sales_line_count,
+    COUNT(DISTINCT f.invoice_number) AS invoice_count
+FROM dw.fact_sales f
+JOIN dw.dim_date d ON d.date_key = f.date_key
+GROUP BY d.year, d.quarter, d.month, d.year_month, d.is_weekend;
 GO
 
 CREATE OR ALTER VIEW sem.vw_sales_by_month AS
@@ -137,6 +159,27 @@ CROSS JOIN totals t
 GROUP BY v.vendor_name;
 GO
 
+CREATE OR ALTER VIEW sem.vw_sales_by_packaging AS
+WITH totals AS (
+    SELECT SUM(sale_dollars) AS all_sales FROM dw.fact_sales
+)
+SELECT
+    pk.pack,
+    pk.bottle_volume_ml,
+    pk.volume_group,
+    SUM(f.sale_dollars) AS total_sales,
+    SUM(f.bottles_sold) AS total_bottles_sold,
+    SUM(f.volume_sold_liters) AS total_volume_liters,
+    SUM(f.margin_amount) AS total_margin,
+    SUM(f.sales_line_count) AS sales_line_count,
+    COUNT(DISTINCT f.invoice_number) AS invoice_count,
+    CAST(100.0 * SUM(f.sale_dollars) / NULLIF(MAX(t.all_sales), 0) AS DECIMAL(9,2)) AS sales_share_percent
+FROM dw.fact_sales f
+JOIN dw.dim_packaging pk ON pk.packaging_key = f.packaging_key
+CROSS JOIN totals t
+GROUP BY pk.pack, pk.bottle_volume_ml, pk.volume_group;
+GO
+
 CREATE OR ALTER VIEW sem.vw_sales_by_geography AS
 SELECT
     s.state_name,
@@ -151,6 +194,37 @@ SELECT
 FROM dw.fact_sales f
 JOIN dw.dim_store s ON s.store_key = f.store_key
 GROUP BY s.state_name, s.county, s.city;
+GO
+
+CREATE OR ALTER VIEW sem.vw_sales_map_points AS
+SELECT
+    s.store_number,
+    s.store_name,
+    s.state_name,
+    s.county,
+    s.city,
+    s.zip_code,
+    s.latitude,
+    s.longitude,
+    SUM(f.sale_dollars) AS total_sales,
+    SUM(f.bottles_sold) AS total_bottles_sold,
+    SUM(f.volume_sold_liters) AS total_volume_liters,
+    SUM(f.margin_amount) AS total_margin,
+    SUM(f.sales_line_count) AS sales_line_count,
+    COUNT(DISTINCT f.invoice_number) AS invoice_count
+FROM dw.fact_sales f
+JOIN dw.dim_store s ON s.store_key = f.store_key
+WHERE s.latitude IS NOT NULL
+  AND s.longitude IS NOT NULL
+GROUP BY
+    s.store_number,
+    s.store_name,
+    s.state_name,
+    s.county,
+    s.city,
+    s.zip_code,
+    s.latitude,
+    s.longitude;
 GO
 
 CREATE OR ALTER VIEW sem.vw_top_products AS
@@ -260,6 +334,28 @@ SELECT
     COUNT(DISTINCT f.store_key) AS store_count,
     COUNT(DISTINCT f.product_key) AS product_count,
     COUNT(DISTINCT f.category_key) AS category_count,
-    COUNT(DISTINCT f.vendor_key) AS vendor_count
+    COUNT(DISTINCT f.vendor_key) AS vendor_count,
+    SUM(f.sale_dollars) / NULLIF(COUNT(DISTINCT f.invoice_number), 0) AS avg_invoice_value,
+    SUM(f.bottles_sold) / NULLIF(COUNT(DISTINCT f.invoice_number), 0) AS avg_bottles_per_invoice,
+    CAST(100.0 * SUM(f.margin_amount) / NULLIF(SUM(f.sale_dollars), 0) AS DECIMAL(9,2)) AS avg_margin_percent,
+    SUM(f.sale_dollars) / NULLIF(COUNT(DISTINCT f.store_key), 0) AS sales_per_store,
+    SUM(f.sale_dollars) / NULLIF(SUM(f.volume_sold_liters), 0) AS sales_per_liter
 FROM dw.fact_sales f;
+GO
+
+CREATE OR ALTER VIEW sem.vw_etl_status AS
+SELECT
+    CAST(GETDATE() AS DATETIME2) AS status_generated_at,
+    (SELECT COUNT(*) FROM stg.iowa_liquor_sales_raw) AS staging_row_count,
+    (SELECT COUNT(*) FROM dw.fact_sales) AS fact_row_count,
+    (SELECT COUNT(*) FROM dw.dim_date) AS dim_date_count,
+    (SELECT COUNT(*) FROM dw.dim_store) AS dim_store_count,
+    (SELECT COUNT(*) FROM dw.dim_product) AS dim_product_count,
+    (SELECT COUNT(*) FROM dw.dim_category) AS dim_category_count,
+    (SELECT COUNT(*) FROM dw.dim_vendor) AS dim_vendor_count,
+    (SELECT COUNT(*) FROM dw.dim_packaging) AS dim_packaging_count,
+    (SELECT MIN([date]) FROM dw.dim_date) AS min_date,
+    (SELECT MAX([date]) FROM dw.dim_date) AS max_date,
+    (SELECT MAX(load_timestamp) FROM stg.iowa_liquor_sales_raw) AS last_staging_load_timestamp,
+    (SELECT MAX(load_timestamp) FROM dw.fact_sales) AS last_fact_load_timestamp;
 GO

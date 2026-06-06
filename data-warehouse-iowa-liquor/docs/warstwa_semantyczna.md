@@ -56,6 +56,40 @@ sem.vw_sales_overview
 
 To glowny widok laczacy fakt z wymiarami. Pozostale widoki semantyczne buduja nad nim agregacje i pola raportowe.
 
+## Dwa poziomy warstwy semantycznej
+
+Warstwa semantyczna jest podzielona na dwa poziomy.
+
+### Poziom 1: widok szczegolowy
+
+```text
+sem.vw_sales_overview
+```
+
+Ten widok laczy fakt z wymiarami i udostepnia dane na poziomie linii sprzedazy, ale juz z nazwami biznesowymi i atrybutami gotowymi do filtrowania.
+
+### Poziom 2: widoki biznesowe i agregacje
+
+Widoki agregujace:
+
+- `sem.vw_sales_by_month`
+- `sem.vw_sales_by_category`
+- `sem.vw_sales_by_store`
+- `sem.vw_sales_by_vendor`
+- `sem.vw_sales_by_geography`
+- `sem.vw_sales_map_points`
+- `sem.vw_sales_by_packaging`
+- `sem.vw_sales_by_day_type`
+- `sem.vw_top_products`
+- `sem.vw_margin_analysis`
+- `sem.vw_volume_vs_revenue`
+- `sem.vw_category_sales_over_time`
+- `sem.vw_avg_sales_per_store_by_month_region`
+- `sem.vw_kpi_summary`
+- `sem.vw_etl_status`
+
+To sa widoki, z ktorych korzysta dashboard. Dzieki temu raporty nie musza laczyc tabel `dw.*` ani powtarzac logiki biznesowej.
+
 ## Wymiary analityczne w warstwie semantycznej
 
 Warstwa semantyczna udostepnia nastepujace wymiary analizy:
@@ -84,7 +118,8 @@ Zastosowanie:
 
 - analiza trendow miesiecznych, kwartalnych i rocznych,
 - porownania sprzedazy w czasie,
-- analiza sezonowosci.
+- analiza sezonowosci,
+- porownanie weekend vs dzien roboczy.
 
 ### 2. Wymiar sklepu
 
@@ -355,6 +390,11 @@ Zawiera:
 - `product_count`
 - `category_count`
 - `vendor_count`
+- `avg_invoice_value`
+- `avg_bottles_per_invoice`
+- `avg_margin_percent`
+- `sales_per_store`
+- `sales_per_liter`
 
 ### Interpretacja KPI
 
@@ -387,6 +427,32 @@ Zawiera:
 
 10. `vendor_count`
    - liczba vendorow obecnych w analizowanym zakresie
+
+11. `avg_invoice_value`
+   - srednia wartosc faktury
+
+12. `avg_bottles_per_invoice`
+   - srednia liczba butelek na fakture
+
+13. `avg_margin_percent`
+   - procentowy udzial marzy w sprzedazy
+
+14. `sales_per_store`
+   - srednia sprzedaz na sklep
+
+15. `sales_per_liter`
+   - wartosc sprzedazy na jeden litr wolumenu
+
+## Macierz uzycia warstwy semantycznej
+
+| Strona dashboardu | Pytania biznesowe | Widoki semantyczne |
+|---|---|---|
+| Executive overview | 1, 11 | `sem.vw_sales_overview`, `sem.vw_sales_by_month`, `sem.vw_sales_by_day_type`, `sem.vw_kpi_summary`, `sem.vw_etl_status` |
+| Product and category analysis | 2, 5, 6, 7, 8, 12 | `sem.vw_sales_by_category`, `sem.vw_sales_by_vendor`, `sem.vw_top_products`, `sem.vw_margin_analysis`, `sem.vw_category_sales_over_time`, `sem.vw_sales_by_packaging` |
+| Geography analysis | 4, 9 | `sem.vw_sales_by_geography`, `sem.vw_sales_map_points`, `sem.vw_volume_vs_revenue` |
+| Store performance | 3, 10 | `sem.vw_sales_by_store`, `sem.vw_avg_sales_per_store_by_month_region` |
+
+Ta macierz pokazuje, ze warstwa semantyczna jest centralnym elementem raportowania, a nie tylko dodatkiem technicznym.
 
 ## Widoki semantyczne i ich rola
 
@@ -438,7 +504,15 @@ Rola:
 - city / county / state,
 - wsparcie dla tabel i map.
 
-### 7. `sem.vw_top_products`
+### 7. `sem.vw_sales_map_points`
+
+Rola:
+
+- przygotowanie punktow geograficznych do wizualizacji mapowej,
+- agregacja sprzedazy na poziomie sklepu z latitude i longitude,
+- oddzielenie logiki mapowania od kodu dashboardu.
+
+### 8. `sem.vw_top_products`
 
 Rola:
 
@@ -446,7 +520,7 @@ Rola:
 - analiza ilosciowa i wartosciowa produktow,
 - identyfikacja bestsellerow.
 
-### 8. `sem.vw_margin_analysis`
+### 9. `sem.vw_margin_analysis`
 
 Rola:
 
@@ -454,21 +528,37 @@ Rola:
 - marza jednostkowa i calkowita,
 - porownanie produktow, kategorii i vendorow.
 
-### 9. `sem.vw_volume_vs_revenue`
+### 10. `sem.vw_volume_vs_revenue`
 
 Rola:
 
 - analiza zaleznosci miedzy wolumenem i przychodem,
 - identyfikacja regionow o wysokim wolumenie i nizszej wartosci.
 
-### 10. `sem.vw_category_sales_over_time`
+### 11. `sem.vw_sales_by_day_type`
+
+Rola:
+
+- analiza sprzedazy wedlug typu dnia,
+- wykorzystanie atrybutu `is_weekend`,
+- bardzo wyrazne pokazanie, ze atrybuty wymiaru czasu sa realizowane w warstwie semantycznej.
+
+### 12. `sem.vw_sales_by_packaging`
+
+Rola:
+
+- analiza sprzedazy wedlug opakowania,
+- wykorzystanie wymiaru `dim_packaging`,
+- porownanie `pack`, `bottle_volume_ml` i `volume_group`.
+
+### 13. `sem.vw_category_sales_over_time`
 
 Rola:
 
 - analiza struktury sprzedazy kategorii w czasie,
 - porownanie zmian udzialu kategorii miesiac do miesiaca.
 
-### 11. `sem.vw_avg_sales_per_store_by_month_region`
+### 14. `sem.vw_avg_sales_per_store_by_month_region`
 
 Rola:
 
@@ -476,7 +566,7 @@ Rola:
 - porownanie county i miast w czasie,
 - odpowiedz na pytanie o sprzedaz na sklep wedlug regionu i miesiaca.
 
-### 12. `sem.vw_kpi_summary`
+### 15. `sem.vw_kpi_summary`
 
 Rola:
 
@@ -489,11 +579,12 @@ Warstwa semantyczna realizuje wymagania pierwszej czesci projektu, poniewaz:
 
 1. odwzorowuje glowne wymiary analizy,
 2. udostepnia atrybuty potrzebne do filtrowania i grupowania,
-3. zawiera hierarchie czasu, geografii i produktu,
+3. zawiera hierarchie czasu, geografii, produktu i opakowania,
 4. dostarcza pola wyliczane potrzebne do raportow,
 5. udostepnia KPI do raportu zarzadczego,
 6. ukrywa techniczne szczegoly modelu `dw`,
-7. pozwala budowac raporty bez bezposredniej pracy na tabelach faktow i wymiarow.
+7. pozwala budowac raporty bez bezposredniej pracy na tabelach faktow i wymiarow,
+8. bardzo wyraznie pokazuje, ze dashboard korzysta z widokow `sem.*`, a nie bezposrednio z tabel technicznych.
 
 ## Podsumowanie
 

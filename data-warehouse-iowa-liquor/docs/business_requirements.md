@@ -6,20 +6,24 @@ Celem projektu jest zbudowanie hurtowni danych wspierajacej analize sprzedazy de
 
 Projekt nie koncentruje sie na konsumpcji alkoholu. Perspektywa biznesowa to analiza sprzedazy, dystrybucji, przychodow, wolumenu i marzy w sieci detalicznej.
 
-## Pytania biznesowe
+## Finalne pytania biznesowe
 
-| Nr | Pytanie biznesowe | Widok semantyczny / raport |
-|---:|---|---|
-| 1 | Jak zmieniala sie calkowita wartosc sprzedazy w kolejnych miesiacach i kwartalach? | `sem.vw_sales_by_month`, raport Executive overview |
-| 2 | Ktore kategorie produktow generowaly najwyzszy przychod? | `sem.vw_sales_by_category`, raport Product and category analysis |
-| 3 | Ktore sklepy osiagaly najwyzsza sprzedaz wartosciowa? | `sem.vw_sales_by_store`, raport Store performance |
-| 4 | Ktore miasta i hrabstwa generowaly najwiekszy obrot? | `sem.vw_sales_by_geography`, raport Geography analysis |
-| 5 | Ktorzy vendorzy mieli najwiekszy udzial w sprzedazy? | `sem.vw_sales_by_vendor`, raport Product and category analysis |
-| 6 | Ktore produkty sprzedawaly sie najlepiej ilosciowo? | `sem.vw_top_products`, raport Product and category analysis |
-| 7 | Ktore produkty lub kategorie generowaly najwyzsza marze jednostkowa i calkowita? | `sem.vw_margin_analysis`, `sem.vw_sales_by_category`, raport Product and category analysis |
-| 8 | Jak zmieniala sie struktura sprzedazy wedlug kategorii produktow w czasie? | `sem.vw_category_sales_over_time`, raport Product and category analysis |
-| 9 | Ktore regiony mialy wysoka sprzedaz wolumenowa, ale nizsza wartosc sprzedazy? | `sem.vw_volume_vs_revenue`, raport Geography analysis |
-| 10 | Jaka byla srednia wartosc sprzedazy na sklep w podziale na miesiace i regiony? | `sem.vw_avg_sales_per_store_by_month_region`, raport Store performance |
+Ten zestaw pytan zostal ulozony tak, aby kazdy wymiar modelu mial jasne zastosowanie biznesowe.
+
+| Nr | Pytanie biznesowe | Wykorzystywany wymiar / atrybut | Widok semantyczny / raport |
+|---:|---|---|---|
+| 1 | Jak zmienialy sie calkowita sprzedaz, marza i liczba faktur wedlug miesiaca, kwartalu i roku? | `dim_date` | `sem.vw_sales_by_month`, Executive overview |
+| 2 | Ktore kategorie generowaly najwyzszy przychod i marze? | `dim_category` | `sem.vw_sales_by_category`, Product and category analysis |
+| 3 | Ktore sklepy generowaly najwyzsza sprzedaz i marze? | `dim_store` | `sem.vw_sales_by_store`, Store performance |
+| 4 | Ktore miasta i county generowaly najwyzszy przychod i wolumen? | geografia w `dim_store` | `sem.vw_sales_by_geography`, Geography analysis |
+| 5 | Ktorzy vendorzy mieli najwyzszy udzial w sprzedazy i wklad w marze? | `dim_vendor` | `sem.vw_sales_by_vendor`, Product and category analysis |
+| 6 | Ktore produkty sprzedawaly sie najlepiej wedlug liczby butelek i wartosci sprzedazy? | `dim_product` | `sem.vw_top_products`, Product and category analysis |
+| 7 | Ktore kategorie i produkty mialy najwyzsza marze jednostkowa i calkowita? | `dim_product`, `dim_category`, ceny jednostkowe | `sem.vw_margin_analysis`, Product and category analysis |
+| 8 | Jak zmieniala sie struktura sprzedazy kategorii w czasie? | `dim_date`, `dim_category` | `sem.vw_category_sales_over_time`, Product and category analysis |
+| 9 | Ktore regiony mialy wysoki wolumen, ale nizsza wartosc sprzedazy na litr? | geografia w `dim_store`, miary wolumenu | `sem.vw_volume_vs_revenue`, Geography analysis |
+| 10 | Jak zmieniala sie srednia sprzedaz na sklep wedlug miesiaca i county? | `dim_date`, `dim_store` | `sem.vw_avg_sales_per_store_by_month_region`, Store performance |
+| 11 | Jak roznia sie sprzedaz, wolumen i liczba faktur w weekendy oraz dni robocze? | `dim_date.is_weekend` | `sem.vw_sales_by_day_type`, Executive overview |
+| 12 | Ktore grupy opakowan i pojemnosci butelek generowaly najwyzsza sprzedaz, wolumen i marze? | `dim_packaging` | `sem.vw_sales_by_packaging`, Product and category analysis |
 
 ## Miary biznesowe
 
@@ -32,65 +36,56 @@ Projekt nie koncentruje sie na konsumpcji alkoholu. Perspektywa biznesowa to ana
 - Koszt jednostkowy: `state_bottle_cost`, miara nieaddytywna
 - Cena detaliczna jednostkowa: `state_bottle_retail`, miara nieaddytywna
 
+## KPI
+
+Warstwa semantyczna udostepnia KPI w `sem.vw_kpi_summary`:
+
+- `total_sales`
+- `total_margin`
+- `invoice_count`
+- `store_count`
+- `product_count`
+- `avg_invoice_value`
+- `avg_bottles_per_invoice`
+- `avg_margin_percent`
+- `sales_per_store`
+- `sales_per_liter`
+
 ## Wymiary analizy
 
-- Czas: dzien, miesiac, kwartal, rok
-- Sklep: numer sklepu, nazwa, adres, miasto, hrabstwo
+- Czas: dzien, miesiac, kwartal, rok, weekend / dzien roboczy
+- Sklep: numer sklepu, nazwa, adres, miasto, county
 - Produkt: numer produktu, opis
 - Kategoria: numer i nazwa kategorii
 - Vendor: numer i nazwa vendora
-- Geografia: miasto, hrabstwo, kod pocztowy, stan
+- Geografia: miasto, county, kod pocztowy, stan
 - Opakowanie: pack, pojemnosc butelki, grupa pojemnosci
 
 ## Minimalny zestaw raportow
 
-Projekt powinien dostarczyc co najmniej nastepujace raporty:
+Projekt dostarcza raporty:
 
 1. Sprzedaz w czasie
-   - miesiac / kwartal / rok
-   - `sale_dollars`
-   - `bottles_sold`
-   - `volume_sold_liters`
-
 2. Sprzedaz wedlug sklepow
-   - top sklepy
-   - suma sprzedazy
-   - liczba butelek
-   - marza
-
 3. Sprzedaz wedlug produktow i kategorii
-   - top produkty
-   - top kategorie
-   - porownanie ilosci i wartosci
-
 4. Sprzedaz geograficzna
-   - city / county
-   - tabela albo mapa
-
 5. Analiza marzy
-   - marza wedlug produktu, kategorii, sklepu
-   - marza jednostkowa i calkowita
-
-6. Vendor analysis
-   - sprzedaz wedlug vendora
-   - marza wedlug vendora
-
+6. Analiza vendorow
 7. Struktura kategorii w czasie
-   - udzial kategorii w kolejnych miesiacach
-   - trend sprzedazy wedlug kategorii
-
 8. Srednia sprzedaz na sklep wedlug miesiaca i regionu
-   - srednia wartosc sprzedazy na sklep
-   - porownanie county w czasie
+9. Sprzedaz wedlug typu dnia
+10. Sprzedaz wedlug opakowania
 
 ## Wymagania raportowe
 
-Raporty powinny zawierac:
+Raporty zawieraja:
 
 - agregacje,
 - filtrowanie,
 - sortowanie,
 - wykresy,
+- tabele,
+- eksport CSV,
 - kilka perspektyw analizy,
 - czytelne biznesowe nazwy,
 - mozliwosc odpowiedzi na pytania biznesowe bez odwolania do tabel technicznych.

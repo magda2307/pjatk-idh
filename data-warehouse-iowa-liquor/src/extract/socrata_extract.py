@@ -128,6 +128,12 @@ def extract_iowa_liquor_sales(
     validate_extract_config(extract_config)
     raw_dir = Path(output_dir)
     raw_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(
+        "Starting extraction for range %s -> %s with page limit %s",
+        extract_config.start_date,
+        extract_config.end_date,
+        extract_config.limit,
+    )
 
     year_label = extract_config.start_date[:4]
     file_prefix = f"iowa_liquor_sales_{year_label}"
@@ -138,10 +144,12 @@ def extract_iowa_liquor_sales(
     downloaded_files: list[Path] = []
     offset = 0
     part_number = 0
+    cumulative_rows = 0
     session = build_requests_session()
     try:
         while True:
             output_file = raw_dir / f"{file_prefix}_part_{part_number:03d}.csv"
+            logger.info("Extract page %s (offset=%s)", part_number + 1, offset)
             row_count = download_page(extract_config, offset, output_file, session=session)
 
             if row_count == 0:
@@ -150,6 +158,13 @@ def extract_iowa_liquor_sales(
                 break
 
             downloaded_files.append(output_file)
+            cumulative_rows += row_count
+            logger.info(
+                "Completed page %s with %s rows. Cumulative rows=%s",
+                part_number + 1,
+                row_count,
+                cumulative_rows,
+            )
             offset += extract_config.limit
             part_number += 1
     finally:

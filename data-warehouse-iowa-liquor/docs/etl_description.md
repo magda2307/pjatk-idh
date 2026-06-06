@@ -24,6 +24,33 @@ Ekstrakcja
 -> Kontrola jakosci
 ```
 
+## Mapowanie na Bronze / Silver / Gold
+
+Proces mozna tez opisac w bardziej nowoczesnym jezyku warstw danych:
+
+### Bronze
+
+- surowe pliki `CSV` pobrane z API
+- lokalizacja: `data/raw`
+- cel: zachowanie surowego zrzutu danych zrodlowych
+
+### Silver
+
+- tabela `stg.iowa_liquor_sales_raw`
+- cel: czyszczenie, standaryzacja i przygotowanie danych
+- logika: typy, tekst, mapowanie kolumn, parsowanie lokalizacji
+
+### Gold
+
+- model wymiarowy w `dw`
+- warstwa semantyczna w `sem`
+- cel: analiza biznesowa i raportowanie
+
+W tym projekcie warstwa Gold ma dwa poziomy:
+
+1. `dw.*` - hurtownia danych w schemacie gwiazdy
+2. `sem.*` - gotowe widoki raportowe i KPI
+
 ## Kroki DAG
 
 1. `extract_iowa_liquor_sales`

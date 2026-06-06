@@ -31,6 +31,11 @@
 - [x] Extract manifest added for ETL traceability
 - [x] Extract retries and config validation added
 - [x] Loader now prefers manifest-selected raw files
+- [x] Final business questions refined to 12 dimension-driven questions
+- [x] KPI semantic view extended with invoice, margin, store, and liter metrics
+- [x] Semantic layer usage matrix added to docs and dashboard
+- [x] Dashboard chart mix expanded with grouped bar, treemap, heatmap, and box plot
+- [x] Semantic hierarchy notes added visibly in dashboard
 - [x] Docker services for SQL Server, Airflow, and Streamlit
 
 ## Verified

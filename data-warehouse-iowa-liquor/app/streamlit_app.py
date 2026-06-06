@@ -130,6 +130,19 @@ def apply_filters(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, list]]:
         if selected_cities:
             filtered = filtered[filtered["city"].isin(selected_cities)]
 
+        volume_groups = sorted(filtered["volume_group"].dropna().unique().tolist())
+        selected_volume_groups = st.multiselect("Packaging group", volume_groups)
+        filter_state["volume_group"] = selected_volume_groups
+        if selected_volume_groups:
+            filtered = filtered[filtered["volume_group"].isin(selected_volume_groups)]
+
+        day_types = ["Weekday", "Weekend"]
+        selected_day_types = st.multiselect("Day type", day_types, default=day_types)
+        filter_state["day_type"] = selected_day_types
+        if selected_day_types and len(selected_day_types) < len(day_types):
+            selected_is_weekend = [1 if day_type == "Weekend" else 0 for day_type in selected_day_types]
+            filtered = filtered[filtered["is_weekend"].isin(selected_is_weekend)]
+
         top_n = st.slider("Top N", min_value=5, max_value=25, value=10, step=5)
         filter_state["top_n"] = [top_n]
 
@@ -192,6 +205,100 @@ def show_dataset_status(manifest: dict[str, object] | None) -> None:
     )
 
 
+def show_semantic_layer_banner() -> None:
+    with st.expander("Semantic layer used in this dashboard", expanded=True):
+        st.markdown(
+            """
+            This dashboard reads only SQL semantic views from schema `sem`.
+
+            Semantic hierarchy notes:
+            - Time: day -> month -> quarter -> year
+            - Geography: store -> city -> county -> state
+            - Product: product -> category
+            - Supplier perspective: product -> vendor
+            - Packaging: product -> bottle_volume_ml -> volume_group
+
+            Main views used:
+            - `sem.vw_sales_overview`
+            - `sem.vw_sales_by_month`
+            - `sem.vw_sales_by_day_type`
+            - `sem.vw_sales_by_category`
+            - `sem.vw_sales_by_vendor`
+            - `sem.vw_sales_by_packaging`
+            - `sem.vw_sales_by_geography`
+            - `sem.vw_sales_map_points`
+            - `sem.vw_top_products`
+            - `sem.vw_margin_analysis`
+            - `sem.vw_volume_vs_revenue`
+            - `sem.vw_category_sales_over_time`
+            - `sem.vw_avg_sales_per_store_by_month_region`
+            - `sem.vw_kpi_summary`
+            - `sem.vw_etl_status`
+            """
+        )
+        usage_matrix = pd.DataFrame(
+            [
+                ("Executive overview", "Q1, Q10", "vw_sales_overview, vw_sales_by_month, vw_sales_by_day_type, vw_kpi_summary"),
+                ("Product and category analysis", "Q2, Q5, Q6, Q7, Q8, Q12", "vw_sales_by_category, vw_top_products, vw_sales_by_vendor, vw_margin_analysis, vw_category_sales_over_time, vw_sales_by_packaging"),
+                ("Geography analysis", "Q4, Q9", "vw_sales_by_geography, vw_sales_map_points, vw_volume_vs_revenue"),
+                ("Store performance", "Q3, Q10", "vw_sales_by_store, vw_avg_sales_per_store_by_month_region"),
+            ],
+            columns=["Dashboard page", "Business questions", "Semantic views"],
+        )
+        st.dataframe(usage_matrix, width="stretch", hide_index=True)
+
+
+def show_semantic_sources(view_names: list[str]) -> None:
+    st.caption("Semantic views used on this page: " + ", ".join(f"`sem.{view_name}`" for view_name in view_names))
+
+
+def show_etl_status_panel(etl_status: pd.DataFrame) -> None:
+    if etl_status.empty:
+        return
+    row = etl_status.iloc[0]
+    with st.expander("ETL status from semantic layer", expanded=False):
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Staging rows", format_number(row["staging_row_count"]))
+        c2.metric("Fact rows", format_number(row["fact_row_count"]))
+        c3.metric("Date range start", str(row["min_date"]))
+        c4.metric("Date range end", str(row["max_date"]))
+
+        c5, c6, c7 = st.columns(3)
+        c5.metric("Stores", format_number(row["dim_store_count"]))
+        c6.metric("Products", format_number(row["dim_product_count"]))
+        c7.metric("Packaging groups", format_number(row["dim_packaging_count"]))
+
+        st.caption(
+            "Semantic ETL snapshot: "
+            f"generated={row['status_generated_at']} | "
+            f"last staging load={row['last_staging_load_timestamp']} | "
+            f"last fact load={row['last_fact_load_timestamp']}"
+        )
+
+
+def show_global_kpi_reference(kpi_summary: pd.DataFrame) -> None:
+    if kpi_summary.empty:
+        return
+    required_columns = {
+        "avg_invoice_value",
+        "avg_bottles_per_invoice",
+        "avg_margin_percent",
+        "sales_per_store",
+        "sales_per_liter",
+    }
+    if not required_columns.issubset(kpi_summary.columns):
+        st.info("Refresh semantic views to show extended KPI metrics.")
+        return
+    row = kpi_summary.iloc[0]
+    with st.expander("Global KPI summary from semantic layer", expanded=False):
+        c1, c2, c3, c4, c5 = st.columns(5)
+        c1.metric("Avg invoice value", format_money(row["avg_invoice_value"]))
+        c2.metric("Bottles / invoice", format_decimal(row["avg_bottles_per_invoice"]))
+        c3.metric("Margin %", f"{row['avg_margin_percent']:.2f}%")
+        c4.metric("Sales / store", format_money(row["sales_per_store"]))
+        c5.metric("Sales / liter", format_money(row["sales_per_liter"]))
+
+
 def show_report_table(
     title: str,
     df: pd.DataFrame,
@@ -227,13 +334,36 @@ def show_kpis(df: pd.DataFrame) -> None:
     cols[5].metric("Products", format_number(df["item_number"].nunique()))
 
 
+def show_advanced_kpis(df: pd.DataFrame) -> None:
+    invoice_count = df["invoice_number"].nunique()
+    store_count = df["store_number"].nunique()
+    total_sales = df["sale_dollars"].sum()
+    total_margin = df["margin_amount"].sum()
+    total_volume = df["volume_sold_liters"].sum()
+    total_bottles = df["bottles_sold"].sum()
+
+    cols = st.columns(5)
+    cols[0].metric("Avg invoice value", format_money(total_sales / invoice_count if invoice_count else 0))
+    cols[1].metric("Bottles / invoice", format_decimal(total_bottles / invoice_count if invoice_count else 0))
+    cols[2].metric("Margin %", f"{(100 * total_margin / total_sales if total_sales else 0):.2f}%")
+    cols[3].metric("Sales / store", format_money(total_sales / store_count if store_count else 0))
+    cols[4].metric("Sales / liter", format_money(total_sales / total_volume if total_volume else 0))
+
+
 def executive_overview(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
     top_n = get_top_n(filter_state)
     show_kpis(df)
+    show_advanced_kpis(df)
+    show_semantic_sources(["vw_sales_overview", "vw_sales_by_month", "vw_sales_by_day_type", "vw_sales_by_category"])
     show_scope_summary(df, filter_state)
     monthly = aggregate(df, ["year_month"]).sort_values("year_month")
     categories = aggregate(df, ["category_name"]).sort_values("total_sales", ascending=False).head(12)
     stores = aggregate(df, ["store_number", "store_name"]).sort_values("total_sales", ascending=False).head(top_n)
+    day_type = aggregate(df.assign(day_type=df["is_weekend"].map({0: "Weekday", 1: "Weekend"})), ["day_type"])
+    day_type_month = aggregate(
+        df.assign(day_type=df["is_weekend"].map({0: "Weekday", 1: "Weekend"})),
+        ["year_month", "day_type"],
+    )
 
     left, right = st.columns([1.45, 1])
     with left:
@@ -244,9 +374,25 @@ def executive_overview(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         st.plotly_chart(fig, width="stretch", key="exec_sales_by_category")
 
-    fig = px.bar(stores, x="total_sales", y="store_name", orientation="h", title="Top stores by sales")
-    fig.update_layout(yaxis={"categoryorder": "total ascending"})
-    st.plotly_chart(fig, width="stretch", key="exec_top_stores")
+    c1, c2 = st.columns(2)
+    with c1:
+        fig = px.bar(stores, x="total_sales", y="store_name", orientation="h", title="Top stores by sales")
+        fig.update_layout(yaxis={"categoryorder": "total ascending"})
+        st.plotly_chart(fig, width="stretch", key="exec_top_stores")
+    with c2:
+        fig = px.bar(day_type, x="day_type", y="total_sales", color="day_type", title="Weekend vs weekday sales")
+        st.plotly_chart(fig, width="stretch", key="exec_day_type_sales")
+
+    if not day_type_month.empty:
+        fig = px.bar(
+            day_type_month.sort_values("year_month"),
+            x="year_month",
+            y="invoice_count",
+            color="day_type",
+            barmode="group",
+            title="Weekend vs weekday invoice count by month",
+        )
+        st.plotly_chart(fig, width="stretch", key="exec_day_type_invoice_month")
 
     show_report_table(
         "Monthly sales summary",
@@ -266,10 +412,12 @@ def executive_overview(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
 
 def product_category_analysis(df: pd.DataFrame, category_over_time: pd.DataFrame, filter_state: dict[str, list]) -> None:
     top_n = get_top_n(filter_state, default=15)
+    show_semantic_sources(["vw_sales_overview", "vw_sales_by_category", "vw_top_products", "vw_sales_by_vendor", "vw_category_sales_over_time", "vw_sales_by_packaging"])
     show_scope_summary(df, filter_state)
     categories = aggregate(df, ["category_name"]).sort_values("total_sales", ascending=False).head(top_n)
     products = aggregate(df, ["item_number", "item_description"]).sort_values("total_bottles_sold", ascending=False).head(top_n)
     vendors = aggregate(df, ["vendor_name"]).sort_values("total_sales", ascending=False).head(12)
+    packaging = aggregate(df, ["volume_group", "bottle_volume_ml"]).sort_values("total_sales", ascending=False).head(top_n)
 
     margin_by_category = categories.copy()
     margin_by_category["avg_margin_per_bottle"] = (
@@ -335,18 +483,48 @@ def product_category_analysis(df: pd.DataFrame, category_over_time: pd.DataFrame
         money_cols=["total_sales", "total_margin"],
         pct_cols=["sales_share_percent"],
     )
+    fig = px.bar(
+        packaging.sort_values("total_sales", ascending=False),
+        x="total_sales",
+        y="volume_group",
+        color="bottle_volume_ml",
+        orientation="h",
+        title="Sales by packaging group",
+    )
+    fig.update_layout(yaxis={"categoryorder": "total ascending"})
+    st.plotly_chart(fig, width="stretch", key="prod_packaging_sales")
+
+    treemap_df = aggregate(df, ["category_name", "item_description"]).sort_values("total_sales", ascending=False).head(80)
+    if not treemap_df.empty:
+        fig = px.treemap(
+            treemap_df,
+            path=["category_name", "item_description"],
+            values="total_sales",
+            color="total_margin",
+            title="Product revenue treemap by category",
+        )
+        st.plotly_chart(fig, width="stretch", key="prod_category_product_treemap")
+
+    show_report_table(
+        "Packaging performance",
+        packaging.sort_values("total_sales", ascending=False),
+        ["volume_group", "bottle_volume_ml", "total_sales", "total_bottles_sold", "total_volume_liters", "total_margin", "invoice_count"],
+        file_stem="packaging_performance",
+        money_cols=["total_sales", "total_margin"],
+    )
 
 
-def geography_analysis(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
+def geography_analysis(df: pd.DataFrame, map_points: pd.DataFrame, filter_state: dict[str, list]) -> None:
     top_n = get_top_n(filter_state, default=20)
+    show_semantic_sources(["vw_sales_overview", "vw_sales_by_geography", "vw_sales_map_points", "vw_volume_vs_revenue"])
     show_scope_summary(df, filter_state)
     county = aggregate(df, ["county"]).sort_values("total_sales", ascending=False).head(top_n)
     city = aggregate(df, ["city", "county"]).sort_values("total_sales", ascending=False).head(top_n)
     volume = aggregate(df, ["county"]).sort_values("total_volume_liters", ascending=False).head(top_n)
-    map_df = (
-        df.dropna(subset=["latitude", "longitude"])
-        .groupby(["city", "county", "latitude", "longitude"], dropna=False)
-        .agg(total_sales=("sale_dollars", "sum"), total_volume_liters=("volume_sold_liters", "sum"))
+    map_df = apply_filter_state(map_points, filter_state)
+    city_map_df = (
+        map_df.groupby(["city", "county", "latitude", "longitude"], dropna=False)
+        .agg(total_sales=("total_sales", "sum"), total_volume_liters=("total_volume_liters", "sum"), store_count=("store_number", "nunique"))
         .reset_index()
     )
 
@@ -370,21 +548,50 @@ def geography_analysis(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
     )
     st.plotly_chart(fig, width="stretch", key="geo_volume_vs_revenue")
 
-    if not map_df.empty:
+    heatmap_df = aggregate(df, ["county", "year_month"])
+    top_counties = county["county"].head(10).tolist()
+    heatmap_df = heatmap_df[heatmap_df["county"].isin(top_counties)]
+    if not heatmap_df.empty:
+        fig = px.density_heatmap(
+            heatmap_df,
+            x="year_month",
+            y="county",
+            z="total_sales",
+            histfunc="sum",
+            title="County x month sales heatmap",
+        )
+        st.plotly_chart(fig, width="stretch", key="geo_county_month_heatmap")
+
+    if not city_map_df.empty:
         fig = px.scatter_mapbox(
-            map_df,
+            city_map_df,
             lat="latitude",
             lon="longitude",
             size="total_sales",
             color="total_volume_liters",
             hover_name="city",
-            hover_data=["county", "total_sales"],
+            hover_data=["county", "store_count", "total_sales", "total_volume_liters"],
             zoom=5,
             height=520,
-            title="Sales map by city",
+            title="Geographic sales map by city",
         )
         fig.update_layout(mapbox_style="open-street-map")
         st.plotly_chart(fig, width="stretch", key="geo_sales_map")
+        store_map = map_df.sort_values("total_sales", ascending=False).head(max(top_n, 10))
+        fig = px.scatter_mapbox(
+            store_map,
+            lat="latitude",
+            lon="longitude",
+            size="total_sales",
+            color="total_margin",
+            hover_name="store_name",
+            hover_data=["store_number", "city", "county", "total_sales", "total_margin", "invoice_count"],
+            zoom=5,
+            height=520,
+            title="Top store locations by sales",
+        )
+        fig.update_layout(mapbox_style="open-street-map")
+        st.plotly_chart(fig, width="stretch", key="geo_store_sales_map")
     else:
         st.info("Map unavailable for current filter scope because latitude/longitude are missing.")
 
@@ -417,6 +624,7 @@ def geography_analysis(df: pd.DataFrame, filter_state: dict[str, list]) -> None:
 
 def store_performance(df: pd.DataFrame, avg_sales_per_store: pd.DataFrame, filter_state: dict[str, list]) -> None:
     top_n = get_top_n(filter_state, default=15)
+    show_semantic_sources(["vw_sales_overview", "vw_avg_sales_per_store_by_month_region"])
     show_scope_summary(df, filter_state)
     stores = aggregate(df, ["store_number", "store_name", "city", "county"]).sort_values("total_sales", ascending=False)
     low_value_volume = stores.copy()
@@ -459,6 +667,17 @@ def store_performance(df: pd.DataFrame, avg_sales_per_store: pd.DataFrame, filte
     )
     fig.update_layout(yaxis={"categoryorder": "total ascending"})
     st.plotly_chart(fig, width="stretch", key="store_avg_sales_by_county")
+
+    store_distribution = stores[stores["county"].isin(county_avg["county"].head(10).tolist())]
+    if not store_distribution.empty:
+        fig = px.box(
+            store_distribution,
+            x="county",
+            y="total_sales",
+            points="all",
+            title="Store sales distribution by county",
+        )
+        st.plotly_chart(fig, width="stretch", key="store_sales_distribution_box")
 
     county_focus = (
         avg_sales_per_store.groupby("county", dropna=False)["avg_sales_per_store"]
@@ -505,15 +724,22 @@ def store_performance(df: pd.DataFrame, avg_sales_per_store: pd.DataFrame, filte
 st.title("Iowa Retail Distribution Analytics")
 st.caption("Semantic-layer dashboard powered by SQL Server views.")
 show_dataset_status(read_extract_manifest())
+show_semantic_layer_banner()
 
 try:
     overview = read_view("vw_sales_overview")
     category_sales_over_time = read_view("vw_category_sales_over_time")
     avg_sales_per_store_by_month_region = read_view("vw_avg_sales_per_store_by_month_region")
+    sales_map_points = read_view("vw_sales_map_points")
+    kpi_summary = read_view("vw_kpi_summary")
+    etl_status = read_view("vw_etl_status")
 except Exception as exc:
     st.error("Could not connect to SQL Server semantic views.")
     st.code(str(exc))
     st.stop()
+
+show_etl_status_panel(etl_status)
+show_global_kpi_reference(kpi_summary)
 
 if overview.empty:
     st.warning("Semantic view returned no rows. Run Airflow DAG `iowa_liquor_etl` first.")
@@ -526,6 +752,7 @@ if filtered_overview.empty:
 
 filtered_category_sales_over_time = apply_filter_state(category_sales_over_time, filter_state)
 filtered_avg_sales_per_store = apply_filter_state(avg_sales_per_store_by_month_region, filter_state)
+filtered_sales_map_points = apply_filter_state(sales_map_points, filter_state)
 
 tabs = st.tabs(
     [
@@ -541,6 +768,6 @@ with tabs[0]:
 with tabs[1]:
     product_category_analysis(filtered_overview, filtered_category_sales_over_time, filter_state)
 with tabs[2]:
-    geography_analysis(filtered_overview, filter_state)
+    geography_analysis(filtered_overview, filtered_sales_map_points, filter_state)
 with tabs[3]:
     store_performance(filtered_overview, filtered_avg_sales_per_store, filter_state)
