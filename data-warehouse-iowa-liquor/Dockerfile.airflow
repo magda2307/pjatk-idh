@@ -15,4 +15,6 @@ RUN apt-get update \
 
 USER airflow
 
+RUN echo "[ODBC Driver 18 for SQL Server]\nDescription=Microsoft ODBC Driver 18 for SQL Server\nDriver=/opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.6.so.2.1\nUsageCount=1" > /etc/odbcinst.ini
+
 RUN pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit || pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit --break-system-packages
