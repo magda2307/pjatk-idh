@@ -193,15 +193,30 @@ def build_csv_download(df: pd.DataFrame) -> bytes:
 
 
 def show_dataset_status(manifest: dict[str, object] | None) -> None:
-    if not manifest:
+    parts: list[str] = []
+    if manifest:
+        parts.append(
+            f"zakres={manifest.get('start_date')} -> {manifest.get('end_date')} | "
+            f"pliki={manifest.get('file_count')} | wiersze={manifest.get('total_rows')} | "
+            f"wygenerowano={manifest.get('generated_at_utc')}"
+        )
+    try:
+        etl_df = read_view("vw_etl_status")
+        if not etl_df.empty:
+            row = etl_df.iloc[0]
+            parts.append(
+                f"fact_sales={int(row.get('fact_row_count', 0)):,} | "
+                f"dim_store={int(row.get('dim_store_count', 0)):,} | "
+                f"dim_product={int(row.get('dim_product_count', 0)):,} | "
+                f"min_date={row.get('min_date')} | max_date={row.get('max_date')} | "
+                f"ostatnie ładowanie={row.get('last_fact_load_timestamp')}"
+            )
+    except Exception:
+        pass
+    if parts:
+        st.caption(" \u2502 ".join(parts))
+    else:
         st.info("Nie znaleziono manifestu ekstrakcji. Uruchom ETL, aby zarejestrować aktualny zakres danych.")
-        return
-    st.caption(
-        "Status danych: "
-        f"zakres={manifest.get('start_date')} -> {manifest.get('end_date')} | "
-        f"pliki={manifest.get('file_count')} | wiersze={manifest.get('total_rows')} | "
-        f"wygenerowano={manifest.get('generated_at_utc')}"
-    )
 
 
 def show_semantic_sources(view_names: list[str]) -> None:
@@ -249,6 +264,43 @@ def show_report_table(
         mime="text/csv",
         key=f"download_{file_stem}",
     )
+
+def render_kpi_header() -> None:
+    """Top-level KPI tiles from vw_kpi_summary — one row per dataset."""
+    try:
+        df = read_view("vw_kpi_summary")
+    except Exception:
+        return
+    if df.empty:
+        return
+    row = df.iloc[0]
+
+    def _money(col: str) -> str:
+        v = row.get(col, 0)
+        try:
+            return f"${float(v):,.0f}"
+        except (TypeError, ValueError):
+            return "—"
+
+    def _num(col: str, decimals: int = 0) -> str:
+        v = row.get(col, 0)
+        try:
+            f = float(v)
+            return f"{f:,.{decimals}f}"
+        except (TypeError, ValueError):
+            return "—"
+
+    c1, c2, c3, c4, c5, c6, c7, c8 = st.columns(8)
+    c1.metric("Łączna sprzedaż", _money("total_sales"))
+    c2.metric("Łączna marża", _money("total_margin"))
+    c3.metric("Marża %", _num("avg_margin_percent", 1) + " %")
+    c4.metric("Transakcje", _num("sales_line_count"))
+    c5.metric("Faktury", _num("invoice_count"))
+    c6.metric("Sklepy", _num("store_count"))
+    c7.metric("Produkty", _num("product_count"))
+    c8.metric("Śr. faktura", _money("avg_invoice_value"))
+    show_semantic_sources(["vw_kpi_summary"])
+
 
 def render_q1():
     st.header("Q1: Jak zmieniały się całkowita sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?")
@@ -626,6 +678,8 @@ def render_q12():
 st.title("Analityka dystrybucji detalicznej Iowa")
 st.caption("Dashboard oparty na warstwie semantycznej SQL Server.")
 show_dataset_status(read_extract_manifest())
+render_kpi_header()
+st.divider()
 
 tabs = st.tabs([f"Q{i}" for i in range(1, 13)])
 
