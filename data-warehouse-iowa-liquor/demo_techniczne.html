@@ -846,17 +846,21 @@
       <div class="mark">Iowa Liquor DW</div>
       <nav aria-label="Nawigacja">
         <a href="#start">Start</a>
-        <a href="#data">Dane w bazie</a>
+        <a href="#demo">Demo</a>
+        <a href="#input-data">Dane wejściowe</a>
         <a href="#business">Pytania</a>
-        <a href="#demo">Demo live</a>
-        <a href="#source">Dane</a>
-        <a href="#airflow">Airflow</a>
-        <a href="#etl">ETL</a>
+        <a href="#source">Źródło danych</a>
+        <a href="#data">Dane w bazie</a>
+        <a href="#transformacje">Transformacje</a>
         <a href="#layers">Warstwy</a>
         <a href="#model">Model</a>
         <a href="#semantic">Semantyka</a>
-        <a href="#dashboard">Dashboard</a>
+        <a href="#airflow">Airflow</a>
         <a href="#sql">SQL</a>
+        <a href="#etl">ETL</a>
+        <a href="#szczegolowy-etl">Szczegóły ETL</a>
+        <a href="#kontrole-jakosci">Kontrole</a>
+        <a href="#dashboard">Dashboard</a>
       </nav>
     </header>
 
@@ -958,11 +962,11 @@
               <tr><td><code>address</code></td><td>Główny adres (ulica) lokalizacji sklepu.</td><td><code>3221 SE 14th St</code></td></tr>
               <tr><td><code>city</code></td><td>Miasto, w którym zlokalizowany jest sklep.</td><td><code>Des Moines</code></td></tr>
               <tr><td><code>zip_code</code></td><td>Kod pocztowy sklepu.</td><td><code>50320</code></td></tr>
-              <tr><td><code>store_location</code></td><td>Współrzędne geograficzne sklepu w formacie geometrycznym lub WKT (Długość/Szerokość geograficzna). Często wymaga parsowania w procesie ETL.</td><td><code>POINT (-93.596754 41.554101)</code></td></tr>
+              <tr><td><code>store_location</code></td><td>Współrzędne geograficzne sklepu w formacie geometrycznym lub WKT (Długość/Szerokość geograficzna). Wymaga parsowania...</td><td><code>POINT (-93.596754 41.554101)</code></td></tr>
               <tr><td><code>county_number</code></td><td>Kod hrabstwa (county) w stanie Iowa przypisany do sklepu.</td><td><code>77</code></td></tr>
               <tr><td><code>county</code></td><td>Nazwa hrabstwa w stanie Iowa (np. Polk, Linn).</td><td><code>POLK</code></td></tr>
               <tr><td><code>category</code></td><td>Kod identyfikujący kategorię trunku.</td><td><code>1011100</code></td></tr>
-              <tr><td><code>category_name</code></td><td>Tekstowy opis kategorii trunku alkoholu wysokoprocentowego.</td><td><code>Blended Whiskies</code></td></tr>
+              <tr><td><code>category_name</code></td><td>tekstowy opis kategorii</td><td><code>Blended Whiskies</code></td></tr>
               <tr><td><code>vendor_number</code></td><td>Unikalny identyfikator dostawcy / producenta marki (Vendor).</td><td><code>65</code></td></tr>
               <tr><td><code>vendor_name</code></td><td>Nazwa firmy będącej dostawcą, destylarnią lub oficjalnym importerem.</td><td><code>Jim Beam Brands</code></td></tr>
               <tr><td><code>item_number</code></td><td>Stanowy kod ID konkretnego produktu / asortymentu (SKU).</td><td><code>27783</code></td></tr>
@@ -996,18 +1000,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>Q1</td><td>Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code>, Przegląd zarządczy</td></tr>
-              <tr><td>Q2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code>, Produkty i kategorie</td></tr>
-              <tr><td>Q3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code>, Wyniki sklepów</td></tr>
-              <tr><td>Q4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, Geografia</td></tr>
-              <tr><td>Q5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code>, Produkty i kategorie</td></tr>
-              <tr><td>Q6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code>, Produkty i kategorie</td></tr>
-              <tr><td>Q7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code>, Produkty i kategorie</td></tr>
-              <tr><td>Q8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code>, Produkty i kategorie</td></tr>
-              <tr><td>Q9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code>, Geografia</td></tr>
-              <tr><td>Q10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code>, Wyniki sklepów</td></tr>
-              <tr><td>Q11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code>, Przegląd zarządczy</td></tr>
-              <tr><td>Q12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q1</td><td>Jak zmieniały się całkowita sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code></td></tr>
+              <tr><td>Q2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code></td></tr>
+              <tr><td>Q3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code></td></tr>
+              <tr><td>Q4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, <code>sem.vw_sales_map_points</code></td></tr>
+              <tr><td>Q5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code></td></tr>
+              <tr><td>Q6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code></td></tr>
+              <tr><td>Q7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code></td></tr>
+              <tr><td>Q8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code></td></tr>
+              <tr><td>Q9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code></td></tr>
+              <tr><td>Q10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code></td></tr>
+              <tr><td>Q11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code></td></tr>
+              <tr><td>Q12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code></td></tr>
             </tbody>
           </table>
         </div>
@@ -1649,105 +1653,88 @@ QUIT</code></pre>
           <p>Proces ETL podzielony jest na etapy: ekstrakcję, staging, transformację i weryfikację.</p>
         </div>
 
-        <div class="flow" aria-label="Przepływ ETL">
-          <div class="flow-step"><b>Extract</b><small>Pobieranie danych.</small></div>
-          <div class="flow-step"><b>Prepare</b><small>Normalizacja.</small></div>
-          <div class="flow-step"><b>Staging</b><small>Ładowanie surowe.</small></div>
-          <div class="flow-step"><b>Dimensions</b><small>Budowa wymiarów.</small></div>
-          <div class="flow-step"><b>Fact</b><small>Ładowanie faktów.</small></div>
-          <div class="flow-step"><b>Quality</b><small>Walidacja.</small></div>
-        </div>
-      </section>
-
-      <section id="szczegolowy-etl">
+           <section id="szczegolowy-etl">
         <div class="section-head">
-          <h2>Szczegółowy kod ETL: Przewodnik Krok po Kroku</h2>
-          <p>Ten rozdział to dokładna dokumentacja "linijka po linijce", która wyjaśnia, co dokładnie dzieje się w kodzie podczas uruchamiania procesu ETL w tym projekcie.</p>
+          <h2>Oś czasu Airflow: Opis zadań i transformacji</h2>
+          <p>Poniższa lista odpowiada po kolei zadaniom widocznym na grafie w interfejsie Airflow. Zobaczysz tu, co dokładnie robi dany fragment kodu i jakie dane poddaje transformacji krok po kroku.</p>
         </div>
 
         <div class="two-col">
           <article class="panel">
-            <h3>KROK 1: Ekstrakcja (Extract)</h3>
-            <p><strong>Główny plik:</strong> <code>src/extract/socrata_extract.py</code></p>
+            <h3>1. extract_iowa_liquor_sales</h3>
+            <p><strong>Co robimy:</strong> Pobieramy dane z API.</p>
             <ul>
-              <li><strong>Konfiguracja:</strong> Ustalane są ramy czasowe. Domyślnie projekt przetwarza rok 2023-01-01 do 2023-12-31. Kod waliduje, by data początkowa nie była późniejsza niż końcowa.</li>
-              <li><strong>Pobieranie w pętli:</strong> Łączymy się z endpointem REST API przez bibliotekę <code>requests</code>. Używamy paginacji: <code>$limit</code> i <code>$offset</code>. Z każdym przebiegiem zapisywana jest "strona" (np. <code>part_000.csv</code>).</li>
-              <li><strong>Mechanizm Fallback Cache:</strong> Jeśli API Socrata zwróci błąd, kod w bloku <code>except requests.RequestException:</code> przechwytuje wyjątek. Sięga po zrzucone wcześniej pliki zapisane lokalnie, filtruje po polu daty, po czym przepisuje je jako udany plik ekstrakcji. <strong>Proces jest 100% niezależny od serwera, NIE GENERUJĄC sztucznych danych.</strong></li>
+              <li>Łączymy się z publicznym REST API (Socrata) dla zadanego przedziału dat. Z racji dużego wolumenu, pobieramy dane w małych paczkach (np. po 5000 wierszy) i odkładamy w formie plików CSV/JSON na dysku.</li>
+              <li>Mamy tu wbudowane zabezpieczenie na wypadek awarii sieci – jeżeli API odrzuci połączenie, używamy bloku <code>try...except</code>, by automatycznie wczytać starsze pliki z pamięci podręcznej (cache). Dzięki temu nie przerwiesz niespodziewanie pracy na pokazie.</li>
             </ul>
           </article>
 
           <article class="panel">
-            <h3>KROK 2: Obiekty SQL</h3>
-            <p><strong>Pliki:</strong> <code>01_create_schemas.sql</code>, <code>02_create_staging_tables.sql</code>, <code>03_create_dw_tables.sql</code></p>
+            <h3>2. create_sql_objects</h3>
+            <p><strong>Co robimy:</strong> Zerujemy bazę i stawiamy puste tabele.</p>
             <ul>
-              <li><strong>Staging:</strong> Tworzona jest wysoce tolerancyjna na błędy tabela, głownie typy <code>NVARCHAR</code> lub <code>DECIMAL</code>. Otrzymuje pole <code>staging_key BIGINT IDENTITY(1,1)</code>.</li>
-              <li><strong>Tabele DW:</strong> Skrypt wpierw zdejmuje relacje <code>ALTER TABLE dw.fact_sales DROP CONSTRAINT ...</code>, a potem robi <code>DROP TABLE</code> zapewniając czysty Full Refresh.</li>
-              <li>Każdy wymiar używa klucza syntetycznego <code>IDENTITY(1,1) NOT NULL PRIMARY KEY</code>.</li>
-              <li>Tworzona jest <code>dw.fact_sales</code> i odtwarzane są powiązania <code>FOREIGN KEY</code>.</li>
-            </ul>
-          </article>
-        </div>
-
-        <div class="two-col" style="margin-top:18px">
-          <article class="panel">
-            <h3>KROK 3: Ładowanie do Stagingu</h3>
-            <p><strong>Główny plik:</strong> <code>src/load/sqlserver_loader.py</code></p>
-            <ul>
-              <li><code>normalize_column_name</code> poprawia nazwy kolumn źródłowych w snake_case.</li>
-              <li><code>parse_location_value</code> czyta geolokalizator <code>POINT (-93 42)</code> i wyciąga z tego dokładne floaty dla <code>latitude</code> i <code>longitude</code>.</li>
-              <li><code>clean_money_or_number</code> fizycznie usuwa w Pythonie znaki <code>$</code> i przecinki by SQL w ogóle mógł przyjąć to do typu DECIMAL. Następnie <code>pd.to_numeric(errors="coerce")</code>.</li>
-              <li><strong>Suma kontrolna:</strong> <code>build_row_hash</code> łączy fakturę, datę i numer sklepu dając stały hash przy użyciu SHA-256.</li>
-              <li>Wrzut przez pandas w paczkach po 5000 sztuk. Przed wkładem uruchamiane jest <code>TRUNCATE TABLE</code>.</li>
-            </ul>
-          </article>
-
-          <article class="panel">
-            <h3>KROK 4: Ładowanie Wymiarów</h3>
-            <p><strong>Wywołanie:</strong> <code>warehouse_transform.py -&gt; load_dimensions()</code></p>
-            <ul>
-              <li>Przed wkładem uruchamiane jest <code>DBCC CHECKIDENT ('dw.[tabela]', RESEED, 0);</code>.</li>
-              <li><strong>dim_date:</strong> SQLowa funkcja <code>FORMAT()</code>, <code>DATEPART()</code> wyciąga dane z daty. Konstrukcja z <code>CASE</code> buduje flagę <code>is_weekend</code>.</li>
-              <li><strong>Rozwiązanie duplikatów:</strong> Projekt używa CTE wraz z funkcją okna: <br><code>ROW_NUMBER() OVER (PARTITION BY [Klucz] ORDER BY date DESC, staging_key DESC)</code>.<br>Bierzemy wyłącznie pierwszy rekord po dacie i zapisujemy go raz do wymiaru.</li>
-              <li><strong>dim_packaging:</strong> Logika <code>CASE WHEN</code> grupuje pojemności na koszyki ('small', 'standard' itd).</li>
+              <li>Na tym etapie ładujemy do serwera puste definicje bazy, czyli skrypty SQL (zaczynające się od <code>01...</code> do <code>03...</code>).</li>
+              <li>Nasz ETL działa w modelu "Full Refresh" – najpierw robimy bezwzględne <code>DROP CONSTRAINT</code> oraz <code>DROP TABLE</code> na istniejących strukturach, aby rozpocząć proces z idealnie wyczyszczoną bazą.</li>
+              <li>Od razu stawiamy docelowe struktury pod warstwę stagingową i naszą docelową gwiazdę (tabele wymiarów i faktów z wymuszonymi kluczami obcymi).</li>
             </ul>
           </article>
         </div>
 
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
-            <h3>KROK 5: Ładowanie Faktu Sprzedaży</h3>
-            <p><strong>Wywołanie:</strong> <code>warehouse_transform.py -&gt; load_fact_sales()</code></p>
+            <h3>3. load_staging</h3>
+            <p><strong>Co robimy:</strong> Przenosimy dane do SQL, mocno czyszcząc je w Pandasie.</p>
             <ul>
-              <li>Łączymy Staging jako instancję prawdy poprzez naturalne wartości kluczy na wygenerowane klucze syntetyczne w wymiarach (np. <code>JOIN dw.dim_store s ON s.store_number = raw.store_number</code>).</li>
-              <li>Pola liczbowe zabezpieczane są za pomocą <code>COALESCE(zmienna, 0)</code>.</li>
-              <li><strong>Wyliczenie marży w locie:</strong><br><code>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0)) * COALESCE(raw.bottles_sold, 0) AS margin_amount</code></li>
+              <li><strong>Czyszczenie tekstu i identyfikatorów:</strong> Ujednolicamy białe znaki w tekstach, nazwy własne podnosimy do formy <em>Title Case</em>, a klucze wymuszamy jako <em>UPPERCASE</em>. Kody pocztowe ucinamy sztywno do 5 cyfr. Nazwy kolumn zmieniamy na standardowy <code>snake_case</code>.</li>
+              <li><strong>Mycie walut:</strong> Pola z kwotami przychodzą jako tekst (np. <code>$1,234.56</code>). Usuwamy ręcznie dolary i przecinki, po czym parsujemy je do czystej liczby zmiennoprzecinkowej. Zabezpiecza to SQL przed błędem wstawiania tekstu w pole <code>DECIMAL</code>.</li>
+              <li><strong>Rozbicie GPS:</strong> Socrata zwraca punkt w formacie <code>POINT (-91.53 41.66)</code>. Prosty regex dzieli go na niezależne floaty: długość i szerokość geograficzną.</li>
+              <li><strong>Hash dla śledzenia:</strong> Łączymy datę, numer rachunku i numer sklepu w pojedynczy, unikalny podpis SHA-256 dla każdego wiersza, by móc tropić powtórzenia i logi.</li>
+              <li>Tak oczyszczony pakiet trafia prosto do technicznej tabeli <code>stg.iowa_liquor_sales_raw</code> w SQL Server.</li>
             </ul>
           </article>
 
           <article class="panel">
-            <h3>KROK 6: Tworzenie widoków semantycznych</h3>
-            <p><strong>Plik SQL:</strong> <code>sql/04_create_semantic_views.sql</code></p>
+            <h3>4. load_dimensions</h3>
+            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, korzystając z pełnej mocy SQL-a.</p>
             <ul>
-              <li>Widoki (Warstwa Gold) oddzielają bazę od dashboardu w <code>CREATE OR ALTER VIEW sem.[nazwa]</code>.</li>
-              <li><code>vw_sales_by_category</code> buduje obliczenia procentowego wkładu tworząc małe CTE <code>WITH totals AS (SELECT SUM(sale_dollars) AS all_sales ...)</code>.</li>
-              <li>Dzielenie sumy marży przez wolumen ma mechanizm przeciwko dzieleniu przez 0: <code>NULLIF(SUM(bottles_sold), 0)</code>.</li>
-              <li>Skomplikowany SQL został wypchnięty z kodu Streamlit do serwera.</li>
+              <li><strong>Obsługa braków:</strong> Ze stagingu wybieramy unikalne numery kategorii czy sklepów. Jeżeli źródło miało luki, z automatu (przez <code>COALESCE</code>) podmieniamy te puste pola na domyślny string <code>'UNKNOWN'</code>, aby uchronić bazę przed zgubieniem wierszy w kolejnym etapie.</li>
+              <li><strong>Odfiltrowanie duplikatów:</strong> Zdarza się, że ten sam sklep ma dwa nieco różne opisy w starych rachunkach. Funkcja analityczna <code>ROW_NUMBER() OVER(...)</code> dzieli bazę na unikalne sklepy i bierze tylko jeden (najświeższy) wiersz. Resztę bezwzględnie odrzucamy.</li>
+              <li><strong>Pojemności (Bucketing):</strong> Instrukcją <code>CASE WHEN</code> patrzymy na dokładne mililitry butelki i rzutujemy je na proste przedziały analityczne (np. przypisując <code>'small'</code> dla pojemności poniżej 500ml).</li>
+              <li><strong>Rozbicie kalendarza:</strong> Zwykła data dostaje u nas flagę oznaczającą, czy to był weekend. Wyciągamy też przetłumaczone na polski dni tygodnia ("poniedziałek") i miesiące, by analityk nie musiał tego liczyć samodzielnie.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>5. load_fact_sales</h3>
+            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy marże.</p>
+            <ul>
+              <li>Przechodzimy drugi raz po całym Stagingu i uderzamy do tabel wymiarów (wielki <code>JOIN</code>). Zastępujemy luźne dane na sztuczne, numeryczne identyfikatory wymiarów (Model Gwiazdy).</li>
+              <li>Gwarantujemy bezpieczeństwo kwot – pakujemy metryki finansowe w <code>COALESCE(wartosc, 0)</code>, zapobiegając dodawaniu wartości NULL, które popsułyby jakiekolwiek późniejsze sumowanie na dashboardzie.</li>
+              <li><strong>Liczenie marży w locie:</strong> Zanim wiersz w ogóle fizycznie trafi na dysk w bazie, robimy odejmowanie: od ceny sprzedaży odejmujemy koszt zakupu dla stanu, i mnożymy przez wolumen sprzedanych butelek. Od razu w hurtowni zyskujemy superważny atrybut – marżę.</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>6. create_semantic_views</h3>
+            <p><strong>Co robimy:</strong> Budujemy widoki pod aplikację (Warstwa Gold).</p>
+            <ul>
+              <li>Gdybyśmy pozwolili Pythonowi i Streamlitowi zliczać miliony wierszy w przeglądarce, aplikacja działałaby strasznie wolno. Dlatego powołujemy gotowe widoki (skryptem <code>CREATE VIEW sem.[nazwa]</code>).</li>
+              <li>Widoki od razu łączą pod spodem fakty z wymiarami, zliczają skomplikowane udziały procentowe rynków i ratują nas przed znanym błędem dzielenia przez zero, używając funkcji <code>NULLIF(suma, 0)</code>.</li>
             </ul>
           </article>
         </div>
         
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
-            <h3>KROK 7: Kontrola Jakości (Quality Checks)</h3>
-            <p><strong>Plik SQL:</strong> <code>sql/05_quality_checks.sql</code></p>
+            <h3>7. run_quality_checks</h3>
+            <p><strong>Co robimy:</strong> Egzaminujemy spójność danych na sam koniec.</p>
             <ul>
-              <li><code>eligible_staging_fact_row_count_difference</code>: Test sprawdza czy ilość po filtrowaniu ze stagingu to ta sama ilość odesłana do Faktu. Ma wyjść absolutne 0 odchyleń.</li>
-              <li><code>null_foreign_keys</code>: Zwraca ZERO, jeśli fakt bezpiecznie zmapował wszystkie wartości.</li>
-              <li><code>fact_dimension_join_failures</code>: Robi <code>LEFT JOIN</code> pod każdą parę i zlicza wiersze osierocone. Wynik to oczywiście wymuszone: 0.</li>
-              <li><code>duplicate_[X]_numbers</code>: Szuka takich samych numerków dla np. ID. Używa <code>GROUP BY</code>, jeśli posiada wynik <code>HAVING COUNT(*) &gt; 1</code>, podnosi alarm.</li>
+              <li><strong>Zaginione dane:</strong> Sprawdzamy surowym <code>LEFT JOIN</code> czy jakakolwiek pozycja na fakturze nie zgubiła po drodze swojego Sklepu, Produktu albo Daty. Odpowiedź musi równać się idealnemu zeru – jeśli nie, zadanie zawiesza się na czerwono.</li>
+              <li><strong>Ubytki ilościowe:</strong> Pytamy bazę, czy ilość wgranych początkowo wierszy zgadza się do sztuki z ostateczną tabelą Faktów. Każde najmniejsze odchylenie zatrzymuje proces.</li>
             </ul>
           </article>
-
         </div>
       </section>
 
