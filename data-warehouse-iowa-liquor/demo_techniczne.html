@@ -1021,6 +1021,9 @@
         <div class="section-head">
           <h2>Źródło danych</h2>
           <p>Źródłem danych jest zbiór Iowa Liquor Sales. Implementacja zawiera mechanizm buforowania plików lokalnie w celu zapewnienia stabilności.</p>
+          <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
+            <strong>Ciekawostka z życia inżyniera danych:</strong> Zaledwie w czerwcu 2026 r. stan Iowa postanowił bez wielkiego szumu przenieść swój portal z Socrata na Google Data Hub. Stare API wyparowało (zwracając urocze błędy 404), a nowe API obraziło się na paginację i każe nam pobierać kilka gigabajtów danych za każdym razem (brak wsparcia dla <code>$limit</code> i <code>$where</code>). Na szczęście nasz mechanizm fallbacku (<code>try...except</code>) i lokalny cache łapią ten błąd i płynnie podają zbuforowane dane. Uff! 😎
+          </div>
         </div>
 
         <div class="two-col">
@@ -1115,121 +1118,6 @@
         </div>
       </section>
 
-      <section id="transformacje">
-        <div class="section-head">
-          <h2>Inżynieria cech i czyszczenie danych</h2>
-          <p>Podjęte decyzje dotyczące transformacji danych obejmują dostosowanie formatów do wymagań typów bazodanowych oraz utworzenie dodatkowych atrybutów analitycznych dla modelu wielowymiarowego.</p>
-        </div>
-
-        <div class="two-col">
-          <article class="panel">
-            <h3>1. Czyszczenie wartości finansowych</h3>
-            <p><strong>Pole źródłowe:</strong> <code>state_bottle_cost</code>, <code>sale_dollars</code><br>
-            <strong>Wartość surowa:</strong> <code>"$1,234.56"</code><br>
-            <strong>Po transformacji:</strong> <code>1234.56</code> (Typ: <code>DECIMAL</code>)</p>
-            <p>Usunięcie symboli walut i separatorów tysięcy za pomocą metod na ciągach znaków w Pythonie. Skrypt wymusza rzutowanie na typ numeryczny przed wczytaniem danych do SQL Server.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
-<pre>def clean_money_or_number(series: pd.Series) -> pd.Series:
-    cleaned = (
-        series.astype("string")
-        .str.replace("$", "", regex=False)
-        .str.replace(",", "", regex=False)
-        .str.strip()
-    )
-    return pd.to_numeric(cleaned, errors="coerce")</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Dane źródłowe zawierają zanieczyszczenia, które uniemożliwiają poprawne typowanie w bazie (np. <code>$</code>, <code>,</code>). Wyczyszczenie po stronie Pythona (Pandas) pozwala na bezpieczny i szybki bulk insert natywnych typów numerycznych do bazy bez obciążania jej uciążliwymi operacjami na łańcuchach znaków.</p>
-          </article>
-
-          <article class="panel">
-            <h3>2. Wyodrębnianie współrzędnych</h3>
-            <p><strong>Pole źródłowe:</strong> <code>store_location</code><br>
-            <strong>Wartość surowa:</strong> <code>"POINT (-91.530463 41.666324)"</code><br>
-            <strong>Po transformacji:</strong> <code>latitude: 41.666324</code>, <code>longitude: -91.530463</code> (Typ: <code>FLOAT</code>)</p>
-            <p>Zastosowanie wyrażeń regularnych do wyodrębnienia szerokości i długości geograficznej z formatu przestrzennego WKT.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
-<pre>def parse_location_value(location: object) -> tuple[float | None, float | None]:
-    if not isinstance(location, str):
-        return None, None
-    match = re.search(r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", location)
-    if not match:
-        return None, None
-    longitude = float(match.group(1))
-    latitude = float(match.group(2))
-    return latitude, longitude</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Zamiast przechowywać długi łańcuch tekstowy typu POINT, optymalne jest wyodrębnienie dwóch niezależnych kolumn numerycznych. Standardowe raporty w narzędziach BI lub warstwy map przestrzennych w Streamlit natywnie przyjmują współrzędne w postaci dziesiętnej.</p>
-          </article>
-
-          <article class="panel">
-            <h3>3. Wzbogacenie wymiaru daty</h3>
-            <p><strong>Pole źródłowe:</strong> <code>date</code><br>
-            <strong>Wartość surowa:</strong> <code>"2023-11-25"</code><br>
-            <strong>Po transformacji:</strong> <code>year: 2023</code>, <code>month: 11</code>, <code>quarter: 4</code>, <code>is_weekend: 1</code>, <code>day_name_pl: 'Sobota'</code></p>
-            <p>Rozbicie daty na komponenty oraz dodanie znacznika typu dnia (weekend) w celu usprawnienia agregacji.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
-<pre>CASE WHEN DATENAME(weekday, date) IN ('Saturday', 'Sunday') 
-     THEN 1 ELSE 0 END AS is_weekend,
-CASE DATENAME(weekday, date)
-    WHEN 'Monday' THEN 'poniedzialek'
-    /* ... */
-    WHEN 'Sunday' THEN 'niedziela'
-END AS day_name_pl</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Analiza wzorców sprzedaży w zależności od dni roboczych/weekendów jest powszechnym wymogiem biznesowym. Umieszczenie tej logiki statycznie w strukturze wymiaru bazy <code>dim_date</code> gwarantuje, że skomplikowana kalkulacja realizowana jest tylko raz w trakcie ładowania (ETL), co radykalnie poprawia czytelność zapytań SQL i przyspiesza wyświetlanie raportów.</p>
-          </article>
-
-          <article class="panel">
-            <h3>4. Kategoryzacja pojemności (Bucketing)</h3>
-            <p><strong>Pole źródłowe:</strong> <code>bottle_volume_ml</code><br>
-            <strong>Wartość surowa:</strong> <code>750</code>, <code>1750</code>, <code>50</code><br>
-            <strong>Po transformacji:</strong> <code>volume_group</code> -> <code>"standard"</code>, <code>"large"</code>, <code>"small"</code></p>
-            <p>Grupowanie ciągłych wartości pojemności do dyskretnych przedziałów analitycznych.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
-<pre>CASE
-    WHEN bottle_volume_ml = 0 THEN 'unknown'
-    WHEN bottle_volume_ml &lt; 500 THEN 'small'
-    WHEN bottle_volume_ml &lt; 1000 THEN 'standard'
-    WHEN bottle_volume_ml &lt; 1750 THEN 'large'
-    ELSE 'extra_large'
-END AS volume_group</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Wartości ciągłe liczbowe (jak pojemność w ml) są trudne do ogólnej analizy trendowej. Przypisanie ich poprzez instrukcję CASE do zamkniętych klastrów "wiader" (ang. <i>buckets</i>) upraszcza zbiór. Zamiast kilkuset punktów otrzymujemy zwięzły atrybut wymiaru <code>dim_packaging</code> idealny do filtrowania i tworzenia czytelnych wykresów z udziałami (np. Pie Charts).</p>
-          </article>
-          
-          <article class="panel">
-            <h3>5. Wyliczanie miar pochodnych</h3>
-            <p><strong>Pola źródłowe:</strong> <code>state_bottle_retail</code>, <code>state_bottle_cost</code>, <code>bottles_sold</code><br>
-            <strong>Logika:</strong> <code>(Retail - Cost) * Bottles</code><br>
-            <strong>Po transformacji:</strong> Nowa miara: <code>margin_amount</code></p>
-            <p>Kalkulacja marży kwotowej na poziomie wiersza w celu uproszczenia zapytań agregujących.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
-<pre>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0))
-    * COALESCE(raw.bottles_sold, 0) AS margin_amount</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Materializacja kluczowej miary, jaką jest marża na etapie transformacji `fact_sales` likwiduje problem i koszty jej liczenia "w locie" na każdym żądaniu raportu. Funkcje COALESCE gwarantują tutaj odporność na błędy (NULLe) powodujące puste zwroty, zabezpieczając matematyczne równanie bazowe.</p>
-          </article>
-
-          <article class="panel">
-            <h3>6. Obsługa braków danych (Imputacja)</h3>
-            <p><strong>Pole źródłowe:</strong> <code>category_name</code>, <code>store_number</code><br>
-            <strong>Wartość surowa:</strong> <code>NULL</code>, <code>NaN</code>, puste <code>""</code><br>
-            <strong>Po transformacji:</strong> <code>"UNKNOWN"</code></p>
-            <p>Przypisanie wartości domyślnej "UNKNOWN" dla brakujących danych przy użyciu funkcji <code>COALESCE</code>.</p>
-            <div class="command" style="margin-top: 14px;">
-              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
-<pre>JOIN dw.dim_category c
-    ON c.category_number = COALESCE(NULLIF(raw.category, ''), 'UNKNOWN')</pre>
-            </div>
-            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Modelowanie wymiarowe często napotyka problem integralności danych. Fakty korzystają głównie ze złączeń <code>INNER JOIN</code>. Bez przypisania wartości "UNKNOWN" rekordy faktu o braku kategorii byłyby systemowo tracone ze strumienia. Konstrukcja <code>COALESCE(NULLIF(...))</code> to tzw. <i>early binding</i>, który kieruje brak do wiersza atrapowego "UNKNOWN", ocalając istotne miary wolumenowe paragonu.</p>
-          </article>
-        </div>
-      </section>
 
       <section id="layers">
         <div class="section-head">
@@ -1656,7 +1544,7 @@ QUIT</code></pre>
            <section id="szczegolowy-etl">
         <div class="section-head">
           <h2>Oś czasu Airflow: Opis zadań i transformacji</h2>
-          <p>Poniższa lista odpowiada po kolei zadaniom widocznym na grafie w interfejsie Airflow. Zobaczysz tu, co dokładnie robi dany fragment kodu i jakie dane poddaje transformacji krok po kroku.</p>
+          <p>Poniższa lista odpowiada po kolei zadaniom widocznym na grafie w interfejsie Airflow. Wzbogaciliśmy ją o <strong>konkretne przykłady z Inżynierii cech i Czyszczenia danych</strong> dokładnie tam, gdzie są wykonywane w kodzie (w Pythonie i SQL).</p>
         </div>
 
         <div class="two-col">
@@ -1682,38 +1570,101 @@ QUIT</code></pre>
 
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
-            <h3>3. load_staging</h3>
-            <p><strong>Co robimy:</strong> Przenosimy dane do SQL, mocno czyszcząc je w Pandasie.</p>
+            <h3>3. load_staging (Python / Pandas)</h3>
+            <p><strong>Co robimy:</strong> Przenosimy dane do SQL, wykonując gruntowne <strong>czyszczenie danych</strong> (Data Cleaning).</p>
             <ul>
-              <li><strong>Czyszczenie tekstu i identyfikatorów:</strong> Ujednolicamy białe znaki w tekstach, nazwy własne podnosimy do formy <em>Title Case</em>, a klucze wymuszamy jako <em>UPPERCASE</em>. Kody pocztowe ucinamy sztywno do 5 cyfr. Nazwy kolumn zmieniamy na standardowy <code>snake_case</code>.</li>
-              <li><strong>Mycie walut:</strong> Pola z kwotami przychodzą jako tekst (np. <code>$1,234.56</code>). Usuwamy ręcznie dolary i przecinki, po czym parsujemy je do czystej liczby zmiennoprzecinkowej. Zabezpiecza to SQL przed błędem wstawiania tekstu w pole <code>DECIMAL</code>.</li>
-              <li><strong>Rozbicie GPS:</strong> Socrata zwraca punkt w formacie <code>POINT (-91.53 41.66)</code>. Prosty regex dzieli go na niezależne floaty: długość i szerokość geograficzną.</li>
-              <li><strong>Hash dla śledzenia:</strong> Łączymy datę, numer rachunku i numer sklepu w pojedynczy, unikalny podpis SHA-256 dla każdego wiersza, by móc tropić powtórzenia i logi.</li>
-              <li>Tak oczyszczony pakiet trafia prosto do technicznej tabeli <code>stg.iowa_liquor_sales_raw</code> w SQL Server.</li>
+              <li><strong>Hash dla śledzenia:</strong> Łączymy datę, numer rachunku i numer sklepu w pojedynczy, unikalny podpis SHA-256. Następnie wykonujemy szereg operacji na tekście.</li>
             </ul>
+            
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Czyszczenie wartości finansowych</h4>
+            <p><strong>Pole źródłowe:</strong> <code>state_bottle_cost</code>, <code>sale_dollars</code><br>
+            <strong>Wartość surowa:</strong> <code>"$1,234.56"</code> ➔ <strong>Po:</strong> <code>1234.56</code> (DECIMAL)</p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
+<pre>def clean_money_or_number(series: pd.Series) -> pd.Series:
+    cleaned = (
+        series.astype("string")
+        .str.replace("$", "", regex=False)
+        .str.replace(",", "", regex=False)
+        .str.strip()
+    )
+    return pd.to_numeric(cleaned, errors="coerce")</pre>
+            </div>
+            
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Wyodrębnianie współrzędnych (GPS)</h4>
+            <p><strong>Pole źródłowe:</strong> <code>store_location</code><br>
+            <strong>Wartość surowa:</strong> <code>"POINT (-91.53 41.66)"</code> ➔ <strong>Po:</strong> <code>lat: 41.66</code>, <code>lon: -91.53</code></p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
+<pre>def parse_location_value(location: object) -> tuple[float | None, float | None]:
+    match = re.search(r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", str(location))
+    return float(match.group(2)), float(match.group(1)) if match else (None, None)</pre>
+            </div>
+            <p style="margin-top: 10px; font-size: 13px;">Tak oczyszczony pakiet trafia do technicznej tabeli <code>stg.iowa_liquor_sales_raw</code> w SQL Server.</p>
           </article>
 
           <article class="panel">
-            <h3>4. load_dimensions</h3>
-            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, korzystając z pełnej mocy SQL-a.</p>
+            <h3>4. load_dimensions (SQL)</h3>
+            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, aplikując tu potężną <strong>inżynierię cech</strong> (Feature Engineering) i deduplikację.</p>
             <ul>
-              <li><strong>Obsługa braków:</strong> Ze stagingu wybieramy unikalne numery kategorii czy sklepów. Jeżeli źródło miało luki, z automatu (przez <code>COALESCE</code>) podmieniamy te puste pola na domyślny string <code>'UNKNOWN'</code>, aby uchronić bazę przed zgubieniem wierszy w kolejnym etapie.</li>
-              <li><strong>Odfiltrowanie duplikatów:</strong> Zdarza się, że ten sam sklep ma dwa nieco różne opisy w starych rachunkach. Funkcja analityczna <code>ROW_NUMBER() OVER(...)</code> dzieli bazę na unikalne sklepy i bierze tylko jeden (najświeższy) wiersz. Resztę bezwzględnie odrzucamy.</li>
-              <li><strong>Pojemności (Bucketing):</strong> Instrukcją <code>CASE WHEN</code> patrzymy na dokładne mililitry butelki i rzutujemy je na proste przedziały analityczne (np. przypisując <code>'small'</code> dla pojemności poniżej 500ml).</li>
-              <li><strong>Rozbicie kalendarza:</strong> Zwykła data dostaje u nas flagę oznaczającą, czy to był weekend. Wyciągamy też przetłumaczone na polski dni tygodnia ("poniedziałek") i miesiące, by analityk nie musiał tego liczyć samodzielnie.</li>
+              <li><strong>Odfiltrowanie duplikatów:</strong> Bierzemy tylko "najświeższy" wiersz sklepu używając <code>ROW_NUMBER() OVER(...)</code>. Resztę bezwzględnie odrzucamy.</li>
             </ul>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Wzbogacenie wymiaru daty</h4>
+            <p>Rozbicie daty <code>"2023-11-25"</code> na komponenty w celu łatwiejszej analityki weekendowej.</p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>CASE WHEN DATENAME(weekday, date) IN ('Saturday', 'Sunday') 
+     THEN 1 ELSE 0 END AS is_weekend,
+CASE DATENAME(weekday, date)
+    WHEN 'Monday' THEN 'poniedzialek' /* ... */
+END AS day_name_pl</pre>
+            </div>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Kategoryzacja pojemności (Bucketing)</h4>
+            <p>Grupowanie trudnych wartości jak <code>750ml</code> do zwięzłego klastra analitycznego <code>"standard"</code>.</p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>CASE
+    WHEN bottle_volume_ml &lt; 500 THEN 'small'
+    WHEN bottle_volume_ml &lt; 1000 THEN 'standard'
+    WHEN bottle_volume_ml &lt; 1750 THEN 'large'
+    ELSE 'extra_large'
+END AS volume_group</pre>
+            </div>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Obsługa braków danych (Imputacja)</h4>
+            <p>Puste kategorie `NULL` w stagingu są zamieniane na `UNKNOWN`.</p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>JOIN dw.dim_category c
+    ON c.category_number = COALESCE(NULLIF(raw.category, ''), 'UNKNOWN')</pre>
+            </div>
           </article>
         </div>
 
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
             <h3>5. load_fact_sales</h3>
-            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy marże.</p>
+            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy docelowe miary.</p>
             <ul>
-              <li>Przechodzimy drugi raz po całym Stagingu i uderzamy do tabel wymiarów (wielki <code>JOIN</code>). Zastępujemy luźne dane na sztuczne, numeryczne identyfikatory wymiarów (Model Gwiazdy).</li>
-              <li>Gwarantujemy bezpieczeństwo kwot – pakujemy metryki finansowe w <code>COALESCE(wartosc, 0)</code>, zapobiegając dodawaniu wartości NULL, które popsułyby jakiekolwiek późniejsze sumowanie na dashboardzie.</li>
-              <li><strong>Liczenie marży w locie:</strong> Zanim wiersz w ogóle fizycznie trafi na dysk w bazie, robimy odejmowanie: od ceny sprzedaży odejmujemy koszt zakupu dla stanu, i mnożymy przez wolumen sprzedanych butelek. Od razu w hurtowni zyskujemy superważny atrybut – marżę.</li>
+              <li>Uderzamy do tabel wymiarów (wielki <code>JOIN</code>) zastępując dane tekstowe numerycznymi identyfikatorami (Model Gwiazdy).</li>
             </ul>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Wyliczanie miar pochodnych (Inżynieria Cech)</h4>
+            <p><strong>Pola źródłowe:</strong> <code>Retail</code>, <code>Cost</code>, <code>Bottles</code> ➔ <strong>Logika:</strong> <code>(Retail - Cost) * Bottles</code></p>
+            <p>Marża kwotowa liczona na poziomie każdego pojedynczego rachunku już podczas ładowania (zabezpieczona przed błędami matematycznymi na NULLach).</p>
+            <div class="command" style="margin-top: 10px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0))
+    * COALESCE(raw.bottles_sold, 0) AS margin_amount</pre>
+            </div>
           </article>
 
           <article class="panel">
