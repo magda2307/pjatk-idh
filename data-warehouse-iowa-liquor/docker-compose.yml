@@ -37,7 +37,7 @@ services:
       PROJECT_ROOT: /opt/airflow/project
       IOWA_START_DATE: "2023-01-01"
       IOWA_END_DATE: "2023-12-31"
-      SOCRATA_LIMIT: "50000"
+      SOCRATA_LIMIT: "5000"
       SQLSERVER_HOST: sqlserver
       SQLSERVER_PORT: "1433"
       SQLSERVER_DATABASE: IowaLiquorDW

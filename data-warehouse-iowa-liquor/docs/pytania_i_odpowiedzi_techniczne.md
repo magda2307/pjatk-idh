@@ -16,9 +16,9 @@ Publiczny endpoint może być niedostępny albo zmieniony. Żeby demo było stab
 
 Nie, bo fallback nie tworzy danych. On filtruje realne rekordy z raw CSV.
 
-## 5. Dlaczego jeden dzień w live demo?
+## 5. Jaki zakres dat pokazujemy w live demo?
 
-Pełny rok jest cięższy i wolniejszy. Na prezentacji ważne jest pokazanie działającego procesu ETL. Jeden dzień używa tego samego kodu i tej samej architektury.
+Domyślnie DAG jest ustawiony na pełny rok 2023: `2023-01-01` do `2023-12-31`. Źródłowe API/katalog Iowa Liquor Sales opisuje dane od `2012-01-01` do danych bieżących. Jeśli trzeba zrobić krótszy test techniczny, w Airflow można zawęzić `start_date` i `end_date`, ale nie jest to ograniczenie projektu.
 
 ## 6. Jaki jest model danych?
 
@@ -84,27 +84,37 @@ Na prezentacji lepiej z Airflow UI. Wtedy widać DAG, kolejność zadań, status
 
 Dockerowa komenda jest planem B. Jest dobra, gdy UI się zawiesi albo trzeba szybko sprawdzić pipeline bez klikania.
 
-## 14b. Jak ustawić miesiąc w Airflow UI?
+## 14b. Jak ustawić domyślny zakres w Airflow UI?
 
-Przy ręcznym uruchomieniu DAG-a `iowa_liquor_etl` można podać konfigurację JSON:
+Przy ręcznym uruchomieniu DAG-a `iowa_liquor_etl` kliknij `Trigger DAG`. Airflow pokaże pola:
+
+- `start_date`
+- `end_date`
+- `limit`
+
+Format dat to `YYYY-MM-DD`, na przykład `2023-01-01`.
+
+Domyślny zakres projektu to pełny rok 2023:
 
 ```json
 {
   "start_date": "2023-01-01",
-  "end_date": "2023-01-31",
-  "limit": 50000
-}
-```
-
-To ładuje styczeń. Dla jednego dnia demo:
-
-```json
-{
-  "start_date": "2023-01-03",
-  "end_date": "2023-01-03",
+  "end_date": "2023-12-31",
   "limit": 5000
 }
 ```
+
+Ustaw domyślny zakres projektu:
+
+```json
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "limit": 5000
+}
+```
+
+Ten sam zakres obowiązuje w Docker Compose, Airflow UI i terminalowym uruchomieniu ETL.
 
 ## 15. Co jest hurtownią?
 
@@ -183,9 +193,10 @@ Minimalny dowód:
 
 ```powershell
 docker compose ps
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 Invoke-WebRequest http://localhost:8501 -UseBasicParsing
 ```
+
+Na prezentacji najważniejszy dowód ETL pokazuj przez Airflow UI: DAG `iowa_liquor_etl`, przycisk `Trigger DAG`, parametry pełnego roku 2023 i statusy tasków w widoku Grid/Graph.
 
 ## 24. Co jeśli padnie internet?
 

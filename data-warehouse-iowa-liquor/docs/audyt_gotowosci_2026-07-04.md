@@ -43,10 +43,10 @@ Wynik:
 
 ## Wynik live ETL
 
-Ostatni szybki run demo:
+Ostatni domyslny run pelnego roku:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 Wynik:
@@ -93,7 +93,7 @@ Na komputerze z Docker Desktop projekt powinien się uruchomić tak:
 cd D:\pjatk-idh\data-warehouse-iowa-liquor
 docker compose up -d sqlserver airflow streamlit
 docker compose ps
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 Adresy:

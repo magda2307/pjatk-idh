@@ -52,16 +52,16 @@ SQL Server: admin / admin
 Szybkie uruchomienie ETL do prezentacji z terminala:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
-Ten sam proces można uruchomić w Airflow UI. W DAG-u `iowa_liquor_etl` kliknij trigger/play i podaj konfigurację, na przykład dla stycznia:
+Ten sam proces można uruchomić w Airflow UI. W DAG-u `iowa_liquor_etl` kliknij trigger/play i podaj domyślną konfigurację pełnego roku 2023:
 
 ```json
 {
   "start_date": "2023-01-01",
-  "end_date": "2023-01-31",
-  "limit": 50000
+  "end_date": "2023-12-31",
+  "limit": 5000
 }
 ```
 
@@ -78,6 +78,20 @@ Initial ETL finished
 ```
 
 Pełniejsza instrukcja jest w [docs/start_na_czystym_komputerze.md](docs/start_na_czystym_komputerze.md).
+
+## Uruchomienie w GitHub Codespaces
+
+Projekt można również uruchomić w chmurze za pomocą GitHub Codespaces (które ma wbudowaną obsługę Dockera):
+
+1. Na stronie repozytorium na GitHubie kliknij zielony przycisk **Code** -> zakładka **Codespaces** -> **Create codespace on main**.
+2. Poczekaj na uruchomienie środowiska (otworzy się VS Code w przeglądarce).
+3. W terminalu na dole ekranu uruchom:
+   ```bash
+   docker compose up -d sqlserver airflow streamlit
+   ```
+4. Codespaces automatycznie wykryje usługi i przekieruje porty. Przejdź do zakładki **Ports** (obok Terminala).
+5. Kliknij ikonę globu (Open in Browser) przy portach `8080` (Airflow) i `8501` (Streamlit).
+6. Uruchom proces ETL identycznie jak w przypadku lokalnym (przez Airflow UI lub terminal).
 
 ## Jeśli Airflow nie odpowiada
 

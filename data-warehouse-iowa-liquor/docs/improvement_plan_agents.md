@@ -28,7 +28,7 @@ Projekt ma pokazac kompletna hurtownie danych dla analizy sprzedazy detalicznej 
 | Priorytet | Obszar | Co brakuje / co jest niejasne | Dlaczego wazne | Efekt po poprawie |
 |---|---|---|---|---|
 | P1 | Spolnosc dokumentacji | `progress.md` nadal mowi o 10 pytaniach biznesowych, a README i `business_requirements.md` mowia o 12. | Niespojnosc moze wygladac jak nieukonczona zmiana zakresu. | Wszystkie dokumenty mowia jednym glosem o 12 pytaniach. |
-| P1 | Dowod dzialania | Zweryfikowany stan demo opisuje tylko jednodniowy zakres `2023-01-03`. | Projekt ma domyslny zakres roczny, wiec warto miec mocniejszy dowod przynajmniej dla wiekszego wycinka. | Obrona ma silniejszy argument, ze pipeline skaluje sie ponad jeden dzien. |
+| P1 | Dowod dzialania | Zweryfikowany stan demo powinien opisywac domyslny zakres `2023-01-01` do `2023-12-31`. | Projekt ma domyslny zakres roczny, wiec dowod dzialania powinien uzywac tego samego zakresu. | Obrona ma jasny argument, ze pipeline dziala dla pelnego roku 2023. |
 | P1 | Kryteria ukonczenia | Brakuje jednej checklisty "gotowe do oddania". | Latwo przeoczyc wymaganie projektowe lub element prezentacji. | Ocena statusu projektu jest szybka i jednoznaczna. |
 | P2 | Slownictwo | Dokumenty mieszaja polski opis z angielskimi nazwami raportow i polami technicznymi. | To jest akceptowalne technicznie, ale moze oslabic czytelnosc. | Nazwy sa konsekwentne: techniczne po angielsku, opis po polsku. |
 | P2 | Mermaid/linki | README zawiera absolutne linki lokalne typu `/D:/...`. | Dziala lokalnie, ale gorzej wyglada na GitHub. | Linki relatywne dzialaja lokalnie i na GitHub. |
@@ -61,8 +61,8 @@ Cel: przygotowac twardy dowod, ze pipeline i raporty dzialaja.
 
 Zadania:
 
-- Uruchomic szybki demo run dla jednego dnia i zapisac wynik.
-- Jesli zasoby pozwola, uruchomic wiekszy zakres, np. tydzien lub miesiac.
+- Uruchomic domyslny pelnoroczny run i zapisac wynik.
+- Uruchomic domyslny zakres `2023-01-01` do `2023-12-31`.
 - Zapisac liczby: staging rows, fact rows, null foreign keys, negative measures, liczba widokow `sem` z danymi.
 - Utworzyc `docs/validation_report.md` z data uruchomienia, zakresem danych, komendami i wynikami.
 - Dopisac w README link do raportu walidacji.
@@ -93,7 +93,7 @@ Cel: upewnic sie, ze dashboard odpowiada na pytania bez tlumaczenia tabel techni
 
 Zadania:
 
-- Sprawdzic cztery strony dashboardu: Executive overview, Product and category analysis, Geography analysis, Store performance.
+- Sprawdzic cztery strony dashboardu: Przeglad zarzadczy, Produkty i kategorie, Geografia, Wyniki sklepow.
 - Zweryfikowac, czy kazda strona ma KPI, wykres i tabele tam, gdzie ma to sens.
 - Dodac krotkie biznesowe tytuly sekcji zamiast technicznych opisow.
 - Upewnic sie, ze eksport CSV dziala dla glownych tabel.

@@ -172,18 +172,24 @@ Manifest mówi między innymi:
 - ile wierszy zostało przetworzonych,
 - które pliki były źródłem dla runu.
 
-Na live demo aktualny zakres może być jednodniowy, np.:
+Opis katalogowy Iowa Liquor Sales podaje zakres od `2012-01-01` do danych bieżących. Projekt domyślnie analizuje pełny rok 2023:
 
 ```text
-2023-01-03 -> 2023-01-03
+2023-01-01 -> 2023-12-31
 ```
 
-To nie oznacza, że projekt jest tylko jednodniowy. To oznacza, że do prezentacji używa się krótszego zakresu, żeby ETL przeszedł szybko i stabilnie.
+Daty w Airflow wpisuje się w formacie:
+
+```text
+YYYY-MM-DD
+```
+
+To nie oznacza, że API ma tylko dane z 2023 roku. To znaczy, że projekt wybrał konkretny roczny wycinek do hurtowni i raportów.
 
 Jak to tłumaczyć:
 
 ```text
-Pełny zakres danych może być większy, ale na prezentacji uruchamiamy jeden dzień, żeby pokazać cały mechanizm ETL live bez czekania na długi pełnoroczny run.
+Źródłowy zbiór jest szerszy, od 2012-01-01 do danych bieżących. W projekcie domyślnie ładujemy pełny rok 2023, a w Airflow można zawęzić zakres dla krótkiego testu technicznego.
 ```
 
 ---
@@ -208,7 +214,7 @@ To znaczy:
 2. Jeśli API działa, zapisuje dane do raw CSV.
 3. Jeśli API zwróci błąd, ETL nie generuje sztucznych danych.
 4. ETL używa lokalnych, realnych plików raw z wcześniejszego pobrania.
-5. Filtruje je do zakresu demo.
+5. Filtruje je do wybranego zakresu dat.
 6. Zapisuje roboczy ekstrakt do `data/processed/fallback_raw`.
 
 Najważniejsze zdanie:
@@ -394,10 +400,10 @@ IOWA_END_DATE
 SOCRATA_LIMIT
 ```
 
-Na demo:
+Domyślnie w projekcie:
 
 ```text
-2023-01-03 -> 2023-01-03
+2023-01-01 -> 2023-12-31
 ```
 
 Po co ten krok?
@@ -1110,17 +1116,34 @@ Airflow: http://localhost:8080
 Streamlit: http://localhost:8501
 ```
 
-Uruchom live ETL:
+Uruchom live ETL w Airflow UI:
 
-```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+1. Wejdź na `http://localhost:8080`.
+2. Zaloguj się `admin / admin`.
+3. Otwórz DAG `iowa_liquor_etl`.
+4. Kliknij `Trigger DAG`.
+5. Sprawdź parametry `start_date`, `end_date`, `limit`.
+6. Domyślnie powinno być:
+
+```json
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "limit": 5000
+}
 ```
 
-W logach szukaj:
+Plan B z terminala:
+
+```powershell
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+```
+
+W logach szukaj statusów i quality checks. Konkretne liczby zależą od zakresu dat:
 
 ```text
-Loaded 10634 total rows into stg.iowa_liquor_sales_raw
-Loaded 10624 rows into dw.fact_sales
+Loaded ... total rows into stg.iowa_liquor_sales_raw
+Loaded ... rows into dw.fact_sales
 Quality check eligible_staging_fact_row_count_difference = 0
 Quality check null_foreign_keys = 0
 Quality check fact_dimension_join_failures = 0
@@ -1176,12 +1199,12 @@ Ten DAG reprezentuje cały proces ETL: ekstrakcję, przygotowanie SQL, ładowani
 
 ### Krok 3: ETL
 
-Uruchom komendę demo.
+Uruchom DAG z Airflow UI.
 
 Powiedz:
 
 ```text
-Uruchamiam jednodniowy zakres demonstracyjny. To nie jest ograniczenie projektu, tylko sposób, żeby pokazać cały proces live bez długiego czekania.
+Domyślnie uruchamiam pełny rok 2023. Jeśli trzeba skrócić czas testu, Airflow pozwala zawęzić `start_date` i `end_date` dla konkretnego runu.
 ```
 
 ### Krok 4: Quality checks
@@ -1423,13 +1446,13 @@ Streamlit to raportowanie. Hurtownia jest w SQL Server.
 Nie mów:
 
 ```text
-Jednodniowy zakres to cały projekt.
+Zakres inny niż pełny rok 2023 to cały projekt.
 ```
 
 Mów:
 
 ```text
-Jednodniowy zakres to szybki zakres demonstracyjny.
+Domyślny zakres projektu to pełny rok 2023, a źródłowe API opisuje dane od 2012-01-01 do danych bieżących.
 ```
 
 Nie mów:
@@ -1473,7 +1496,7 @@ Ujemne rekordy raw są realnymi korektami źródłowymi, ale nie trafiają do fa
 ```
 
 ```text
-Zakres jednodniowy jest zakresem demo, a nie ograniczeniem projektu.
+Domyślny zakres ETL to pełny rok 2023. Airflow pozwala zmienić `start_date` i `end_date` dla konkretnego uruchomienia.
 ```
 
 ```text
@@ -1528,3 +1551,113 @@ Najważniejsza odpowiedź na pytanie "o co chodzi w tym projekcie":
 ```text
 Chodzi o pokazanie pełnej architektury hurtowni danych: od realnych danych transakcyjnych Iowa Liquor Sales, przez ETL i model gwiazdy w SQL Server, do widoków semantycznych i polskiego dashboardu, który odpowiada na pytania biznesowe o sprzedaż, marżę, produkty, sklepy, geografię, vendorów i opakowania.
 ```
+
+---
+
+## 31. Kod ETL: Dokładny Przewodnik Krok po Kroku
+
+Ten rozdział to dokładna dokumentacja "linijka po linijce", która wyjaśnia, co dokładnie dzieje się w kodzie podczas uruchamiania procesu ETL w tym projekcie. Przeznaczony jest jako ściągawka techniczna na obronę. Zbudowany z naciskiem na techniczne konkrety i realne implementacje.
+
+### Orkiestrator: `dags/iowa_liquor_etl_dag.py`
+
+Cały proces ETL jest sterowany przez Apache Airflow za pomocą pliku `dags/iowa_liquor_etl_dag.py`. Jest to DAG (Directed Acyclic Graph), który wymusza twardą kolejność wykonania zadań.
+
+**Zadania w DAGu (w kolejności wykonywania):**
+1. `extract_iowa_liquor_sales()`: Wywołuje kod z `src.extract.socrata_extract`.
+2. `create_sql_objects()`: Wywołuje SQL przygotowujący schematy i tabele.
+3. `load_staging()`: Wrzuca pliki CSV do tabeli stagingowej przez `src.load.sqlserver_loader`.
+4. `load_dimensions()`: Przetwarza dane ze stagingu do wymiarów.
+5. `load_fact_sales()`: Ładuje tabelę faktów `dw.fact_sales`.
+6. `create_semantic_views()`: Tworzy widoki biznesowe `sem.*`.
+7. `run_quality_checks()`: Wykonuje skrypty kontroli jakości.
+
+Linia wymuszająca kolejność w Airflow (tzw. bitshift operator):
+`raw_files >> objects_created >> staged_rows >> dimensions_loaded >> fact_rows >> views_created >> checks`
+
+### KROK 1: Ekstrakcja danych (Extract)
+**Główny plik:** `src/extract/socrata_extract.py`
+
+Zadaniem ekstrakcji jest pobranie danych z zewnętrznego API publicznego (Socrata - Iowa Liquor Sales) i zapisanie ich lokalnie jako pliki CSV w folderze `data/raw`.
+
+**Jak to działa technicznie w kodzie:**
+1. **Konfiguracja (`IowaLiquorExtractConfig`)**: Ustalane są ramy czasowe. Domyślnie projekt przetwarza rok `2023-01-01` do `2023-12-31`. Kod waliduje, by data początkowa nie była późniejsza niż końcowa.
+2. **Pobieranie w pętli (`extract_iowa_liquor_sales`)**: 
+   - Łączymy się z endpointem REST API przez bibliotekę `requests`.
+   - Żeby nie przeciążyć API, używamy paginacji: parametry zapytania `$limit` (domyślnie 5000) i `$offset`.
+   - Z każdym przebiegiem pętli skrypt zapisuje "stronę" danych do pliku CSV (np. `iowa_liquor_sales_2023_part_000.csv`).
+3. **Mechanizm Fallback Cache (`write_cached_extract_from_raw_files`)**:
+   - Jeśli API Iowa (Socrata) zwróci błąd lub będzie offline (np. status 404 lub 503), kod w bloku `except requests.RequestException:` przechwytuje wyjątek.
+   - Kod natychmiast sięga po zrzucone wcześniej oryginalne pliki `_part_X.csv` zapisane lokalnie, ładuje je w Pythonie przez wbudowaną bibliotekę `csv`, filtruje po polu daty pod żądany w konfiguracji zakres (`row_date_is_in_range`), po czym przepisuje je jako udany plik ekstrakcji. **Dzięki temu proces jest 100% niezależny od zewnętrznego serwera na czas prezentacji, jednocześnie NIE GENERUJĄC ŻADNYCH sztucznych danych.**
+
+### KROK 2: Przygotowanie obiektów SQL
+**Pliki SQL:** `01_create_schemas.sql`, `02_create_staging_tables.sql`, `03_create_dw_tables.sql`
+**Wywołanie:** `src/transform/warehouse_transform.py -> create_sql_objects()`
+
+- **Staging (`stg.iowa_liquor_sales_raw`)**: Tworzona jest wysoce tolerancyjna na błędy tabela, posiadająca głównie typy tekstowe (`NVARCHAR`) lub precyzyjne dziesiętne (`DECIMAL`). Działa jak surowy wsad. Otrzymuje wygenerowane pole `staging_key BIGINT IDENTITY(1,1)` by identyfikować konkretny fizyczny załadunek.
+- **Tabele DW (`03_create_dw_tables.sql`)**: 
+  1. Skrypt kasuje tabele na starcie upewniając się, że wykonujemy czysty (Full) Refresh. Robi to poprzez wpierw zdjęcie relacji: `ALTER TABLE dw.fact_sales DROP CONSTRAINT ...` a potem `DROP TABLE`. 
+  2. Tabele wymiarów powstają za sprawą komend `CREATE TABLE dw.dim_[tabela]`. Każdy z wymiarów używa klucza syntetycznego `IDENTITY(1,1) NOT NULL PRIMARY KEY`, czyli SQL Server sam generuje numer +1 dla każdego nowego np. sprzedawcy czy sklepu, a my unikamy polegania na "tekstowych numerkach" od vendora.
+  3. Tworzona jest ostateczna tabela faktu `dw.fact_sales`, do której natychmiast dodawane są odrzucone uprzednio obostrzenia (Constraints) `FOREIGN KEY`.
+
+### KROK 3: Ładowanie do Stagingu (Load)
+**Główny plik:** `src/load/sqlserver_loader.py`
+
+Używając `pandas`, transformujemy zebrane CSVki i przesyłamy je do bazy za pomocą transakcji wsadowej.
+
+**Sekcja czyszczenia w pandas:**
+1. `normalize_column_name` poprawia nazwy kolumn źródłowych w snake_case (np. z *Sale (Dollars)* na *sale_dollars*).
+2. `parse_location_value` czyta parsowany geolokalizator `POINT (-93 42)` i wyrażeniami regularnymi wyciąga z tego dokładne floaty dla kolumn `latitude` i `longitude`.
+3. `clean_money_or_number` fizycznie usuwa w Pythonie znaki `$` i ` ,` by SQL w ogóle mógł przyjąć to do typu DECIMAL. Następnie wywoływany jest mechanizm konwertowania przez `pd.to_numeric(errors="coerce")`.
+4. Obliczana jest suma kontrolna wiersza: `build_row_hash`. Połączenie faktury, daty, numeru sklepu i innych daje nam stały hash w systemie z pomocą wbudowanej w Pythona biblioteki `hashlib` (używając SHA-256). Idealne miejsce gdyby ktoś spytał o potencjał na *Incremental Load*.
+
+Po "umyciu" skrypt wywołuje zapytanie bazodanowe używając biblioteki złącza. Funkcja `insert_dataframe_to_staging` wrzuca rekordy w paczkach po `5000` sztuk do `stg.iowa_liquor_sales_raw`. Z bazą ucinamy procesy komendą `TRUNCATE TABLE`, to resetuje staging na zero przed każdym włożeniem.
+
+### KROK 4: Ładowanie Wymiarów
+**Wywołanie:** `src/transform/warehouse_transform.py -> load_dimensions()`
+
+W tym kroku wykonujemy serię zapytań SQL w Pythonie (kod jest zaszyty pod `execute_non_query`), przetwarzając brudne dane stagingu w eleganckie zdeduplikowane wymiary. Przed wkładem uruchamiane jest `DBCC CHECKIDENT ('dw.[tabela]', RESEED, 0);`, co resetuje numery syntetyczne.
+
+**Jak zasilane są konkretne wymiary:**
+- **`dim_date`**: Ekstrakcja z dat transakcji ze stagingu (`stg.date`). SQLowa funkcja `FORMAT()` oraz `DATEPART()` czy `DATENAME()` wyciąga z daty numery dni, kwartałów. Konstrukcja z `CASE` buduje flagę logiki `is_weekend` wynoszącą `1` jeśli jest to `Saturday` albo `Sunday`. Zbudowano też mapowanie na polskie nazwy dni i miesięcy.
+- **Inne wymiary (np. `dim_store`, `dim_product`, `dim_category`, `dim_vendor`)**:
+  Rozwiązano potężny problem analityczny: brudne adresy / opisy w czasie, które powodowałyby miliony duplikatów.
+  Projekt używa tu CTE wraz z funkcją okna: 
+  `ROW_NUMBER() OVER (PARTITION BY [Klucz_biznesowy] ORDER BY date DESC, staging_key DESC)`
+  Dzięki temu bierzemy wszystkie wiersze stagingu, "grupujemy" po np. numerze produktu, a następnie bierzemy wyłącznie pierwszy po dacie (czyli ten najnowszy) i zapisujemy go raz do wymiaru.
+- **`dim_packaging`**: Grupuje pojemności na "koszyki": logika oparta o `CASE WHEN ... THEN` decyduje, że poniżej 500ml to 'small', poniżej 1000ml to 'standard' itd.
+
+### KROK 5: Ładowanie Faktu Sprzedaży
+**Wywołanie:** `src/transform/warehouse_transform.py -> load_fact_sales()`
+
+Złożenie całej układanki po raz kolejny w jednym zapytaniu SQL w Pythonie. Pamiętaj: "Ziarno faktu to jeden wiersz sprzedaży z pojedynczej faktury i sklepu".
+
+1. Łączymy Staging jako instancję prawdy wejściowej (`FROM stg.iowa_liquor_sales_raw raw`) poprzez naturalne wartości kluczy na wygenerowane klucze syntetyczne w wymiarach (np. `JOIN dw.dim_store s ON s.store_number = raw.store_number`). Oczywiście użyto tu poprawnego parowania z poszczególnymi atrybutami (do date klucz, do store klucz itd).
+2. Pola liczbowe w zapytaniu `INSERT INTO` (takie jak sprzedaż czy butelki) zabezpieczane są przez zjawiskiem zwanym NULL, za pomocą `COALESCE(zmienna, 0)`.
+3. Wyliczenie marży: 
+   Realizowane we wskazanym równaniu: `(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0)) * COALESCE(raw.bottles_sold, 0) AS margin_amount`. Mnożenie przez liczbę butelek gwarantuje odpowiednią relację sztuka do zysku.
+
+### KROK 6: Tworzenie widoków semantycznych
+**Plik SQL:** `sql/04_create_semantic_views.sql`
+
+Widoki (Views) robią za tzw. Warstwę Gold. Oddzielają "brzydki kod bazodanowy pełen tabelek" od ładnego dashboardu, łącząc wstępnie wymiary z faktami. W SQL uruchamiane są skrypty `CREATE OR ALTER VIEW sem.[nazwa]`.
+
+**Wyliczanie kluczowych rzeczy w widokach:**
+- Zawsze odbywa się relacyjne łączenie tabelek (`JOIN dw.dim_product p ON p.product_key = f.product_key`).
+- `vw_sales_by_category` np. buduje obliczenia procentowego wkładu w całą sprzedaż dla danych towarów (tworząc małe CTE: `WITH totals AS (SELECT SUM(sale_dollars) AS all_sales FROM dw.fact_sales)` i potem wykorzystuje go w liczniku ułamka dla podpiętych wierszy).
+- Dzielenie sumy marży przez wolumen ma w locie mechanizm przeciwko dzieleniu przez 0 poprzez wykorzystanie `NULLIF(SUM(bottles_sold), 0)`.
+Krótko: Cały skomplikowany SQL został wypchnięty z kodu widoku (Streamlit) do serwera (SQL Server), bo to do tego on służy.
+
+### KROK 7: Kontrola Jakości (Quality Checks)
+**Plik SQL:** `sql/05_quality_checks.sql`
+
+Ostatni blok DAGa to potężne narzędzie testowe. Wykonuje ono zapytania testujące integralność. Jeśli w logach DAGa pojawi się błąd/nieprawidłowa wartość, oznacza to, że kod ETL zadziałał niewłaściwie. Czego dokładnie szukają testy zapisane w w/w pliku?
+
+1. **`eligible_staging_fact_row_count_difference`**: Test filtrujący wyrzuca korekty ("ujemne miary w dolarach"). Sprawdza czy ilość po filtrowaniu ze stagingu to ta sama ilość odesłana do Faktu. Ma wyjść dokładnie ABSOLUTNE 0 odchyleń w wierszach.
+2. **`null_foreign_keys`**: Zwraca ZERO, jeśli fakt bezpiecznie i bez strat (bez dziur i wierszy "widmo") zmapował wszystkie wartości pod klucze typu (sklep_id, date_id...).
+3. **`fact_dimension_join_failures`**: Robi `LEFT JOIN` pod każdą parę i zlicza wiersze osierocone (zjawisko np. gdzie mamy id_vendora w stagingu ale takiego vendora nie założyliśmy w tabeli). Wynik to oczywiście wymuszone: 0.
+4. **`duplicate_[X]_numbers`**: Rozbija się na szereg zapytań (np. `duplicate_category_numbers`), testując wszystkie wymiary i szukając takich samych numerków dla np. ID. Używa tu techniki `GROUP BY` pod klucz wymiaru, i jeśli posiada wynik powyżej jeden `HAVING COUNT(*) > 1`, podnosi alarm o duplikacie.
+
+---
+
+**Do użycia na obronie, szybkie podsumowanie dla prowadzącej po co w ogóle te 7 kroków:**
+> "Użyliśmy w pełni zdefiniowanego strumienia. Wymusiliśmy sprowadzanie na środowisko plików CSV (Extract), które poprzez model transformacji zapytań w warstwie operacyjnej SQL Server załadowane zostały do silnie odseparowanego warstwą pośrednią stagingu (Load/Stg), skąd odpowiednia logika deduplikacyjna załadowała poszczególne wymiary i ostatecznie złożyła do tablicy faktów (DW). Proces wieńczy kompilacja zestawu ustandaryzowanych biznesowo widoków połączona z absolutnymi i mierzalnymi wymogami jakości poprzez zbiór wywołań wertykalnych bazujących m.in na teście Orphaned Keys"

@@ -109,7 +109,7 @@ Apache Airflow calls Socrata CSV API with date filters and pagination.
 Example:
 
 ```text
-https://data.iowa.gov/resource/m3tr-qhgy.csv?$where=date between '2023-01-01T00:00:00' and '2023-12-31T23:59:59'&$limit=50000&$offset=0
+https://data.iowa.gov/resource/m3tr-qhgy.csv?$where=date between '2023-01-01T00:00:00' and '2023-12-31T23:59:59'&$limit=5000&$offset=0
 ```
 
 Data is downloaded page by page and saved as raw CSV files.

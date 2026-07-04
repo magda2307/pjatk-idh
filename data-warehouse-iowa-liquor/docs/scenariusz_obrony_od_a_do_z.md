@@ -41,13 +41,19 @@ Co pokazac:
 Co mowic:
 
 ```text
-Dane sa realne i niegenerowane. Pochodza z publicznego zbioru Iowa Liquor Sales. ETL ma ekstraktor API, ale na potrzeby stabilnego demo potrafi tez uzyc lokalnego cache realnych plikow raw, jezeli publiczny endpoint jest niedostepny.
+Dane sa realne i niegenerowane. Pochodza z publicznego zbioru Iowa Liquor Sales. Opis katalogowy zbioru podaje zakres od 2012-01-01 do danych biezacych. W projekcie domyslnie analizujemy pelny rok 2023, czyli od 2023-01-01 do 2023-12-31.
+```
+
+Co dopowiedziec o API:
+
+```text
+API filtruje dane po polu `date`. W Airflow podajemy `start_date` i `end_date` w formacie YYYY-MM-DD. Wybralismy rok 2023 jako konkretny wycinek do hurtowni i raportow, ale zrodlo jest szersze.
 ```
 
 Jak odpowiedziec, jesli ktos pyta "czy fallback to generowanie danych?":
 
 ```text
-Nie. Fallback nie generuje nowych danych. Bierze realne rekordy z lokalnych plikow raw i filtruje je do zakresu demo.
+Nie. Fallback nie generuje nowych danych. Bierze realne rekordy z lokalnych plikow raw i filtruje je do wybranego zakresu dat.
 ```
 
 ## 3. Architektura projektu
@@ -240,16 +246,34 @@ Kroki ETL:
 7. Utworzenie widokow semantycznych.
 8. Quality checks.
 
-Komenda live:
+Uruchomienie live przez Airflow UI:
 
-```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
-```
+1. Wejsc na `http://localhost:8080`.
+2. Zalogowac sie `admin / admin`.
+3. Otworzyc DAG `iowa_liquor_etl`.
+4. Kliknac `Trigger DAG` / ikone play w prawym gornym rogu.
+5. Sprawdzic parametry:
+   - `start_date`: `2023-01-01`
+   - `end_date`: `2023-12-31`
+   - `limit`: `5000`
+6. Kliknac `Trigger`.
 
-Co powiedziec o zakresie demo:
+Format dat:
 
 ```text
-Na zywo uruchamiam jeden dzien, bo pelny rok jest ciezki czasowo na prezentacje. To jest zakres demonstracyjny. Mechanizm ETL jest ten sam.
+YYYY-MM-DD, np. 2023-01-01
+```
+
+Komenda awaryjna z terminala dla tego samego zakresu:
+
+```powershell
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+```
+
+Co powiedziec o zakresie:
+
+```text
+Domyslnie DAG jest ustawiony na pelny rok 2023: 2023-01-01 do 2023-12-31. Ten sam zakres jest uzywany w Airflow UI, Docker Compose i terminalowym uruchomieniu ETL.
 ```
 
 ## 9. Quality checks
@@ -270,12 +294,11 @@ Co sprawdzamy:
 - fakt laczy sie z wymiarami,
 - sprzedaz w staging i fakcie sie zgadza.
 
-Aktualny wynik live demo:
+Wynik live demo dotyczy domyslnego zakresu 2023-01-01 do 2023-12-31. Najwazniejsze sa statusy i kontrole:
 
 ```text
-staging rows = 10634
-eligible staging rows = 10624
-fact rows = 10624
+staging rows > 0
+fact rows > 0
 eligible staging fact row count difference = 0
 null foreign keys = 0
 fact dimension join failures = 0
@@ -453,10 +476,20 @@ Ten DAG reprezentuje caly proces ETL: extract, create SQL objects, load staging,
 
 ### Krok 3 - live ETL
 
-Uruchomic:
+Uruchomic w Airflow UI:
+
+1. W DAG `iowa_liquor_etl` kliknac `Trigger DAG`.
+2. Pokazac parametry uruchomienia:
+   - `start_date = 2023-01-01`
+   - `end_date = 2023-12-31`
+   - `limit = 5000`
+3. W razie potrzeby wyjasnic, ze daty sa w formacie `YYYY-MM-DD`.
+4. Kliknac `Trigger`.
+
+Plan B z terminala:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 Co pokazac w logach:
@@ -506,6 +539,5 @@ Ujemne korekty z raw sa transparentnie pokazywane w quality checks, ale nie traf
 ```
 
 ```text
-Zakres jednodniowy jest zakresem demo, a nie ograniczeniem architektury.
+Domyslny zakres projektu to pelny rok 2023, ale Airflow pozwala zmienic `start_date` i `end_date` dla konkretnego uruchomienia.
 ```
-

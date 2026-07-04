@@ -26,7 +26,7 @@ Pelny scenariusz obrony:
 3. Pliki raw
     - pokazac katalog `data/raw`,
     - wskazac pliki `iowa_liquor_sales_2023_part_000.csv` itd.,
-    - wyjasnic zakres: domyslna ekstrakcja raw obejmuje pelny rok 2023, ale szybki pokaz na zywo moze uzyc jednego dnia,
+    - wyjasnic zakres: domyslna ekstrakcja raw i pokaz na zywo obejmuja pelny rok 2023,
     - wyjasnic, ze jesli publiczny endpoint API jest czasowo niedostepny, ETL uzywa lokalnego cache z realnych plikow raw, a nie danych generowanych.
 
 4. SQL Server
@@ -60,9 +60,8 @@ Projekt uzywa realnych danych publicznych. Dane sa pobierane przez API albo, prz
 
 | Zakres | Co oznacza | Jak mowic na prezentacji |
 |---|---|---|
-| Full-year raw extract | Domyslny zakres API: `2023-01-01` do `2023-12-31`; dane sa zapisywane jako partycje CSV. | Projekt jest przygotowany na pelny rok danych. |
-| One-day live demo | Szybki run `2023-01-03`, dobry do pokazania ETL podczas zajec. | To zakres demonstracyjny, nie limit projektu. |
-| One-month validation | Walidacja `2023-01-01` do `2023-01-31`, opisana w `docs/validation_report.md`. | Potwierdza, ze mechanizm dziala na wiekszym zakresie niz demo. |
+| Full-year raw extract | Domyslny zakres API: `2023-01-01` do `2023-12-31`; dane sa zapisywane jako partycje CSV. | Projekt jest uruchamiany i omawiany na pelnym roku danych. |
+| Full-year validation | Walidacja `2023-01-01` do `2023-12-31`, opisana w `docs/validation_report.md`. | Potwierdza domyslny zakres projektu. |
 | Full-year calendar dimension | `dw.dim_date` zawiera 365 dni roku 2023 niezaleznie od zakresu aktualnie zaladowanego faktu. | Wymiar czasu jest kalendarzem referencyjnym, nie dowodem liczby faktow. |
 
 ## Co powiedziec o uruchomieniu

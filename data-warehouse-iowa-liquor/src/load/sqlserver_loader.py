@@ -137,10 +137,12 @@ def normalize_zip_code(value: object) -> str | None:
 def parse_location_value(location: object) -> tuple[float | None, float | None]:
     if not isinstance(location, str):
         return None, None
-    match = re.search(r"\((-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)", location)
+    match = re.search(r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", location)
     if not match:
         return None, None
-    return float(match.group(1)), float(match.group(2))
+    longitude = float(match.group(1))
+    latitude = float(match.group(2))
+    return latitude, longitude
 
 
 def clean_money_or_number(series: pd.Series) -> pd.Series:

@@ -15,13 +15,16 @@ Projekt nie analizuje konsumpcji, tylko wyniki sprzedaży i dystrybucji w sieci 
 Dane są realne i niegenerowane.
 
 - Źródło: publiczny zbiór Iowa Liquor Sales.
+- Zakres dostępny w opisie API/katalogu: od `2012-01-01` do danych bieżących.
+- W projekcie jako domyślny zakres ETL wybrano pełny rok `2023`: `2023-01-01` do `2023-12-31`.
+- Daty w Airflow wpisuje się w formacie `YYYY-MM-DD`.
 - Warstwa raw: pliki CSV w `data/raw`.
 - Demo ETL może użyć lokalnego cache realnych plików raw, jeśli publiczny endpoint API jest niedostępny.
 
 Co powiedzieć:
 
 ```text
-Dane nie są generowane. ETL pobiera dane przez API albo, przy niedostępności endpointu, filtruje lokalny cache realnych plików raw.
+Dane nie są generowane. Źródłowy zbiór Iowa Liquor Sales obejmuje dane od 2012-01-01 do danych bieżących, a projekt domyślnie analizuje pełny rok 2023. ETL pobiera dane przez API albo, przy niedostępności endpointu, filtruje lokalny cache realnych plików raw.
 ```
 
 ## 3. Architektura
@@ -96,16 +99,34 @@ ETL robi:
 7. Tworzenie widoków semantycznych.
 8. Quality checks.
 
-Komenda demo:
+Najważniejsze przy uruchomieniu z Airflow:
+
+1. Wejść na `http://localhost:8080`.
+2. Zalogować się `admin / admin`.
+3. Otworzyć DAG `iowa_liquor_etl`.
+4. Kliknąć `Trigger DAG` / ikonę play.
+5. Zostawić domyślne parametry pełnego roku 2023 albo zmienić je w formularzu.
+
+Domyślne parametry:
+
+```json
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "limit": 5000
+}
+```
+
+Komenda awaryjna z terminala dla tego samego zakresu:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 Co powiedzieć:
 
 ```text
-Na prezentacji uruchamiam szybki jednodniowy zakres, żeby pokazać proces na żywo. Projekt jest przygotowany na szerszy zakres danych, ale pełny rok jest cięższy do demo.
+Domyślnie DAG jest ustawiony na pełny rok 2023: 2023-01-01 do 2023-12-31. Tego samego zakresu używa komenda terminalowa i konfiguracja Docker Compose.
 ```
 
 ## 7. Kontrola jakości
@@ -194,13 +215,15 @@ Po polsku są:
 1. Pokazać `docker compose ps`.
 2. Otworzyć Airflow: `http://localhost:8080`.
 3. Pokazać DAG `iowa_liquor_etl`.
-4. Uruchomić szybki ETL albo pokazać ostatnie logi.
-5. Pokazać SQL Server: schematy `stg`, `dw`, `sem`.
-6. Pokazać model gwiazdy.
-7. Otworzyć Streamlit: `http://localhost:8501`.
-8. Przejść przez 4 zakładki.
-9. Wskazać, które pytania biznesowe są pokryte przez raporty.
-10. Zakończyć quality checks i wnioskiem, że projekt spełnia wymagania.
+4. Kliknąć `Trigger DAG` i pokazać parametry `start_date`, `end_date`, `limit`.
+5. Wyjaśnić format dat `YYYY-MM-DD` i domyślny zakres `2023-01-01` do `2023-12-31`.
+6. Uruchomić ETL albo pokazać ostatnie logi, jeśli run już trwał.
+7. Pokazać SQL Server: schematy `stg`, `dw`, `sem`.
+8. Pokazać model gwiazdy.
+9. Otworzyć Streamlit: `http://localhost:8501`.
+10. Przejść przez 4 zakładki.
+11. Wskazać, które pytania biznesowe są pokryte przez raporty.
+12. Zakończyć quality checks i wnioskiem, że projekt spełnia wymagania.
 
 ## 12. Jednozdaniowe podsumowanie
 

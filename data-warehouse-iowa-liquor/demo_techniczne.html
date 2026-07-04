@@ -1186,6 +1186,102 @@
         </div>
       </section>
 
+      <section id="szczegolowy-etl">
+        <div class="section-head">
+          <h2>Szczegółowy kod ETL: Przewodnik Krok po Kroku</h2>
+          <p>Ten rozdział to dokładna dokumentacja "linijka po linijce", która wyjaśnia, co dokładnie dzieje się w kodzie podczas uruchamiania procesu ETL w tym projekcie.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>KROK 1: Ekstrakcja (Extract)</h3>
+            <p><strong>Główny plik:</strong> <code>src/extract/socrata_extract.py</code></p>
+            <ul>
+              <li><strong>Konfiguracja:</strong> Ustalane są ramy czasowe. Domyślnie projekt przetwarza rok 2023-01-01 do 2023-12-31. Kod waliduje, by data początkowa nie była późniejsza niż końcowa.</li>
+              <li><strong>Pobieranie w pętli:</strong> Łączymy się z endpointem REST API przez bibliotekę <code>requests</code>. Używamy paginacji: <code>$limit</code> i <code>$offset</code>. Z każdym przebiegiem zapisywana jest "strona" (np. <code>part_000.csv</code>).</li>
+              <li><strong>Mechanizm Fallback Cache:</strong> Jeśli API Socrata zwróci błąd, kod w bloku <code>except requests.RequestException:</code> przechwytuje wyjątek. Sięga po zrzucone wcześniej pliki zapisane lokalnie, filtruje po polu daty, po czym przepisuje je jako udany plik ekstrakcji. <strong>Proces jest 100% niezależny od serwera, NIE GENERUJĄC sztucznych danych.</strong></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>KROK 2: Obiekty SQL</h3>
+            <p><strong>Pliki:</strong> <code>01_create_schemas.sql</code>, <code>02_create_staging_tables.sql</code>, <code>03_create_dw_tables.sql</code></p>
+            <ul>
+              <li><strong>Staging:</strong> Tworzona jest wysoce tolerancyjna na błędy tabela, głownie typy <code>NVARCHAR</code> lub <code>DECIMAL</code>. Otrzymuje pole <code>staging_key BIGINT IDENTITY(1,1)</code>.</li>
+              <li><strong>Tabele DW:</strong> Skrypt wpierw zdejmuje relacje <code>ALTER TABLE dw.fact_sales DROP CONSTRAINT ...</code>, a potem robi <code>DROP TABLE</code> zapewniając czysty Full Refresh.</li>
+              <li>Każdy wymiar używa klucza syntetycznego <code>IDENTITY(1,1) NOT NULL PRIMARY KEY</code>.</li>
+              <li>Tworzona jest <code>dw.fact_sales</code> i odtwarzane są powiązania <code>FOREIGN KEY</code>.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>KROK 3: Ładowanie do Stagingu</h3>
+            <p><strong>Główny plik:</strong> <code>src/load/sqlserver_loader.py</code></p>
+            <ul>
+              <li><code>normalize_column_name</code> poprawia nazwy kolumn źródłowych w snake_case.</li>
+              <li><code>parse_location_value</code> czyta geolokalizator <code>POINT (-93 42)</code> i wyciąga z tego dokładne floaty dla <code>latitude</code> i <code>longitude</code>.</li>
+              <li><code>clean_money_or_number</code> fizycznie usuwa w Pythonie znaki <code>$</code> i przecinki by SQL w ogóle mógł przyjąć to do typu DECIMAL. Następnie <code>pd.to_numeric(errors="coerce")</code>.</li>
+              <li><strong>Suma kontrolna:</strong> <code>build_row_hash</code> łączy fakturę, datę i numer sklepu dając stały hash przy użyciu SHA-256.</li>
+              <li>Wrzut przez pandas w paczkach po 5000 sztuk. Przed wkładem uruchamiane jest <code>TRUNCATE TABLE</code>.</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>KROK 4: Ładowanie Wymiarów</h3>
+            <p><strong>Wywołanie:</strong> <code>warehouse_transform.py -&gt; load_dimensions()</code></p>
+            <ul>
+              <li>Przed wkładem uruchamiane jest <code>DBCC CHECKIDENT ('dw.[tabela]', RESEED, 0);</code>.</li>
+              <li><strong>dim_date:</strong> SQLowa funkcja <code>FORMAT()</code>, <code>DATEPART()</code> wyciąga dane z daty. Konstrukcja z <code>CASE</code> buduje flagę <code>is_weekend</code>.</li>
+              <li><strong>Rozwiązanie duplikatów:</strong> Projekt używa CTE wraz z funkcją okna: <br><code>ROW_NUMBER() OVER (PARTITION BY [Klucz] ORDER BY date DESC, staging_key DESC)</code>.<br>Bierzemy wyłącznie pierwszy rekord po dacie i zapisujemy go raz do wymiaru.</li>
+              <li><strong>dim_packaging:</strong> Logika <code>CASE WHEN</code> grupuje pojemności na koszyki ('small', 'standard' itd).</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>KROK 5: Ładowanie Faktu Sprzedaży</h3>
+            <p><strong>Wywołanie:</strong> <code>warehouse_transform.py -&gt; load_fact_sales()</code></p>
+            <ul>
+              <li>Łączymy Staging jako instancję prawdy poprzez naturalne wartości kluczy na wygenerowane klucze syntetyczne w wymiarach (np. <code>JOIN dw.dim_store s ON s.store_number = raw.store_number</code>).</li>
+              <li>Pola liczbowe zabezpieczane są za pomocą <code>COALESCE(zmienna, 0)</code>.</li>
+              <li><strong>Wyliczenie marży w locie:</strong><br><code>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0)) * COALESCE(raw.bottles_sold, 0) AS margin_amount</code></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>KROK 6: Tworzenie widoków semantycznych</h3>
+            <p><strong>Plik SQL:</strong> <code>sql/04_create_semantic_views.sql</code></p>
+            <ul>
+              <li>Widoki (Warstwa Gold) oddzielają bazę od dashboardu w <code>CREATE OR ALTER VIEW sem.[nazwa]</code>.</li>
+              <li><code>vw_sales_by_category</code> buduje obliczenia procentowego wkładu tworząc małe CTE <code>WITH totals AS (SELECT SUM(sale_dollars) AS all_sales ...)</code>.</li>
+              <li>Dzielenie sumy marży przez wolumen ma mechanizm przeciwko dzieleniu przez 0: <code>NULLIF(SUM(bottles_sold), 0)</code>.</li>
+              <li>Skomplikowany SQL został wypchnięty z kodu Streamlit do serwera.</li>
+            </ul>
+          </article>
+        </div>
+        
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>KROK 7: Kontrola Jakości (Quality Checks)</h3>
+            <p><strong>Plik SQL:</strong> <code>sql/05_quality_checks.sql</code></p>
+            <ul>
+              <li><code>eligible_staging_fact_row_count_difference</code>: Test sprawdza czy ilość po filtrowaniu ze stagingu to ta sama ilość odesłana do Faktu. Ma wyjść absolutne 0 odchyleń.</li>
+              <li><code>null_foreign_keys</code>: Zwraca ZERO, jeśli fakt bezpiecznie zmapował wszystkie wartości.</li>
+              <li><code>fact_dimension_join_failures</code>: Robi <code>LEFT JOIN</code> pod każdą parę i zlicza wiersze osierocone. Wynik to oczywiście wymuszone: 0.</li>
+              <li><code>duplicate_[X]_numbers</code>: Szuka takich samych numerków dla np. ID. Używa <code>GROUP BY</code>, jeśli posiada wynik <code>HAVING COUNT(*) &gt; 1</code>, podnosi alarm.</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Szybkie podsumowanie kroków (do prezentacji)</h3>
+            <p style="font-style: italic; color: var(--ink);">"Użyliśmy w pełni zdefiniowanego strumienia. Wymusiliśmy sprowadzanie na środowisko plików CSV (Extract), które poprzez model transformacji zapytań w warstwie operacyjnej SQL Server załadowane zostały do silnie odseparowanego warstwą pośrednią stagingu (Load/Stg), skąd odpowiednia logika deduplikacyjna załadowała poszczególne wymiary i ostatecznie złożyła do tablicy faktów (DW). Proces wieńczy kompilacja zestawu ustandaryzowanych biznesowo widoków połączona z absolutnymi i mierzalnymi wymogami jakości poprzez zbiór wywołań wertykalnych bazujących m.in. na teście Orphaned Keys."</p>
+          </article>
+        </div>
+      </section>
+
       <section id="layers">
         <div class="section-head">
           <h2>Warstwy danych</h2>

@@ -27,10 +27,10 @@ from airflow.operators.python import get_current_context
             description="Data końcowa zakresu danych. Format: YYYY-MM-DD, np. 2023-12-31.",
         ),
         "limit": Param(
-            50000,
+            5000,
             type="integer",
             minimum=1,
-            description="Limit wierszy pobieranych w jednej stronie API. Domyślnie: 50000.",
+            description="Limit wierszy pobieranych w jednej stronie API. Domyślnie: 5000.",
         ),
     },
     default_args={

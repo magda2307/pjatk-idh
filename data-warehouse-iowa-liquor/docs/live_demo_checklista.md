@@ -69,30 +69,47 @@ SQL Server: admin / admin
 Wariant rekomendowany na prezentacji: Airflow UI.
 
 1. Otwórz DAG `iowa_liquor_etl`.
-2. Kliknij trigger/play.
-3. Wklej konfigurację zakresu:
+2. Kliknij `Trigger DAG` / ikonę play w prawym górnym rogu.
+3. Na ekranie triggera sprawdź pola:
+   - `start_date`
+   - `end_date`
+   - `limit`
+4. Format dat to `YYYY-MM-DD`.
+5. Domyślny zakres projektu to pełny rok 2023:
 
 ```json
 {
-  "start_date": "2023-01-03",
-  "end_date": "2023-01-03",
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
   "limit": 5000
 }
 ```
 
-Wariant awaryjny z terminala:
+6. Kliknij `Trigger`.
+
+Ten sam pełny zakres obowiązuje także przy ręcznym wpisaniu konfiguracji:
+
+```json
+{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "limit": 5000
+}
+```
+
+Wariant awaryjny z terminala dla pełnego roku 2023:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 ## Co ma być w logach ETL
 
-Szukaj:
+Szukaj nazw kroków i statusów, nie jednej konkretnej liczby wierszy. Liczby zależą od zakresu dat.
 
 ```text
-Loaded 10634 total rows into stg.iowa_liquor_sales_raw
-Loaded 10624 rows into dw.fact_sales
+Loaded ... total rows into stg.iowa_liquor_sales_raw
+Loaded ... rows into dw.fact_sales
 Quality check eligible_staging_fact_row_count_difference = 0
 Quality check null_foreign_keys = 0
 Quality check fact_dimension_join_failures = 0

@@ -29,7 +29,7 @@ EXTRACT_MANIFEST_PATH = PROCESSED_DATA_DIR / "extract_manifest.json"
 class IowaLiquorExtractConfig:
     start_date: str = os.getenv("IOWA_START_DATE", "2023-01-01")
     end_date: str = os.getenv("IOWA_END_DATE", "2023-12-31")
-    limit: int = int(os.getenv("SOCRATA_LIMIT", "50000"))
+    limit: int = int(os.getenv("SOCRATA_LIMIT", "5000"))
     app_token: str | None = os.getenv("SOCRATA_APP_TOKEN") or None
     base_url: str = "https://data.iowa.gov/resource/m3tr-qhgy.csv"
 
