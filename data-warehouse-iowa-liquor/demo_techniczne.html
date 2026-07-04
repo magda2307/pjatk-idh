@@ -1593,10 +1593,20 @@ JOIN dw.dim_product p ON p.product_key = f.product_key;</pre>
         </div>
       </section>
 
-      <section id="codespaces">
+      <section id="sql">
         <div class="section-head">
           <h2>Dostęp w GitHub Codespaces i Baza SQL</h2>
           <p>Instrukcje dotyczące logowania do bazy danych oraz eksponowania aplikacji na zewnątrz z wirtualnego środowiska Codespaces.</p>
+        </div>
+
+        <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--green);">
+          <h3 style="color: var(--green); margin-bottom: 8px;">Uruchomienie pełnego procesu ETL (Po Bożemu)</h3>
+          <p style="margin-bottom: 12px;">Aby uruchomić cały proces ETL (ekstrakcja danych, utworzenie bazy/schematów/tabel, ładowanie wymiarów i faktów, widoki semantyczne oraz testy jakościowe), wykonaj poniższą komendę w terminalu:</p>
+          <div class="command">
+            <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker compose run --rm airflow python -m src.run_initial_etl">Kopiuj</button></div>
+            <pre>docker compose run --rm airflow python -m src.run_initial_etl</pre>
+          </div>
+          <p style="margin-top: 12px; font-size: 14px; color: var(--muted);"><strong>Uwaga:</strong> Ta komenda automatycznie uruchomi i poczeka na pełną gotowość kontenera bazy danych (SQL Server), a następnie przeprowadzi pełną migrację i załaduje dane.</p>
         </div>
 
         <div class="two-col">
