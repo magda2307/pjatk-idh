@@ -1020,9 +1020,11 @@
       <section id="source">
         <div class="section-head">
           <h2>Źródło danych</h2>
-          <p>Źródłem danych jest zbiór Iowa Liquor Sales. Implementacja zawiera mechanizm buforowania plików lokalnie w celu zapewnienia stabilności.</p>
-          <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
-            <strong>Ciekawostka z życia inżyniera danych:</strong> Zaledwie w czerwcu 2026 r. stan Iowa postanowił bez wielkiego szumu przenieść swój portal z Socrata na Google Data Hub. Stare API wyparowało (zwracając urocze błędy 404), a nowe API obraziło się na paginację i każe nam pobierać kilka gigabajtów danych za każdym razem (brak wsparcia dla <code>$limit</code> i <code>$where</code>). Na szczęście nasz mechanizm fallbacku (<code>try...except</code>) i lokalny cache łapią ten błąd i płynnie podają zbuforowane dane. Uff! 😎
+          <div>
+            <p>Źródłem danych jest zbiór Iowa Liquor Sales. Implementacja zawiera mechanizm buforowania plików lokalnie w celu zapewnienia stabilności.</p>
+            <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
+              <strong>Ciekawostka z życia inżyniera danych:</strong> Zaledwie w czerwcu 2026 r. stan Iowa postanowił bez wielkiego szumu przenieść swój portal z Socrata na Google Data Hub. Stare API wyparowało (zwracając urocze błędy 404), a nowe API obraziło się na paginację i każe nam pobierać kilka gigabajtów danych za każdym razem (brak wsparcia dla <code>$limit</code> i <code>$where</code>). Na szczęście nasz mechanizm fallbacku (<code>try...except</code>) i lokalny cache łapią ten błąd i płynnie podają zbuforowane dane. Uff! 😎
+            </div>
           </div>
         </div>
 
@@ -1312,7 +1314,40 @@ SELECT ... FROM ranked WHERE rn = 1;</pre>
             </div>
           </article>
         </div>
+        </div>
 
+        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Opis Pól Tabeli Faktów (fact_sales)</h3>
+        <div class="field-grid" style="margin-top:18px">
+          <article class="field-card" style="padding: 16px;">
+            <h3 style="margin-top: 0;">Klucze wymiarów i główny</h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
+              <li><strong>sales_key (PK)</strong>: Unikalny identyfikator wiersza.</li>
+              <li><strong>date_key (FK)</strong>: Data transakcji.</li>
+              <li><strong>store_key (FK)</strong>: Sklep dokonujący zakupu.</li>
+              <li><strong>product_key (FK)</strong>: Kupiony alkohol.</li>
+              <li><strong>category_key (FK)</strong>: Kategoria alkoholu.</li>
+              <li><strong>vendor_key (FK)</strong>: Dostawca towaru.</li>
+              <li><strong>packaging_key (FK)</strong>: Informacje o opakowaniu.</li>
+            </ul>
+          </article>
+          <article class="field-card" style="padding: 16px;">
+            <h3 style="margin-top: 0;">Atrybuty biznesowe</h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
+              <li><strong>invoice_number</strong>: Numer faktury ze źródła (pozwala grupować produkty z jednej transakcji).</li>
+            </ul>
+          </article>
+          <article class="field-card" style="padding: 16px;">
+            <h3 style="margin-top: 0;">Miary (Facts)</h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
+              <li><strong>sales_line_count</strong>: Licznik (zawsze 1) do zliczania wierszy paragonu.</li>
+              <li><strong>bottles_sold</strong>: Liczba sprzedanych butelek.</li>
+              <li><strong>sale_dollars</strong>: Wartość tej konkretnej pozycji w dolarach.</li>
+              <li><strong>volume_sold_liters</strong>: Łączna objętość (w litrach).</li>
+            </ul>
+          </article>
+        </div>
+
+        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Dodatkowe informacje o miarach</h3>
         <div class="field-grid" style="margin-top:18px">
           <article class="field-card">
             <h3>Miary addytywne</h3>
@@ -1329,32 +1364,7 @@ SELECT ... FROM ranked WHERE rn = 1;</pre>
         </div>
         </div>
 
-        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Architektoniczne "Dlaczego?" - Uzasadnienie Modelu</h3>
-        <div class="two-col" style="margin-top: 18px;">
-          <article class="panel">
-            <h3>Dlaczego takie ziarno faktu?</h3>
-            <p><strong>Decyzja:</strong> Jeden rekord w <code>fact_sales</code> to jedna linia z paragonu.<br>
-            <strong>Dlaczego:</strong> Zapobiega to przedwczesnej agregacji w ETL i zachowuje maksymalną szczegółowość. Dzięki temu hurtownia może swobodnie agregować dane w dowolnych przekrojach na życzenie biznesu.</p>
-          </article>
 
-          <article class="panel">
-            <h3>Dlaczego geografia jest w sklepie?</h3>
-            <p><strong>Decyzja:</strong> Brak osobnego <code>dim_geography</code>. Atrybuty lokalizacyjne są w <code>dim_store</code>.<br>
-            <strong>Dlaczego:</strong> W tym projekcie sklep i jego lokalizacja są nierozerwalnie powiązane. Tworzenie osobnego wymiaru prowadziłoby do dublowania danych. Utrzymanie geografii w sklepie zachowuje prostotę klasycznej gwiazdy.</p>
-          </article>
-
-          <article class="panel">
-            <h3>Dlaczego kategoria i produkt są osobno?</h3>
-            <p><strong>Decyzja:</strong> Wydzielono osobno <code>dim_product</code> oraz <code>dim_category</code>.<br>
-            <strong>Dlaczego:</strong> Analizy biznesowe i raporty najczęściej dotyczą poziomu kategorii. Osobny wymiar poprawia czytelność zapytań agregujących i odciąża zapytania na wyższym poziomie, pozostawiając szczegóły w wymiarze produktu.</p>
-          </article>
-
-          <article class="panel">
-            <h3>Dlaczego vendor i opakowanie to osobne wymiary?</h3>
-            <p><strong>Decyzja:</strong> Stworzono niezależne <code>dim_vendor</code> i <code>dim_packaging</code>.<br>
-            <strong>Dlaczego:</strong> Biznes wymaga niezależnej analizy marżowości poszczególnych dostawców oraz porównywania wolumenu sprzedaży na podstawie fizycznej wielkości butelek. Wydzielenie tych aspektów daje czyste osie analizy niezależne od hierarchii produktu.</p>
-          </article>
-        </div>
       </section>
 
       <section id="semantic">
@@ -1520,18 +1530,6 @@ QUIT</code></pre>
             <p style="margin-top: 14px;">Zalecana jest również instalacja rozszerzenia <strong>SQL Server (mssql)</strong> w Codespaces: Server: <code>localhost,1433</code>, User: <code>admin</code>, Pass: <code>admin</code>, Database: <code>IowaLiquorDW</code>, Trust Server Certificate: <code>True</code>.</p>
           </article>
 
-          <article class="panel">
-            <h3>Port Forwarding (Widoczność w przeglądarce)</h3>
-            <p>Domyślnie Codespaces izoluje porty. Aby zobaczyć aplikacje:</p>
-            <ol>
-              <li>W dolnym panelu VS Code wejdź w zakładkę <strong>Ports</strong>.</li>
-              <li>Kliknij ikonę globu (<strong>Open in Browser</strong>) przy portach <code>8501</code> (Streamlit) oraz <code>8080</code> (Airflow).</li>
-            </ol>
-            <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--blue);">
-              <strong>Publiczny dostęp do Streamlit:</strong>
-              <p style="margin-top: 8px; margin-bottom: 0;">Aby promotor mógł otworzyć link na swoim komputerze bez logowania do Twojego konta GitHub, kliknij prawym na port <strong>8501</strong> w zakładce Ports -&gt; <strong>Port Visibility</strong> -&gt; Zmień na <strong>Public</strong>.</p>
-            </div>
-          </article>
         </div>
       </section>
 
@@ -1607,7 +1605,7 @@ QUIT</code></pre>
 
           <article class="panel">
             <h3>4. load_dimensions (SQL)</h3>
-            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, aplikując tu potężną <strong>inżynierię cech</strong> (Feature Engineering) i deduplikację.</p>
+            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, aplikując tu <strong>inżynierię cech</strong> (Feature Engineering) i deduplikację.</p>
             <ul>
               <li><strong>Odfiltrowanie duplikatów:</strong> Bierzemy tylko "najświeższy" wiersz sklepu używając <code>ROW_NUMBER() OVER(...)</code>. Resztę bezwzględnie odrzucamy.</li>
             </ul>
@@ -1651,28 +1649,39 @@ END AS volume_group</pre>
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
             <h3>5. load_fact_sales</h3>
-            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy docelowe miary.</p>
+            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy twarde miary na poziomie pojedynczego zdarzenia (faktu).</p>
             <ul>
               <li>Uderzamy do tabel wymiarów (wielki <code>JOIN</code>) zastępując dane tekstowe numerycznymi identyfikatorami (Model Gwiazdy).</li>
             </ul>
 
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
             <h4>Wyliczanie miar pochodnych (Inżynieria Cech)</h4>
-            <p><strong>Pola źródłowe:</strong> <code>Retail</code>, <code>Cost</code>, <code>Bottles</code> ➔ <strong>Logika:</strong> <code>(Retail - Cost) * Bottles</code></p>
-            <p>Marża kwotowa liczona na poziomie każdego pojedynczego rachunku już podczas ładowania (zabezpieczona przed błędami matematycznymi na NULLach).</p>
+            <p>Już na etapie wprowadzania faktów wyliczamy kluczowe wartości, które muszą być utrwalone na najniższym poziomie ziarna:</p>
+            <ul style="margin-bottom: 12px; font-size: 14px;">
+              <li><strong>Marża kwotowa (<code>margin_amount</code>):</strong> <br><code>(Retail - Cost) * Bottles</code>. Dlaczego tutaj? Liczenie marży po agregacji (np. średnia cena minus średni koszt pomnożone przez sumę butelek) dałoby błędny wynik matematyczny. Marżę trzeba liczyć per paragon, a potem sumować.</li>
+              <li><strong>Licznik linii (<code>sales_line_count</code>):</strong> <br>Każdy wiersz otrzymuje twarde <code>1</code>. Pozwala to na ultraszybkie zliczanie wielkości koszyka, średnich wolumenów czy częstotliwości zakupów poprzez zwykłe sumowanie w warstwach analitycznych, bez używania obciążających obliczeń typu <code>COUNT</code>.</li>
+              <li><strong>Tarcza przed NULLami (<code>COALESCE</code>):</strong> <br>Wszystkie miary wolumenowe są objęte funkcją <code>COALESCE(pole, 0)</code>. Dlaczego? Bazy danych mają to do siebie, że jeśli w agregacji sumującej np. 100 tys. wierszy trafi się jeden <code>NULL</code> (brak danych ze źródła), całe równanie może rozsypać się wyrzucając globalny błąd lub <code>NULL</code>. Zmuszamy braki danych do bycia bezpiecznym zerem.</li>
+            </ul>
             <div class="command" style="margin-top: 10px;">
               <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
-<pre>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0))
+<pre>1 AS sales_line_count,
+(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0))
     * COALESCE(raw.bottles_sold, 0) AS margin_amount</pre>
             </div>
           </article>
 
           <article class="panel">
             <h3>6. create_semantic_views</h3>
-            <p><strong>Co robimy:</strong> Budujemy widoki pod aplikację (Warstwa Gold).</p>
+            <p><strong>Co robimy:</strong> Budujemy widoki pod aplikację (Warstwa Gold) i wyliczamy miary złożone.</p>
             <ul>
               <li>Gdybyśmy pozwolili Pythonowi i Streamlitowi zliczać miliony wierszy w przeglądarce, aplikacja działałaby strasznie wolno. Dlatego powołujemy gotowe widoki (skryptem <code>CREATE VIEW sem.[nazwa]</code>).</li>
-              <li>Widoki od razu łączą pod spodem fakty z wymiarami, zliczają skomplikowane udziały procentowe rynków i ratują nas przed znanym błędem dzielenia przez zero, używając funkcji <code>NULLIF(suma, 0)</code>.</li>
+            </ul>
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+            <h4>Wyliczanie miar analitycznych</h4>
+            <p>W widokach wyliczamy wskaźniki (KPI), które mają sens tylko w kontekście zagregowanym (np. cała kategoria lub sklep):</p>
+            <ul style="font-size: 14px;">
+              <li><strong>Wskaźniki udziału (np. <code>sales_share_percent</code>):</strong> <br>Wyliczamy udział danego segmentu w całości sprzedaży używając zagnieżdżonego <code>CROSS JOIN</code> z sumą całkowitą bazy. Zrzuca to potężny ciężar analityczny z samej aplikacji.</li>
+              <li><strong>Średnie (np. <code>sales_per_liter</code>, <code>avg_margin_percent</code>):</strong> <br>Każde dzielenie zasilające średnią zabezpieczone jest funkcją <code>NULLIF(mianownik, 0)</code>. Dlaczego tak a nie inaczej? Ponieważ standardowe dzielenie przez zero w SQL powoduje natychmiastowy "Fatal Error" przerywający działanie. <code>NULLIF</code> zamienia zero na łagodny NULL, dzięki czemu wiersz bez wolumenu zwraca po prostu pustą średnią zamiast zawieszać cały dashboard.</li>
             </ul>
           </article>
         </div>
@@ -1680,10 +1689,10 @@ END AS volume_group</pre>
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
             <h3>7. run_quality_checks</h3>
-            <p><strong>Co robimy:</strong> Egzaminujemy spójność danych na sam koniec.</p>
+            <p><strong>Co robimy:</strong> Sprawdzamy spójność danych na sam koniec.</p>
             <ul>
-              <li><strong>Zaginione dane:</strong> Sprawdzamy surowym <code>LEFT JOIN</code> czy jakakolwiek pozycja na fakturze nie zgubiła po drodze swojego Sklepu, Produktu albo Daty. Odpowiedź musi równać się idealnemu zeru – jeśli nie, zadanie zawiesza się na czerwono.</li>
-              <li><strong>Ubytki ilościowe:</strong> Pytamy bazę, czy ilość wgranych początkowo wierszy zgadza się do sztuki z ostateczną tabelą Faktów. Każde najmniejsze odchylenie zatrzymuje proces.</li>
+              <li><strong>Zaginione dane:</strong> Używamy <code>LEFT JOIN</code>, aby upewnić się, że każda pozycja na fakturze ma przypisany odpowiedni Sklep, Produkt i Datę. Jeśli brakuje powiązań, proces zostaje wstrzymany.</li>
+              <li><strong>Ubytki ilościowe:</strong> Weryfikujemy, czy liczba wgranych początkowo wierszy zgadza się z ostateczną liczbą w tabeli Faktów. W przypadku niezgodności proces zostaje przerwany.</li>
             </ul>
           </article>
         </div>

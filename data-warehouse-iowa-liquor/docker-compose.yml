@@ -92,5 +92,13 @@ services:
       - --server.address=0.0.0.0
       - --server.port=8501
 
+  documentation:
+    image: nginx:alpine
+    container_name: iowa-liquor-documentation
+    volumes:
+      - .:/usr/share/nginx/html:ro
+    ports:
+      - "8000:80"
+
 volumes:
   sqlserver_data:
