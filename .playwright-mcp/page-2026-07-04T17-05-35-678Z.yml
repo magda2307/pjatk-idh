@@ -1,0 +1,152 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]: Iowa Liquor DW
+    - navigation "Nawigacja" [ref=e5]:
+      - link "Start" [ref=e6] [cursor=pointer]:
+        - /url: "#start"
+      - link "Przepływ" [ref=e7] [cursor=pointer]:
+        - /url: "#flow"
+      - link "Airflow" [ref=e8] [cursor=pointer]:
+        - /url: "#airflow"
+      - link "SQL" [ref=e9] [cursor=pointer]:
+        - /url: "#sql"
+      - link "Rubryka" [ref=e10] [cursor=pointer]:
+        - /url: "#rubryka"
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: Panel prowadzenia obrony
+        - heading "Nie klikaj na pamięć. Prowadź demo po śladach." [level=1] [ref=e15]
+        - paragraph [ref=e16]: "Ta strona jest techniczną ściągą do prezentacji projektu: gdzie wejść, co pokazać w Airflow, jakie SQL-e odpalić, jak wytłumaczyć Bronze/Silver/Gold i co powiedzieć, gdy padnie API."
+      - complementary "Stan demo" [ref=e17]:
+        - heading "Co pokazujesz prowadzącej" [level=2] [ref=e18]
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - generic [ref=e22]: SQL Server jest hurtownią danych.
+          - listitem [ref=e23]:
+            - generic [ref=e25]: Airflow pokazuje przepływ ETL i logi.
+          - listitem [ref=e26]:
+            - generic [ref=e28]: Streamlit pokazuje raporty, nie architekturę.
+          - listitem [ref=e29]:
+            - generic [ref=e31]: Ta strona prowadzi narrację techniczną.
+    - generic [ref=e32]:
+      - article [ref=e33]:
+        - generic [ref=e34]:
+          - strong [ref=e35]: Dashboard
+          - text: Raporty, KPI, wykresy, filtry i eksport CSV.
+        - link "Otwórz Streamlit" [ref=e36] [cursor=pointer]:
+          - /url: http://localhost:8501
+      - article [ref=e37]:
+        - generic [ref=e38]:
+          - strong [ref=e39]: Airflow
+          - text: DAG, taski ETL, statusy i logi jakości.
+        - link "Otwórz Airflow" [ref=e40] [cursor=pointer]:
+          - /url: http://localhost:8080
+      - article [ref=e41]:
+        - generic [ref=e42]:
+          - strong [ref=e43]: SQL Server
+          - text: "Połączenie przez SSMS/Azure Data Studio: `localhost,1433`."
+        - link "Pokaż SQL-e" [ref=e44] [cursor=pointer]:
+          - /url: "#sql"
+    - generic [ref=e45]:
+      - generic [ref=e46]:
+        - heading "Przepływ danych" [level=2] [ref=e47]
+        - paragraph [ref=e48]: "Najprostsza opowieść: dane źródłowe trafiają przez ETL do stagingu, potem do modelu gwiazdy, następnie do widoków semantycznych, a dopiero na końcu do dashboardu."
+      - generic "Przepływ danych" [ref=e49]:
+        - generic [ref=e50]:
+          - generic [ref=e51]: Źródło
+          - generic [ref=e52]: Iowa Liquor Sales albo lokalny cache realnych plików raw.
+          - text: →
+        - generic [ref=e53]:
+          - generic [ref=e54]: Airflow
+          - generic [ref=e55]: Orkiestruje kroki ETL i zapisuje logi.
+          - text: →
+        - generic [ref=e56]:
+          - generic [ref=e57]: stg
+          - generic [ref=e58]: "Techniczny staging: `stg.iowa_liquor_sales_raw`."
+          - text: →
+        - generic [ref=e59]:
+          - generic [ref=e60]: dw
+          - generic [ref=e61]: "Schemat gwiazdy: fakt sprzedaży i wymiary."
+          - text: →
+        - generic [ref=e62]:
+          - generic [ref=e63]: sem
+          - generic [ref=e64]: Widoki semantyczne gotowe do raportów.
+          - text: →
+        - generic [ref=e65]:
+          - generic [ref=e66]: Streamlit
+          - generic [ref=e67]: Raporty odpowiadające na pytania biznesowe.
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - heading "Airflow i live ETL" [level=2] [ref=e70]
+        - paragraph [ref=e71]: Airflow jest miejscem, gdzie pokazujesz, że projekt ma prawdziwą orkiestrację, a nie tylko dashboard z CSV.
+      - generic [ref=e72]:
+        - article [ref=e73]:
+          - heading "Co kliknąć" [level=3] [ref=e74]
+          - list [ref=e75]:
+            - listitem [ref=e76]: "Otwórz `http://localhost:8080`."
+            - listitem [ref=e77]: "Zaloguj się jako `admin`."
+            - listitem [ref=e78]: "Znajdź DAG `iowa_liquor_etl`."
+            - listitem [ref=e79]: "Pokaż graf tasków: extract, staging, dimensions, fact, semantic views, quality checks."
+            - listitem [ref=e80]: Wejdź w logi ostatniego taska i pokaż kontrole jakości.
+        - article [ref=e81]:
+          - heading "Hasło do Airflow" [level=3] [ref=e82]
+          - paragraph [ref=e83]: "Airflow standalone generuje hasło przy starcie. Odczytaj je tak:"
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]: PowerShell
+              - button "Kopiuj" [ref=e87] [cursor=pointer]
+            - generic [ref=e88]: docker compose exec airflow cat /opt/airflow/standalone_admin_password.txt
+      - generic [ref=e89]:
+        - heading "Komenda do live ETL" [level=3] [ref=e90]
+        - paragraph [ref=e91]: To jest szybki zakres demonstracyjny. Ładuje jeden dzień, więc dashboard pokazuje jeden miesiąc. To normalne.
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - generic [ref=e94]: PowerShell
+            - button "Kopiuj" [ref=e95] [cursor=pointer]
+          - generic [ref=e96]: docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+    - generic [ref=e97]:
+      - generic [ref=e98]:
+        - heading "SQL do pokazania" [level=2] [ref=e99]
+        - paragraph [ref=e100]: SQL Server pokazujesz w SSMS albo Azure Data Studio. To jest dobra odpowiedź, jeśli prowadząca chce zobaczyć “co jest pod spodem”.
+      - generic [ref=e101]:
+        - article [ref=e102]:
+          - heading "Połączenie" [level=3] [ref=e103]
+          - list [ref=e104]:
+            - listitem [ref=e105]: "Server: `localhost,1433`"
+            - listitem [ref=e106]: "User: `sa`"
+            - listitem [ref=e107]: "Password: `YourStrongPassword123`"
+            - listitem [ref=e108]: "Database: `IowaLiquorDW`"
+        - article [ref=e109]:
+          - heading "Co powiedzieć" [level=3] [ref=e110]
+          - paragraph [ref=e111]: "Staging trzyma dane po technicznym przygotowaniu. `dw` to model gwiazdy. `sem` to warstwa semantyczna, z której czyta dashboard."
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]: SQL Server
+          - button "Kopiuj" [ref=e115] [cursor=pointer]
+        - generic [ref=e116]: SELECT name FROM sys.schemas WHERE name IN ('stg', 'dw', 'sem'); SELECT COUNT(*) AS staging_rows FROM stg.iowa_liquor_sales_raw; SELECT COUNT(*) AS fact_rows FROM dw.fact_sales; SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA IN ('stg', 'dw') ORDER BY TABLE_SCHEMA, TABLE_NAME; SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'sem' ORDER BY TABLE_NAME;
+    - generic [ref=e117]:
+      - generic [ref=e118]:
+        - heading "Rubryka punktowa" [level=2] [ref=e119]
+        - paragraph [ref=e120]: Gdy pada pytanie “czy to spełnia wymagania?”, odpowiadasz po kolei, bez nerwowego szukania plików.
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: Pytania biznesowe
+          - generic [ref=e124]: "12 pytań w `docs/business_requirements.md`."
+        - generic [ref=e125]:
+          - generic [ref=e126]: Schemat gwiazdy
+          - generic [ref=e127]: "`dw.fact_sales` plus 6 wymiarów."
+        - generic [ref=e128]:
+          - generic [ref=e129]: ETL live
+          - generic [ref=e130]: "Airflow i `src.run_initial_etl`."
+        - generic [ref=e131]:
+          - generic [ref=e132]: Semantyka
+          - generic [ref=e133]: "Widoki SQL w schemacie `sem`."
+        - generic [ref=e134]:
+          - generic [ref=e135]: Raporty
+          - generic [ref=e136]: "Streamlit: KPI, wykresy, mapa, tabele."
+    - generic [ref=e137]:
+      - generic [ref=e138]:
+        - strong [ref=e139]: "Najważniejsze zdanie:"
+        - text: Streamlit nie jest hurtownią. Hurtownią jest SQL Server, Airflow uruchamia ETL, a Streamlit pokazuje raporty z widoków semantycznych.
+      - paragraph [ref=e140]: "Jeśli API zwróci 404: projekt używa lokalnego cache realnych plików raw. To zabezpieczenie prezentacji, nie generowanie danych."

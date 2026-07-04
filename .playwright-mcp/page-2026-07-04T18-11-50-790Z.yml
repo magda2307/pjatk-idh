@@ -1,0 +1,1092 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]: Iowa Liquor DW
+    - navigation "Nawigacja" [ref=e5]:
+      - link "Start" [ref=e6] [cursor=pointer]:
+        - /url: "#start"
+      - link "Zakres ETL" [ref=e7] [cursor=pointer]:
+        - /url: "#etl-range"
+      - link "Dane w bazie" [ref=e8] [cursor=pointer]:
+        - /url: "#data"
+      - link "Pytania" [ref=e9] [cursor=pointer]:
+        - /url: "#business"
+      - link "Demo live" [ref=e10] [cursor=pointer]:
+        - /url: "#demo"
+      - link "Dane" [ref=e11] [cursor=pointer]:
+        - /url: "#source"
+      - link "Airflow" [ref=e12] [cursor=pointer]:
+        - /url: "#airflow"
+      - link "ETL" [ref=e13] [cursor=pointer]:
+        - /url: "#etl"
+      - link "Warstwy" [ref=e14] [cursor=pointer]:
+        - /url: "#layers"
+      - link "Model" [ref=e15] [cursor=pointer]:
+        - /url: "#model"
+      - link "Semantyka" [ref=e16] [cursor=pointer]:
+        - /url: "#semantic"
+      - link "Dashboard" [ref=e17] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "SQL" [ref=e18] [cursor=pointer]:
+        - /url: "#sql"
+  - main [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]: Projekt hurtowni danych
+        - heading "Hurtownia danych Iowa Liquor Sales" [level=1] [ref=e23]
+        - paragraph [ref=e24]: "Projekt obejmuje przepływ danych: publiczny zbiór Iowa Liquor Sales, ekstrakcję do plików CSV, staging w SQL Server, model gwiazdy, widoki semantyczne oraz raporty analityczne w Streamlit."
+      - complementary "Zakres projektu" [ref=e25]:
+        - heading "Zakres techniczny" [level=2] [ref=e26]
+        - list [ref=e27]:
+          - listitem [ref=e28]:
+            - generic [ref=e30]: "Źródło danych: publiczny, niegenerowany zbiór Iowa Liquor Sales."
+          - listitem [ref=e31]:
+            - generic [ref=e33]:
+              - text: "Orkiestracja: Apache Airflow, DAG"
+              - code [ref=e34]: iowa_liquor_etl
+              - text: .
+          - listitem [ref=e35]:
+            - generic [ref=e37]:
+              - text: "Hurtownia: SQL Server, schematy"
+              - code [ref=e38]: stg
+              - text: ","
+              - code [ref=e39]: dw
+              - text: ","
+              - code [ref=e40]: sem
+              - text: .
+          - listitem [ref=e41]:
+            - generic [ref=e43]: "Raportowanie: Streamlit oparty o widoki semantyczne."
+    - generic [ref=e44]:
+      - article [ref=e45]:
+        - generic [ref=e46]:
+          - strong [ref=e47]: Zakres ETL
+          - text: Kalendarz i JSON do ręcznego uruchomienia DAG-a.
+        - link "Ustaw daty" [ref=e48] [cursor=pointer]:
+          - /url: "#etl-range"
+      - article [ref=e49]:
+        - generic [ref=e50]:
+          - strong [ref=e51]: Airflow
+          - text: Panel DAG-ów, statusy zadań i logi ETL.
+        - link "localhost:8080" [ref=e52] [cursor=pointer]:
+          - /url: http://localhost:8080
+      - article [ref=e53]:
+        - generic [ref=e54]:
+          - strong [ref=e55]: Streamlit
+          - text: Raporty biznesowe po załadowaniu danych do hurtowni.
+        - link "localhost:8501" [ref=e56] [cursor=pointer]:
+          - /url: http://localhost:8501
+      - article [ref=e57]:
+        - generic [ref=e58]:
+          - strong [ref=e59]: SQL Server
+          - generic [ref=e60]:
+            - text: "SSMS lub Azure Data Studio:"
+            - code [ref=e61]: localhost,1433
+            - text: .
+        - link "Zapytania SQL" [ref=e62] [cursor=pointer]:
+          - /url: "#sql"
+    - region "Zakres ETL do Airflow" [ref=e63]:
+      - heading "Zakres ETL do Airflow" [level=2] [ref=e64]
+      - paragraph [ref=e65]:
+        - text: Zakres dat jest przekazywany do DAG-a
+        - code [ref=e66]: iowa_liquor_etl
+        - text: jako konfiguracja ręcznego uruchomienia. Airflow przy przycisku
+        - code [ref=e67]: Trigger DAG
+        - text: oczekuje JSON-a, dlatego ta sekcja przygotowuje gotową konfigurację do wklejenia.
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]: Data od
+              - textbox "Data od" [ref=e73]: 2023-01-03
+            - generic [ref=e74]:
+              - generic [ref=e75]: Data do
+              - textbox "Data do" [ref=e76]: 2023-01-03
+            - generic [ref=e77]:
+              - generic [ref=e78]: Limit wierszy
+              - spinbutton "Limit wierszy" [ref=e79]: "5000"
+          - generic "Gotowe zakresy" [ref=e80]:
+            - button "Demo 1 dzień" [ref=e81] [cursor=pointer]
+            - button "Styczeń 2023" [ref=e82] [cursor=pointer]
+            - button "Cały rok 2023" [ref=e83] [cursor=pointer]
+          - paragraph [ref=e84]: Przebieg prezentacyjny może używać jednego dnia, bo ładuje się szybko. Szerszy zakres działa tak samo, tylko ekstrakcja i ładowanie trwają dłużej.
+        - generic [ref=e85]:
+          - strong [ref=e86]: Konfiguracja do pola JSON w Airflow
+          - generic [ref=e87]: "{ \"start_date\": \"2023-01-03\", \"end_date\": \"2023-01-03\", \"limit\": 5000 }"
+          - generic [ref=e88]:
+            - button "Kopiuj JSON" [ref=e89] [cursor=pointer]
+            - link "Otwórz Airflow" [ref=e90] [cursor=pointer]:
+              - /url: http://localhost:8080/dags/iowa_liquor_etl/grid?tab=graph
+          - paragraph [ref=e91]:
+            - text: "Kolejność w Airflow: wejście w DAG"
+            - code [ref=e92]: iowa_liquor_etl
+            - text: ", kliknięcie"
+            - code [ref=e93]: Trigger DAG
+            - text: ", wklejenie JSON-a i zatwierdzenie uruchomienia."
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - heading "Dane w projekcie" [level=2] [ref=e96]
+        - paragraph [ref=e97]: "Źródłem jest publiczny zbiór Iowa Liquor Sales. Jeden wiersz źródłowy opisuje jedną linię sprzedaży produktu: kiedy sprzedano produkt, w którym sklepie, jaki produkt i kategorię, od jakiego vendora, w jakim opakowaniu oraz za jaką wartość."
+      - table [ref=e99]:
+        - rowgroup [ref=e100]:
+          - row "Obszar danych Przykładowe pola źródłowe Jak projekt ich używa" [ref=e101]:
+            - columnheader "Obszar danych" [ref=e102]
+            - columnheader "Przykładowe pola źródłowe" [ref=e103]
+            - columnheader "Jak projekt ich używa" [ref=e104]
+        - rowgroup [ref=e105]:
+          - row "Identyfikacja sprzedaży invoice_line_no, date Tworzy numer faktury/linii i klucz daty. To podstawa ziarna tabeli faktów." [ref=e106]:
+            - cell "Identyfikacja sprzedaży" [ref=e107]
+            - cell "invoice_line_no, date" [ref=e108]:
+              - code [ref=e109]: invoice_line_no
+              - text: ","
+              - code [ref=e110]: date
+            - cell "Tworzy numer faktury/linii i klucz daty. To podstawa ziarna tabeli faktów." [ref=e111]
+          - row "Sklep i lokalizacja store, name, address, city, county, zipcode, store_location Zasila dw.dim_store. Miasto, county i współrzędne są używane w raportach geograficznych i mapie." [ref=e112]:
+            - cell "Sklep i lokalizacja" [ref=e113]
+            - cell "store, name, address, city, county, zipcode, store_location" [ref=e114]:
+              - code [ref=e115]: store
+              - text: ","
+              - code [ref=e116]: name
+              - text: ","
+              - code [ref=e117]: address
+              - text: ","
+              - code [ref=e118]: city
+              - text: ","
+              - code [ref=e119]: county
+              - text: ","
+              - code [ref=e120]: zipcode
+              - text: ","
+              - code [ref=e121]: store_location
+            - cell "Zasila dw.dim_store. Miasto, county i współrzędne są używane w raportach geograficznych i mapie." [ref=e122]:
+              - text: Zasila
+              - code [ref=e123]: dw.dim_store
+              - text: . Miasto, county i współrzędne są używane w raportach geograficznych i mapie.
+          - row "Produkt i kategoria itemno, im_desc, category, category_name Zasila dw.dim_product i dw.dim_category. Te pola odpowiadają za rankingi produktów i kategorii." [ref=e124]:
+            - cell "Produkt i kategoria" [ref=e125]
+            - cell "itemno, im_desc, category, category_name" [ref=e126]:
+              - code [ref=e127]: itemno
+              - text: ","
+              - code [ref=e128]: im_desc
+              - text: ","
+              - code [ref=e129]: category
+              - text: ","
+              - code [ref=e130]: category_name
+            - cell "Zasila dw.dim_product i dw.dim_category. Te pola odpowiadają za rankingi produktów i kategorii." [ref=e131]:
+              - text: Zasila
+              - code [ref=e132]: dw.dim_product
+              - text: i
+              - code [ref=e133]: dw.dim_category
+              - text: . Te pola odpowiadają za rankingi produktów i kategorii.
+          - row "Vendor vendor_no, vendor_name Zasila dw.dim_vendor. Raport pokazuje udział vendorów w sprzedaży i marży." [ref=e134]:
+            - cell "Vendor" [ref=e135]
+            - cell "vendor_no, vendor_name" [ref=e136]:
+              - code [ref=e137]: vendor_no
+              - text: ","
+              - code [ref=e138]: vendor_name
+            - cell "Zasila dw.dim_vendor. Raport pokazuje udział vendorów w sprzedaży i marży." [ref=e139]:
+              - text: Zasila
+              - code [ref=e140]: dw.dim_vendor
+              - text: . Raport pokazuje udział vendorów w sprzedaży i marży.
+          - row "Opakowanie pack, bottle_volume_ml Zasila dw.dim_packaging. Projekt grupuje pojemności jako small, standard, large i extra_large." [ref=e141]:
+            - cell "Opakowanie" [ref=e142]
+            - cell "pack, bottle_volume_ml" [ref=e143]:
+              - code [ref=e144]: pack
+              - text: ","
+              - code [ref=e145]: bottle_volume_ml
+            - cell "Zasila dw.dim_packaging. Projekt grupuje pojemności jako small, standard, large i extra_large." [ref=e146]:
+              - text: Zasila
+              - code [ref=e147]: dw.dim_packaging
+              - text: . Projekt grupuje pojemności jako
+              - code [ref=e148]: small
+              - text: ","
+              - code [ref=e149]: standard
+              - text: ","
+              - code [ref=e150]: large
+              - text: i
+              - code [ref=e151]: extra_large
+              - text: .
+          - row "Miary sprzedaży state_bottle_cost, state_bottle_retail, sale_bottles, sale_dollars, sale_liters, sale_gallons Zasila dw.fact_sales. Projekt liczy sprzedaż, wolumen, liczbę butelek i marżę." [ref=e152]:
+            - cell "Miary sprzedaży" [ref=e153]
+            - cell "state_bottle_cost, state_bottle_retail, sale_bottles, sale_dollars, sale_liters, sale_gallons" [ref=e154]:
+              - code [ref=e155]: state_bottle_cost
+              - text: ","
+              - code [ref=e156]: state_bottle_retail
+              - text: ","
+              - code [ref=e157]: sale_bottles
+              - text: ","
+              - code [ref=e158]: sale_dollars
+              - text: ","
+              - code [ref=e159]: sale_liters
+              - text: ","
+              - code [ref=e160]: sale_gallons
+            - cell "Zasila dw.fact_sales. Projekt liczy sprzedaż, wolumen, liczbę butelek i marżę." [ref=e161]:
+              - text: Zasila
+              - code [ref=e162]: dw.fact_sales
+              - text: . Projekt liczy sprzedaż, wolumen, liczbę butelek i marżę.
+      - generic [ref=e163]:
+        - article [ref=e164]:
+          - heading "Co trafia do stagingu" [level=3] [ref=e165]
+          - paragraph [ref=e166]:
+            - text: Tabela
+            - code [ref=e167]: stg.iowa_liquor_sales_raw
+            - text: przechowuje pola po normalizacji nazw, dat, liczb, kwot i lokalizacji. Zostaje też zapisany
+            - code [ref=e168]: source_file
+            - text: ","
+            - code [ref=e169]: load_timestamp
+            - text: i
+            - code [ref=e170]: source_row_hash
+            - text: .
+        - article [ref=e171]:
+          - heading "Co trafia do hurtowni" [level=3] [ref=e172]
+          - paragraph [ref=e173]:
+            - text: Do schematu
+            - code [ref=e174]: dw
+            - text: "trafia model gwiazdy:"
+            - code [ref=e175]: fact_sales
+            - text: oraz wymiary daty, sklepu, produktu, kategorii, vendora i opakowania.
+        - article [ref=e176]:
+          - heading "Co trafia do raportów" [level=3] [ref=e177]
+          - paragraph [ref=e178]:
+            - text: Dashboard nie czyta plików CSV. Korzysta z widoków
+            - code [ref=e179]: sem.*
+            - text: ", które agregują sprzedaż, marżę, wolumen, faktury, sklepy, produkty i udziały procentowe."
+    - generic [ref=e180]:
+      - generic [ref=e181]:
+        - heading "Pytania biznesowe" [level=2] [ref=e182]
+        - paragraph [ref=e183]: Projekt ma 12 pytań biznesowych. Każde pytanie jest powiązane z wymiarem modelu, widokiem semantycznym i zakładką raportową. To pokazuje, że model nie jest przypadkowy.
+      - table [ref=e185]:
+        - rowgroup [ref=e186]:
+          - row "Nr Pytanie Widok / raport" [ref=e187]:
+            - columnheader "Nr" [ref=e188]
+            - columnheader "Pytanie" [ref=e189]
+            - columnheader "Widok / raport" [ref=e190]
+        - rowgroup [ref=e191]:
+          - row "1 Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku? sem.vw_sales_by_month, Przegląd zarządczy" [ref=e192]:
+            - cell "1" [ref=e193]
+            - cell "Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?" [ref=e194]
+            - cell "sem.vw_sales_by_month, Przegląd zarządczy" [ref=e195]:
+              - code [ref=e196]: sem.vw_sales_by_month
+              - text: ", Przegląd zarządczy"
+          - row "2 Które kategorie generowały najwyższy przychód i marżę? sem.vw_sales_by_category, Produkty i kategorie" [ref=e197]:
+            - cell "2" [ref=e198]
+            - cell "Które kategorie generowały najwyższy przychód i marżę?" [ref=e199]
+            - cell "sem.vw_sales_by_category, Produkty i kategorie" [ref=e200]:
+              - code [ref=e201]: sem.vw_sales_by_category
+              - text: ", Produkty i kategorie"
+          - row "3 Które sklepy generowały najwyższą sprzedaż i marżę? sem.vw_sales_by_store, Wyniki sklepów" [ref=e202]:
+            - cell "3" [ref=e203]
+            - cell "Które sklepy generowały najwyższą sprzedaż i marżę?" [ref=e204]
+            - cell "sem.vw_sales_by_store, Wyniki sklepów" [ref=e205]:
+              - code [ref=e206]: sem.vw_sales_by_store
+              - text: ", Wyniki sklepów"
+          - row "4 Które miasta i county generowały najwyższy przychód i wolumen? sem.vw_sales_by_geography, Geografia" [ref=e207]:
+            - cell "4" [ref=e208]
+            - cell "Które miasta i county generowały najwyższy przychód i wolumen?" [ref=e209]
+            - cell "sem.vw_sales_by_geography, Geografia" [ref=e210]:
+              - code [ref=e211]: sem.vw_sales_by_geography
+              - text: ", Geografia"
+          - row "5 Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę? sem.vw_sales_by_vendor, Produkty i kategorie" [ref=e212]:
+            - cell "5" [ref=e213]
+            - cell "Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?" [ref=e214]
+            - cell "sem.vw_sales_by_vendor, Produkty i kategorie" [ref=e215]:
+              - code [ref=e216]: sem.vw_sales_by_vendor
+              - text: ", Produkty i kategorie"
+          - row "6 Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży? sem.vw_top_products, Produkty i kategorie" [ref=e217]:
+            - cell "6" [ref=e218]
+            - cell "Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?" [ref=e219]
+            - cell "sem.vw_top_products, Produkty i kategorie" [ref=e220]:
+              - code [ref=e221]: sem.vw_top_products
+              - text: ", Produkty i kategorie"
+          - row "7 Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą? sem.vw_margin_analysis, Produkty i kategorie" [ref=e222]:
+            - cell "7" [ref=e223]
+            - cell "Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?" [ref=e224]
+            - cell "sem.vw_margin_analysis, Produkty i kategorie" [ref=e225]:
+              - code [ref=e226]: sem.vw_margin_analysis
+              - text: ", Produkty i kategorie"
+          - row "8 Jak zmieniała się struktura sprzedaży kategorii w czasie? sem.vw_category_sales_over_time, Produkty i kategorie" [ref=e227]:
+            - cell "8" [ref=e228]
+            - cell "Jak zmieniała się struktura sprzedaży kategorii w czasie?" [ref=e229]
+            - cell "sem.vw_category_sales_over_time, Produkty i kategorie" [ref=e230]:
+              - code [ref=e231]: sem.vw_category_sales_over_time
+              - text: ", Produkty i kategorie"
+          - row "9 Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr? sem.vw_volume_vs_revenue, Geografia" [ref=e232]:
+            - cell "9" [ref=e233]
+            - cell "Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?" [ref=e234]
+            - cell "sem.vw_volume_vs_revenue, Geografia" [ref=e235]:
+              - code [ref=e236]: sem.vw_volume_vs_revenue
+              - text: ", Geografia"
+          - row "10 Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county? sem.vw_avg_sales_per_store_by_month_region, Wyniki sklepów" [ref=e237]:
+            - cell "10" [ref=e238]
+            - cell "Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?" [ref=e239]
+            - cell "sem.vw_avg_sales_per_store_by_month_region, Wyniki sklepów" [ref=e240]:
+              - code [ref=e241]: sem.vw_avg_sales_per_store_by_month_region
+              - text: ", Wyniki sklepów"
+          - row "11 Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze? sem.vw_sales_by_day_type, Przegląd zarządczy" [ref=e242]:
+            - cell "11" [ref=e243]
+            - cell "Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?" [ref=e244]
+            - cell "sem.vw_sales_by_day_type, Przegląd zarządczy" [ref=e245]:
+              - code [ref=e246]: sem.vw_sales_by_day_type
+              - text: ", Przegląd zarządczy"
+          - row "12 Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę? sem.vw_sales_by_packaging, Produkty i kategorie" [ref=e247]:
+            - cell "12" [ref=e248]
+            - cell "Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?" [ref=e249]
+            - cell "sem.vw_sales_by_packaging, Produkty i kategorie" [ref=e250]:
+              - code [ref=e251]: sem.vw_sales_by_packaging
+              - text: ", Produkty i kategorie"
+    - generic [ref=e252]:
+      - generic [ref=e253]:
+        - heading "Kolejność demonstracji" [level=2] [ref=e254]
+        - paragraph [ref=e255]: Prezentacja zaczyna się od uruchomienia infrastruktury i Airflow, ponieważ ETL jest najwyżej punktowanym elementem projektu. Dashboard pojawia się dopiero po pokazaniu przepływu danych i obiektów w SQL Server.
+      - generic [ref=e256]:
+        - generic [ref=e257]:
+          - generic [ref=e258]: Start usług
+          - paragraph [ref=e259]:
+            - text: "Uruchomienie kontenerów Docker: SQL Server, Airflow i Streamlit. Komenda projektu:"
+            - code [ref=e260]: docker compose up -d sqlserver airflow streamlit
+            - text: .
+        - generic [ref=e261]:
+          - generic [ref=e262]: Airflow
+          - paragraph [ref=e263]:
+            - text: Wejście na
+            - code [ref=e264]: http://localhost:8080
+            - text: ". Logowanie:"
+            - code [ref=e265]: admin
+            - text: /
+            - code [ref=e266]: admin
+            - text: ". Główny obiekt demonstracji: DAG"
+            - code [ref=e267]: iowa_liquor_etl
+            - text: .
+        - generic [ref=e268]:
+          - generic [ref=e269]: Uruchomienie ETL
+          - paragraph [ref=e270]: "W Airflow: wybór DAG-a, widok Graph lub Grid, uruchomienie ręczne i obserwacja zadań: ekstrakcja, staging, wymiary, fakt, semantyka, kontrola jakości."
+        - generic [ref=e271]:
+          - generic [ref=e272]: SQL Server
+          - paragraph [ref=e273]:
+            - text: Sprawdzenie schematów
+            - code [ref=e274]: stg
+            - text: ","
+            - code [ref=e275]: dw
+            - text: ","
+            - code [ref=e276]: sem
+            - text: ", liczby rekordów oraz przykładowych widoków semantycznych."
+        - generic [ref=e277]:
+          - generic [ref=e278]: Dashboard
+          - paragraph [ref=e279]:
+            - text: Przejście do Streamlit na
+            - code [ref=e280]: http://localhost:8501
+            - text: . Raporty pokazują KPI, sprzedaż w czasie, produkty, kategorie, geografię i wyniki sklepów.
+    - generic [ref=e281]:
+      - generic [ref=e282]:
+        - heading "Źródło danych" [level=2] [ref=e283]
+        - paragraph [ref=e284]: Dane pochodzą z publicznego zbioru Iowa Liquor Sales udostępnianego przez Socrata. Projekt nie generuje danych syntetycznych. Lokalny cache służy tylko do powtarzalnego uruchomienia prezentacji, gdy publiczny endpoint jest niedostępny.
+      - generic [ref=e285]:
+        - article [ref=e286]:
+          - heading "Konfiguracja ekstrakcji" [level=3] [ref=e287]
+          - list [ref=e288]:
+            - listitem [ref=e289]:
+              - text: "Endpoint CSV:"
+              - code [ref=e290]: https://data.iowa.gov/resource/m3tr-qhgy.csv
+            - listitem [ref=e291]:
+              - text: "Domyślny zakres:"
+              - code [ref=e292]: 2023-01-01
+              - text: do
+              - code [ref=e293]: 2023-12-31
+            - listitem [ref=e294]:
+              - text: "Domyślny limit strony:"
+              - code [ref=e295]: SOCRATA_LIMIT=50000
+            - listitem [ref=e296]:
+              - text: "Filtr API:"
+              - code [ref=e297]: date between ...
+              - text: ", paginacja przez"
+              - code [ref=e298]: $limit
+              - text: i
+              - code [ref=e299]: $offset
+            - listitem [ref=e300]:
+              - text: "Sortowanie pobrania:"
+              - code [ref=e301]: date, invoice_line_no
+        - article [ref=e302]:
+          - heading "Stan ostatniego manifestu" [level=3] [ref=e303]
+          - list [ref=e304]:
+            - listitem [ref=e305]:
+              - text: "Plik:"
+              - code [ref=e306]: data/processed/extract_manifest.json
+            - listitem [ref=e307]:
+              - text: "Zakres demo:"
+              - code [ref=e308]: 2023-01-03
+              - text: do
+              - code [ref=e309]: 2023-01-03
+            - listitem [ref=e310]:
+              - text: "Liczba plików:"
+              - code [ref=e311]: "3"
+            - listitem [ref=e312]:
+              - text: "Liczba wierszy źródłowych:"
+              - code [ref=e313]: "10634"
+            - listitem [ref=e314]: "Tryb ostatniego demo: fallback do lokalnych realnych plików raw po błędzie API."
+    - generic [ref=e315]:
+      - generic [ref=e316]:
+        - heading "Airflow" [level=2] [ref=e317]
+        - paragraph [ref=e318]: Airflow pełni rolę narzędzia integracyjnego i orkiestracyjnego. Nie przechowuje danych biznesowych. Uruchamia kod ETL, zapisuje statusy zadań i udostępnia logi potrzebne do demonstracji live.
+      - generic [ref=e319]:
+        - article [ref=e320]:
+          - heading "Dane logowania" [level=3] [ref=e321]
+          - list [ref=e322]:
+            - listitem [ref=e323]:
+              - text: "Adres:"
+              - code [ref=e324]: http://localhost:8080
+            - listitem [ref=e325]:
+              - text: "Login:"
+              - code [ref=e326]: admin
+            - listitem [ref=e327]:
+              - text: "Hasło:"
+              - code [ref=e328]: admin
+            - listitem [ref=e329]:
+              - text: "DAG:"
+              - code [ref=e330]: iowa_liquor_etl
+        - article [ref=e331]:
+          - heading "Konfiguracja DAG-a" [level=3] [ref=e332]
+          - list [ref=e333]:
+            - listitem [ref=e334]:
+              - code [ref=e335]: dag_id="iowa_liquor_etl"
+            - listitem [ref=e336]:
+              - code [ref=e337]: schedule=None
+              - text: "- uruchomienie ręczne na potrzeby demo."
+            - listitem [ref=e338]:
+              - code [ref=e339]: catchup=False
+              - text: "- brak automatycznego nadrabiania historycznych uruchomień."
+            - listitem [ref=e340]:
+              - code [ref=e341]: retries=2
+              - text: i
+              - code [ref=e342]: retry_delay=2 min
+              - text: "- ponowienie po błędzie technicznym."
+            - listitem [ref=e343]:
+              - code [ref=e344]: execution_timeout=30 min
+              - text: "- ograniczenie czasu jednego zadania."
+      - generic [ref=e345]:
+        - article [ref=e346]:
+          - heading "Obsługa w panelu" [level=3] [ref=e347]
+          - list [ref=e348]:
+            - listitem [ref=e349]:
+              - text: "Lista DAG-ów: wyszukanie"
+              - code [ref=e350]: iowa_liquor_etl
+              - text: .
+            - listitem [ref=e351]: Włączenie DAG-a, jeśli jest oznaczony jako paused.
+            - listitem [ref=e352]: Ręczne uruchomienie przez przycisk trigger/play.
+            - listitem [ref=e353]: W konfiguracji uruchomienia można podać zakres dat jako JSON.
+            - listitem [ref=e354]: "Widok Graph: pokazanie kolejności tasków."
+            - listitem [ref=e355]: "Widok Grid lub Logs: pokazanie wyniku ostatniego uruchomienia."
+        - article [ref=e356]:
+          - heading "Alternatywny entrypoint ETL" [level=3] [ref=e357]
+          - paragraph [ref=e358]:
+            - text: Ten sam łańcuch kroków uruchamia funkcja
+            - code [ref=e359]: run_initial_etl()
+            - text: w
+            - code [ref=e360]: src/run_initial_etl.py
+            - text: . Airflow używa zadań DAG-a, a tryb CLI jest przydatny do szybkiego testu poza panelem webowym.
+          - generic [ref=e361]:
+            - generic [ref=e362]:
+              - generic [ref=e363]: PowerShell
+              - button "Kopiuj" [ref=e364] [cursor=pointer]
+            - generic [ref=e365]: docker compose run --rm airflow python -m src.run_initial_etl
+      - generic "Taski DAG-a Airflow" [ref=e366]:
+        - article [ref=e367]:
+          - generic [ref=e368]: extract_iowa_liquor_sales
+          - generic [ref=e369]: Pobranie danych z API Socrata albo z lokalnego cache realnych plików raw.
+        - article [ref=e370]:
+          - generic [ref=e371]: create_sql_objects
+          - generic [ref=e372]: Utworzenie bazy, schematów oraz tabel stagingu i hurtowni.
+        - article [ref=e373]:
+          - generic [ref=e374]: load_staging
+          - generic [ref=e375]:
+            - text: Wczytanie CSV do
+            - code [ref=e376]: stg.iowa_liquor_sales_raw
+            - text: .
+        - article [ref=e377]:
+          - generic [ref=e378]: load_dimensions
+          - generic [ref=e379]: Odświeżenie wymiarów daty, sklepu, produktu, kategorii, vendora i opakowania.
+        - article [ref=e380]:
+          - generic [ref=e381]: load_fact_sales
+          - generic [ref=e382]:
+            - text: Załadowanie
+            - code [ref=e383]: dw.fact_sales
+            - text: i przeliczenie marży.
+        - article [ref=e384]:
+          - generic [ref=e385]: create_semantic_views
+          - generic [ref=e386]:
+            - text: Utworzenie widoków raportowych w schemacie
+            - code [ref=e387]: sem
+            - text: .
+        - article [ref=e388]:
+          - generic [ref=e389]: run_quality_checks
+          - generic [ref=e390]: Walidacja rekordów, kluczy, duplikatów, joinów i zgodności sprzedaży.
+      - generic [ref=e391]:
+        - generic [ref=e392]:
+          - generic [ref=e393]: Awaryjne ustawienie hasła Airflow
+          - button "Kopiuj" [ref=e394] [cursor=pointer]
+        - generic [ref=e395]: docker compose exec airflow airflow users reset-password --username admin --password admin
+      - generic [ref=e396]:
+        - article [ref=e397]:
+          - heading "Zakres dat w Airflow UI" [level=3] [ref=e398]
+          - paragraph [ref=e399]:
+            - text: DAG ma parametry
+            - code [ref=e400]: start_date
+            - text: ","
+            - code [ref=e401]: end_date
+            - text: i
+            - code [ref=e402]: limit
+            - text: ". Przy ręcznym uruchomieniu w Airflow można wpisać konfigurację JSON. Przykład dla stycznia:"
+          - generic [ref=e403]:
+            - generic [ref=e404]:
+              - generic [ref=e405]: Trigger DAG config
+              - button "Kopiuj" [ref=e406] [cursor=pointer]
+            - generic [ref=e407]: "{ \"start_date\": \"2023-01-01\", \"end_date\": \"2023-01-31\", \"limit\": 50000 }"
+        - article [ref=e408]:
+          - heading "UI czy Docker" [level=3] [ref=e409]
+          - paragraph [ref=e410]: Do prezentacji lepszy jest Airflow UI, bo widać DAG, graf, statusy i logi. Komenda Docker jest zapasem, gdy UI się zawiesi albo trzeba szybko odtworzyć ETL bez klikania.
+    - generic [ref=e411]:
+      - generic [ref=e412]:
+        - heading "ETL" [level=2] [ref=e413]
+        - paragraph [ref=e414]: "ETL znajduje się w kodzie Pythona i skryptach SQL. Każdy etap ma osobną odpowiedzialność: ekstrakcja, przygotowanie plików, staging, transformacja do modelu gwiazdy, widoki semantyczne i testy jakości."
+      - generic "Przepływ ETL" [ref=e415]:
+        - generic [ref=e416]:
+          - generic [ref=e417]: Extract
+          - generic [ref=e418]:
+            - code [ref=e419]: src.extract.socrata_extract
+            - text: ", zakres dat z"
+            - code [ref=e420]: IOWA_START_DATE
+            - text: i
+            - code [ref=e421]: IOWA_END_DATE
+            - text: .
+          - text: ">"
+        - generic [ref=e422]:
+          - generic [ref=e423]: Raw CSV
+          - generic [ref=e424]:
+            - text: Pliki
+            - code [ref=e425]: data/raw/iowa_liquor_sales_2023_part_*.csv
+            - text: oraz manifest ekstrakcji.
+          - text: ">"
+        - generic [ref=e426]:
+          - generic [ref=e427]: Prepare
+          - generic [ref=e428]: Normalizacja nazw kolumn, dat, kwot, liczb, lokalizacji i identyfikatorów.
+          - text: ">"
+        - generic [ref=e429]:
+          - generic [ref=e430]: Staging
+          - generic [ref=e431]:
+            - text: Tabela
+            - code [ref=e432]: stg.iowa_liquor_sales_raw
+            - text: jako techniczna kopia po przygotowaniu.
+          - text: ">"
+        - generic [ref=e433]:
+          - generic [ref=e434]: Dimensions
+          - generic [ref=e435]:
+            - text: Budowa sześciu wymiarów w schemacie
+            - code [ref=e436]: dw
+            - text: .
+          - text: ">"
+        - generic [ref=e437]:
+          - generic [ref=e438]: Fact
+          - generic [ref=e439]:
+            - text: Ładowanie
+            - code [ref=e440]: dw.fact_sales
+            - text: ; filtrowanie ujemnych miar.
+          - text: ">"
+        - generic [ref=e441]:
+          - generic [ref=e442]: Quality
+          - generic [ref=e443]:
+            - text: Skrypt
+            - code [ref=e444]: sql/05_quality_checks.sql
+            - text: i walidacja wyników w Pythonie.
+      - generic [ref=e445]:
+        - article [ref=e446]:
+          - heading "Ekstrakcja" [level=3] [ref=e447]
+          - paragraph [ref=e448]:
+            - text: Funkcja
+            - code [ref=e449]: extract_iowa_liquor_sales()
+            - text: pobiera strony danych z Socrata z parametrami
+            - code [ref=e450]: $where
+            - text: ","
+            - code [ref=e451]: $limit
+            - text: ","
+            - code [ref=e452]: $offset
+            - text: i
+            - code [ref=e453]: $order
+            - text: . Dla stabilności demo kod ma fallback do lokalnych plików raw.
+        - article [ref=e454]:
+          - heading "Staging" [level=3] [ref=e455]
+          - paragraph [ref=e456]:
+            - code [ref=e457]: read_and_prepare_csv()
+            - text: mapuje aliasy kolumn, czyści kwoty z symboli walut i przecinków, parsuje daty, wyciąga współrzędne z pola lokalizacji oraz tworzy
+            - code [ref=e458]: source_row_hash
+            - text: .
+        - article [ref=e459]:
+          - heading "Transformacja" [level=3] [ref=e460]
+          - paragraph [ref=e461]:
+            - code [ref=e462]: load_dimensions()
+            - text: buduje wymiary z danych stagingowych.
+            - code [ref=e463]: load_fact_sales()
+            - text: łączy staging z wymiarami i wylicza
+            - code [ref=e464]: margin_amount
+            - text: jako różnicę ceny detalicznej i kosztu pomnożoną przez liczbę butelek.
+    - generic [ref=e465]:
+      - generic [ref=e466]:
+        - heading "Warstwy danych" [level=2] [ref=e467]
+        - paragraph [ref=e468]: Projekt używa prostego wariantu podejścia Bronze, Silver, Gold. Warstwy rozdzielają dane źródłowe, staging techniczny i model raportowy.
+      - generic [ref=e469]:
+        - article [ref=e470]:
+          - generic [ref=e471]: Bronze
+          - paragraph [ref=e472]:
+            - text: Realne pliki CSV z Iowa Liquor Sales w
+            - code [ref=e473]: data/raw
+            - text: . Dane są najbliżej źródła. Projekt nie generuje rekordów syntetycznych.
+          - paragraph [ref=e474]:
+            - text: "Przykład:"
+            - code [ref=e475]: iowa_liquor_sales_2023_part_000.csv
+            - text: . Manifest ekstrakcji zapisuje zakres dat, limit, liczbę plików i liczbę wierszy.
+        - article [ref=e476]:
+          - generic [ref=e477]: Silver
+          - paragraph [ref=e478]:
+            - text: "Staging w SQL Server:"
+            - code [ref=e479]: stg.iowa_liquor_sales_raw
+            - text: . Ta warstwa ma dane już oczyszczone technicznie, ale nadal blisko struktury źródłowej.
+          - paragraph [ref=e480]:
+            - text: Pola obejmują m.in.
+            - code [ref=e481]: invoice_and_item_number
+            - text: ","
+            - code [ref=e482]: date
+            - text: ","
+            - code [ref=e483]: store_number
+            - text: ","
+            - code [ref=e484]: category
+            - text: ","
+            - code [ref=e485]: vendor_number
+            - text: ","
+            - code [ref=e486]: sale_dollars
+            - text: ","
+            - code [ref=e487]: latitude
+            - text: ","
+            - code [ref=e488]: longitude
+            - text: .
+        - article [ref=e489]:
+          - generic [ref=e490]: Gold
+          - paragraph [ref=e491]:
+            - text: Model gwiazdy w
+            - code [ref=e492]: dw
+            - text: ", widoki"
+            - code [ref=e493]: sem.*
+            - text: i dashboard. To warstwa używana do odpowiedzi na pytania biznesowe.
+          - paragraph [ref=e494]:
+            - text: "Przykłady:"
+            - code [ref=e495]: dw.fact_sales
+            - text: ","
+            - code [ref=e496]: sem.vw_kpi_summary
+            - text: ","
+            - code [ref=e497]: sem.vw_sales_by_category
+            - text: ","
+            - code [ref=e498]: sem.vw_sales_map_points
+            - text: .
+    - generic [ref=e499]:
+      - generic [ref=e500]:
+        - heading "Model gwiazdy" [level=2] [ref=e501]
+        - paragraph [ref=e502]: Ziarno faktu to jedna linia sprzedaży produktu w konkretnym sklepie, dniu i fakturze. Centralna tabela faktów przechowuje miary, a wymiary opisują kontekst analizy.
+      - generic "Diagram schematu gwiazdy w stylu SQL" [ref=e503]:
+        - paragraph [ref=e504]: "Diagram relacji tabel: schemat dw"
+        - img
+        - article [ref=e505]:
+          - generic [ref=e506]: dw.dim_product
+          - generic [ref=e507]:
+            - generic [ref=e508]:
+              - generic [ref=e509]: PK
+              - code [ref=e510]: product_key
+            - code [ref=e512]: item_number
+            - code [ref=e514]: item_description
+        - article [ref=e515]:
+          - generic [ref=e516]: dw.dim_date
+          - generic [ref=e517]:
+            - generic [ref=e518]:
+              - generic [ref=e519]: PK
+              - code [ref=e520]: date_key
+            - code [ref=e522]: date
+            - code [ref=e524]: month
+            - code [ref=e526]: quarter
+            - code [ref=e528]: year
+            - code [ref=e530]: is_weekend
+        - article [ref=e531]:
+          - generic [ref=e532]: dw.dim_store
+          - generic [ref=e533]:
+            - generic [ref=e534]:
+              - generic [ref=e535]: PK
+              - code [ref=e536]: store_key
+            - code [ref=e538]: store_number
+            - code [ref=e540]: store_name
+            - code [ref=e542]: city
+            - code [ref=e544]: county
+            - code [ref=e546]: latitude, longitude
+        - article [ref=e547]:
+          - generic [ref=e548]: dw.fact_sales
+          - generic [ref=e549]:
+            - generic [ref=e550]:
+              - generic [ref=e551]: PK
+              - code [ref=e552]: sales_key
+            - generic [ref=e553]:
+              - generic [ref=e554]: FK
+              - code [ref=e555]: date_key
+            - generic [ref=e556]:
+              - generic [ref=e557]: FK
+              - code [ref=e558]: store_key
+            - generic [ref=e559]:
+              - generic [ref=e560]: FK
+              - code [ref=e561]: product_key
+            - generic [ref=e562]:
+              - generic [ref=e563]: FK
+              - code [ref=e564]: category_key
+            - generic [ref=e565]:
+              - generic [ref=e566]: FK
+              - code [ref=e567]: vendor_key
+            - generic [ref=e568]:
+              - generic [ref=e569]: FK
+              - code [ref=e570]: packaging_key
+            - code [ref=e572]: invoice_number
+            - code [ref=e574]: sales_line_count
+            - code [ref=e576]: bottles_sold
+            - code [ref=e578]: sale_dollars
+            - code [ref=e580]: volume_sold_liters
+            - code [ref=e582]: margin_amount
+        - article [ref=e583]:
+          - generic [ref=e584]: dw.dim_vendor
+          - generic [ref=e585]:
+            - generic [ref=e586]:
+              - generic [ref=e587]: PK
+              - code [ref=e588]: vendor_key
+            - code [ref=e590]: vendor_number
+            - code [ref=e592]: vendor_name
+        - article [ref=e593]:
+          - generic [ref=e594]: dw.dim_category
+          - generic [ref=e595]:
+            - generic [ref=e596]:
+              - generic [ref=e597]: PK
+              - code [ref=e598]: category_key
+            - code [ref=e600]: category_number
+            - code [ref=e602]: category_name
+        - article [ref=e603]:
+          - generic [ref=e604]: dw.dim_packaging
+          - generic [ref=e605]:
+            - generic [ref=e606]:
+              - generic [ref=e607]: PK
+              - code [ref=e608]: packaging_key
+            - code [ref=e610]: pack
+            - code [ref=e612]: bottle_volume_ml
+            - code [ref=e614]: volume_group
+      - generic [ref=e615]:
+        - article [ref=e616]:
+          - heading "Miary addytywne" [level=3] [ref=e617]
+          - paragraph [ref=e618]:
+            - code [ref=e619]: sale_dollars
+            - text: ","
+            - code [ref=e620]: bottles_sold
+            - text: ","
+            - code [ref=e621]: volume_sold_liters
+            - text: ","
+            - code [ref=e622]: volume_sold_gallons
+            - text: ","
+            - code [ref=e623]: margin_amount
+            - text: ","
+            - code [ref=e624]: sales_line_count
+            - text: .
+        - article [ref=e625]:
+          - heading "Miary nieaddytywne" [level=3] [ref=e626]
+          - paragraph [ref=e627]:
+            - code [ref=e628]: state_bottle_cost
+            - text: i
+            - code [ref=e629]: state_bottle_retail
+            - text: nie są sumowane jako KPI. W raportach służą do średnich i kalkulacji marży.
+        - article [ref=e630]:
+          - heading "Klucze i integralność" [level=3] [ref=e631]
+          - paragraph [ref=e632]:
+            - code [ref=e633]: fact_sales
+            - text: ma klucze obce do wszystkich wymiarów. Kontrole jakości sprawdzają brak pustych kluczy i brak nieudanych joinów.
+    - generic [ref=e634]:
+      - generic [ref=e635]:
+        - heading "Warstwa semantyczna" [level=2] [ref=e636]
+        - paragraph [ref=e637]:
+          - text: Warstwa semantyczna znajduje się w schemacie
+          - code [ref=e638]: sem
+          - text: . Skrypt SQL tworzy 16 widoków raportowych. Dashboard czyta z tych widoków, dzięki czemu definicje KPI, agregacje i joiny są utrzymane po stronie SQL Server.
+      - table [ref=e640]:
+        - rowgroup [ref=e641]:
+          - row "Widok Rola w raporcie Przykładowe pola" [ref=e642]:
+            - columnheader "Widok" [ref=e643]
+            - columnheader "Rola w raporcie" [ref=e644]
+            - columnheader "Przykładowe pola" [ref=e645]
+        - rowgroup [ref=e646]:
+          - row "sem.vw_sales_overview Pełny widok bazowy z połączonym faktem i wymiarami. date, store_name, item_description, sale_dollars, margin_amount." [ref=e647]:
+            - cell "sem.vw_sales_overview" [ref=e648]:
+              - code [ref=e649]: sem.vw_sales_overview
+            - cell "Pełny widok bazowy z połączonym faktem i wymiarami." [ref=e650]
+            - cell "date, store_name, item_description, sale_dollars, margin_amount." [ref=e651]:
+              - code [ref=e652]: date
+              - text: ","
+              - code [ref=e653]: store_name
+              - text: ","
+              - code [ref=e654]: item_description
+              - text: ","
+              - code [ref=e655]: sale_dollars
+              - text: ","
+              - code [ref=e656]: margin_amount
+              - text: .
+          - row "sem.vw_kpi_summary Podsumowanie KPI dla strony głównej dashboardu. total_sales, invoice_count, avg_margin_percent, sales_per_liter." [ref=e657]:
+            - cell "sem.vw_kpi_summary" [ref=e658]:
+              - code [ref=e659]: sem.vw_kpi_summary
+            - cell "Podsumowanie KPI dla strony głównej dashboardu." [ref=e660]
+            - cell "total_sales, invoice_count, avg_margin_percent, sales_per_liter." [ref=e661]:
+              - code [ref=e662]: total_sales
+              - text: ","
+              - code [ref=e663]: invoice_count
+              - text: ","
+              - code [ref=e664]: avg_margin_percent
+              - text: ","
+              - code [ref=e665]: sales_per_liter
+              - text: .
+          - row "sem.vw_sales_by_month Sprzedaż w czasie, miesiąc, kwartał i rok. year_month, total_sales, total_margin, store_count." [ref=e666]:
+            - cell "sem.vw_sales_by_month" [ref=e667]:
+              - code [ref=e668]: sem.vw_sales_by_month
+            - cell "Sprzedaż w czasie, miesiąc, kwartał i rok." [ref=e669]
+            - cell "year_month, total_sales, total_margin, store_count." [ref=e670]:
+              - code [ref=e671]: year_month
+              - text: ","
+              - code [ref=e672]: total_sales
+              - text: ","
+              - code [ref=e673]: total_margin
+              - text: ","
+              - code [ref=e674]: store_count
+              - text: .
+          - row "sem.vw_sales_by_category Ranking kategorii i udział w sprzedaży. category_name, sales_share_percent, avg_margin_per_bottle." [ref=e675]:
+            - cell "sem.vw_sales_by_category" [ref=e676]:
+              - code [ref=e677]: sem.vw_sales_by_category
+            - cell "Ranking kategorii i udział w sprzedaży." [ref=e678]
+            - cell "category_name, sales_share_percent, avg_margin_per_bottle." [ref=e679]:
+              - code [ref=e680]: category_name
+              - text: ","
+              - code [ref=e681]: sales_share_percent
+              - text: ","
+              - code [ref=e682]: avg_margin_per_bottle
+              - text: .
+          - row "sem.vw_sales_by_geography Analiza według miasta i county. county, city, total_volume_liters, store_count." [ref=e683]:
+            - cell "sem.vw_sales_by_geography" [ref=e684]:
+              - code [ref=e685]: sem.vw_sales_by_geography
+            - cell "Analiza według miasta i county." [ref=e686]
+            - cell "county, city, total_volume_liters, store_count." [ref=e687]:
+              - code [ref=e688]: county
+              - text: ","
+              - code [ref=e689]: city
+              - text: ","
+              - code [ref=e690]: total_volume_liters
+              - text: ","
+              - code [ref=e691]: store_count
+              - text: .
+          - row "sem.vw_sales_map_points Punkty mapy sklepów z koordynatami. latitude, longitude, total_sales, invoice_count." [ref=e692]:
+            - cell "sem.vw_sales_map_points" [ref=e693]:
+              - code [ref=e694]: sem.vw_sales_map_points
+            - cell "Punkty mapy sklepów z koordynatami." [ref=e695]
+            - cell "latitude, longitude, total_sales, invoice_count." [ref=e696]:
+              - code [ref=e697]: latitude
+              - text: ","
+              - code [ref=e698]: longitude
+              - text: ","
+              - code [ref=e699]: total_sales
+              - text: ","
+              - code [ref=e700]: invoice_count
+              - text: .
+          - row "sem.vw_etl_status Status techniczny załadowania hurtowni. staging_row_count, fact_row_count, min_date, max_date." [ref=e701]:
+            - cell "sem.vw_etl_status" [ref=e702]:
+              - code [ref=e703]: sem.vw_etl_status
+            - cell "Status techniczny załadowania hurtowni." [ref=e704]
+            - cell "staging_row_count, fact_row_count, min_date, max_date." [ref=e705]:
+              - code [ref=e706]: staging_row_count
+              - text: ","
+              - code [ref=e707]: fact_row_count
+              - text: ","
+              - code [ref=e708]: min_date
+              - text: ","
+              - code [ref=e709]: max_date
+              - text: .
+    - generic [ref=e710]:
+      - generic [ref=e711]:
+        - heading "Dashboard Streamlit" [level=2] [ref=e712]
+        - paragraph [ref=e713]: Streamlit jest warstwą raportową. Nie zastępuje hurtowni i nie wykonuje głównego ETL. Aplikacja pokazuje dane pobrane z SQL Server, przede wszystkim z widoków semantycznych.
+      - generic [ref=e714]:
+        - article [ref=e715]:
+          - heading "Zakładki raportowe" [level=3] [ref=e716]
+          - list [ref=e717]:
+            - listitem [ref=e718]:
+              - strong [ref=e719]: "Przegląd zarządczy:"
+              - text: KPI, sprzedaż w czasie, status ETL.
+            - listitem [ref=e720]:
+              - strong [ref=e721]: "Produkty i kategorie:"
+              - text: kategorie, produkty, vendorzy, opakowania, marża.
+            - listitem [ref=e722]:
+              - strong [ref=e723]: "Geografia:"
+              - text: miasta, county, mapa punktów sklepów.
+            - listitem [ref=e724]:
+              - strong [ref=e725]: "Wyniki sklepów:"
+              - text: ranking sklepów i średnia sprzedaż na sklep.
+        - article [ref=e726]:
+          - heading "Filtry" [level=3] [ref=e727]
+          - paragraph [ref=e728]:
+            - text: "Panel boczny zawiera filtry:"
+            - code [ref=e729]: Rok
+            - text: ","
+            - code [ref=e730]: Miesiąc
+            - text: ","
+            - code [ref=e731]: Kategoria
+            - text: ","
+            - code [ref=e732]: Dostawca
+            - text: ","
+            - code [ref=e733]: County
+            - text: ","
+            - code [ref=e734]: Miasto
+            - text: ","
+            - code [ref=e735]: Grupa opakowania
+            - text: ","
+            - code [ref=e736]: Typ dnia
+            - text: oraz suwak
+            - code [ref=e737]: Liczba pozycji Top N
+            - text: .
+      - generic [ref=e738]:
+        - article [ref=e739]:
+          - heading "Dlaczego dashboard może pokazać jeden miesiąc" [level=3] [ref=e740]
+          - paragraph [ref=e741]: Dashboard pokazuje aktualny zakres danych w hurtowni. Szybkie demo ETL często ładuje jeden dzień ze stycznia 2023, więc zakres raportu zawiera tylko styczeń. Nie jest to błąd dashboardu, tylko wynik zakresu użytego przy ostatnim ładowaniu.
+        - article [ref=e742]:
+          - heading "Główne KPI" [level=3] [ref=e743]
+          - paragraph [ref=e744]:
+            - text: "Raport liczy między innymi:"
+            - code [ref=e745]: Sprzedaż łącznie
+            - text: ","
+            - code [ref=e746]: Marża łącznie
+            - text: ","
+            - code [ref=e747]: Sprzedane butelki
+            - text: ","
+            - code [ref=e748]: Wolumen (litry)
+            - text: ","
+            - code [ref=e749]: Śr. wartość faktury
+            - text: ","
+            - code [ref=e750]: Marża %
+            - text: ","
+            - code [ref=e751]: Sprzedaż / sklep
+            - text: i
+            - code [ref=e752]: Sprzedaż / litr
+            - text: .
+    - generic [ref=e753]:
+      - generic [ref=e754]:
+        - heading "Zapytania kontrolne SQL" [level=2] [ref=e755]
+        - paragraph [ref=e756]: Zapytania weryfikują, że dane przeszły przez staging, model gwiazdy i widoki semantyczne. Najważniejsze kontrole obejmują schematy, liczby rekordów, tabele, widoki i status ostatniego ładowania.
+      - generic [ref=e757]:
+        - article [ref=e758]:
+          - heading "Połączenie" [level=3] [ref=e759]
+          - list [ref=e760]:
+            - listitem [ref=e761]:
+              - text: "Server:"
+              - code [ref=e762]: localhost,1433
+            - listitem [ref=e763]:
+              - text: "User:"
+              - code [ref=e764]: admin
+            - listitem [ref=e765]:
+              - text: "Password:"
+              - code [ref=e766]: admin
+            - listitem [ref=e767]:
+              - text: "Database:"
+              - code [ref=e768]: IowaLiquorDW
+        - article [ref=e769]:
+          - heading "Obiekty w bazie" [level=3] [ref=e770]
+          - list [ref=e771]:
+            - listitem [ref=e772]:
+              - code [ref=e773]: stg.iowa_liquor_sales_raw
+              - text: "- staging po wczytaniu CSV."
+            - listitem [ref=e774]:
+              - code [ref=e775]: dw.fact_sales
+              - text: "- centralna tabela faktów."
+            - listitem [ref=e776]:
+              - code [ref=e777]: dw.dim_date
+              - text: ","
+              - code [ref=e778]: dw.dim_store
+              - text: ","
+              - code [ref=e779]: dw.dim_product
+              - text: ","
+              - code [ref=e780]: dw.dim_category
+              - text: ","
+              - code [ref=e781]: dw.dim_vendor
+              - text: ","
+              - code [ref=e782]: dw.dim_packaging
+              - text: "- wymiary."
+            - listitem [ref=e783]:
+              - code [ref=e784]: sem.*
+              - text: "- widoki semantyczne dla raportów."
+      - generic [ref=e785]:
+        - generic [ref=e786]:
+          - generic [ref=e787]: SQL Server
+          - button "Kopiuj" [ref=e788] [cursor=pointer]
+        - generic [ref=e789]: SELECT name FROM sys.schemas WHERE name IN ('stg', 'dw', 'sem'); SELECT COUNT(*) AS staging_rows FROM stg.iowa_liquor_sales_raw; SELECT COUNT(*) AS fact_rows FROM dw.fact_sales; SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA IN ('stg', 'dw') ORDER BY TABLE_SCHEMA, TABLE_NAME; SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'sem' ORDER BY TABLE_NAME; SELECT * FROM sem.vw_etl_status;
+    - generic [ref=e790]:
+      - generic [ref=e791]:
+        - heading "Kontrole jakości" [level=2] [ref=e792]
+        - paragraph [ref=e793]:
+          - text: Ostatni task w DAG-u uruchamia
+          - code [ref=e794]: run_quality_checks()
+          - text: . Funkcja wykonuje zapytania z
+          - code [ref=e795]: sql/05_quality_checks.sql
+          - text: i przerywa proces, jeśli kontrola nie przejdzie.
+      - generic [ref=e796]:
+        - article [ref=e797]:
+          - heading "Liczność danych" [level=3] [ref=e798]
+          - paragraph [ref=e799]:
+            - code [ref=e800]: staging_row_count
+            - text: ","
+            - code [ref=e801]: eligible_staging_row_count
+            - text: ","
+            - code [ref=e802]: fact_row_count
+            - text: oraz różnica między stagingiem kwalifikowanym i faktem.
+        - article [ref=e803]:
+          - heading "Integralność modelu" [level=3] [ref=e804]
+          - paragraph [ref=e805]: Brak pustych kluczy obcych, brak nieudanych joinów faktu z wymiarami oraz brak duplikatów w wymiarach.
+        - article [ref=e806]:
+          - heading "Miary sprzedażowe" [level=3] [ref=e807]
+          - paragraph [ref=e808]:
+            - text: Brak ujemnych miar w fakcie i zgodność sumy
+            - code [ref=e809]: sale_dollars
+            - text: między stagingiem kwalifikowanym a tabelą faktów.
+    - generic [ref=e810]:
+      - generic [ref=e811]:
+        - heading "Spełnienie wymagań" [level=2] [ref=e812]
+        - paragraph [ref=e813]: "Projekt odpowiada wymaganiom zaliczeniowym: pytania biznesowe, model wielowymiarowy, hurtownia, ETL, warstwa semantyczna i raporty z wykresami."
+      - generic [ref=e814]:
+        - generic [ref=e815]:
+          - generic [ref=e816]: Pytania biznesowe
+          - generic [ref=e817]:
+            - text: 12 pytań w
+            - code [ref=e818]: docs/business_requirements.md
+            - text: ", powiązanych z wymiarami i widokami."
+        - generic [ref=e819]:
+          - generic [ref=e820]: Schemat gwiazdy
+          - generic [ref=e821]:
+            - code [ref=e822]: dw.fact_sales
+            - text: oraz sześć tabel wymiarów w SQL Server.
+        - generic [ref=e823]:
+          - generic [ref=e824]: ETL live
+          - generic [ref=e825]:
+            - text: DAG
+            - code [ref=e826]: iowa_liquor_etl
+            - text: w Airflow i pipeline
+            - code [ref=e827]: src.run_initial_etl
+            - text: .
+        - generic [ref=e828]:
+          - generic [ref=e829]: Semantyka
+          - generic [ref=e830]:
+            - text: Widoki SQL w schemacie
+            - code [ref=e831]: sem
+            - text: ", wykorzystywane przez dashboard."
+        - generic [ref=e832]:
+          - generic [ref=e833]: Raporty
+          - generic [ref=e834]: "Streamlit: KPI, wykresy, mapa, tabele, filtry i eksport CSV."
+    - generic [ref=e836]:
+      - strong [ref=e837]: "Podsumowanie techniczne:"
+      - text: SQL Server przechowuje hurtownię, Airflow uruchamia ETL, schemat
+      - code [ref=e838]: dw
+      - text: zawiera model gwiazdy, schemat
+      - code [ref=e839]: sem
+      - text: udostępnia warstwę semantyczną, a Streamlit pełni rolę raportową.

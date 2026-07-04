@@ -1,6 +1,6 @@
 # Hurtownia danych do analizy sprzedazy, produktow, sklepow i regionow na podstawie danych Iowa Liquor Sales
 
-Projekt przedstawia kompletna hurtownie danych dla analizy sprzedazy detalicznej i dystrybucji regulowanych produktow. Dane pochodza z publicznego zbioru Iowa Liquor Sales udostepnianego przez Socrata API. Projekt jest przygotowany pod kurs z architektury hurtowni danych i obejmuje:
+Projekt przedstawia kompletna hurtownie danych dla analizy sprzedazy detalicznej i dystrybucji regulowanych produktow. Dane pochodza z publicznego zbioru Iowa Liquor Sales. Projekt jest przygotowany pod kurs z architektury hurtowni danych i obejmuje:
 
 - realne dane publiczne,
 - pytania biznesowe,
@@ -20,9 +20,11 @@ Publiczny zbior danych:
 
 ```text
 Iowa Liquor Sales
-Socrata resource ID: m3tr-qhgy
-Endpoint: https://data.iowa.gov/resource/m3tr-qhgy.csv
+Portal: data.iowa.gov
+Raw files: data-warehouse-iowa-liquor/data/raw/*.csv
 ```
+
+Projekt ma ekstraktor API, ale aktualny publiczny endpoint oryginalnego zasobu zwraca `404`. Dla bezpiecznej prezentacji ETL potrafi odtworzyc szybki demo extract z lokalnego cache realnych plikow raw. Te dane nie sa generowane.
 
 Domyslny zakres ekstrakcji:
 
@@ -33,10 +35,10 @@ Domyslny zakres ekstrakcji:
 Paginacja:
 
 ```text
-$limit=50000
+$limit=5000
 $offset=0
-$offset=50000
-$offset=100000
+$offset=5000
+$offset=10000
 ...
 ```
 
@@ -52,7 +54,7 @@ data/raw/iowa_liquor_sales_2023_part_001.csv
 
 ```mermaid
 flowchart LR
-    A[Iowa Liquor Sales Socrata CSV API] --> B[Airflow Extract]
+    A[Iowa Liquor Sales source / cached real raw CSV] --> B[Airflow Extract]
     B --> C[Raw CSV Files]
     C --> D[SQL Server Staging]
     D --> E[SQL Server DW Star Schema]
@@ -144,7 +146,7 @@ Kluczowe zalozenia modelu:
 - geografia jest utrzymywana w `dim_store`,
 - szosty wymiar to `dim_packaging`, a nie zduplikowana geografia.
 
-Szczegoly: [dimensional_model.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/dimensional_model.md)
+Szczegoly: [dimensional_model.md](data-warehouse-iowa-liquor/docs/dimensional_model.md)
 
 ## Slownik danych
 
@@ -224,7 +226,7 @@ Te dwa pola sa cenami jednostkowymi. W raportach powinny byc analizowane przez:
 | Pole | Opis | Przyklad |
 |---|---|---|
 | `date_key` | Klucz glowny wymiaru czasu w formacie `YYYYMMDD`. | `20230103` |
-| `date` | Pelna data kalendarzowa. | `2023-01-03` |
+| `date` | Pelna data kalendarzowa. | `2023-01-01` |
 | `day` | Dzien miesiaca. | `3` |
 | `month` | Numer miesiaca. | `1` |
 | `month_name_en` | Nazwa miesiaca po angielsku. | `January` |
@@ -235,7 +237,7 @@ Te dwa pola sa cenami jednostkowymi. W raportach powinny byc analizowane przez:
 | `day_name_en` | Nazwa dnia tygodnia po angielsku. | `Tuesday` |
 | `day_name_pl` | Nazwa dnia tygodnia po polsku. | `wtorek` |
 | `is_weekend` | Flaga logiczna: `1` weekend, `0` dzien roboczy. | `0` |
-| `year_month` | Skrót roku i miesiaca, wygodny do raportow. | `2023-01` |
+| `year_month` | Skrot roku i miesiaca, wygodny do raportow. | `2023-01` |
 
 ### Po co istnieje `is_weekend`
 
@@ -328,7 +330,7 @@ Najwazniejsze pola stagingu:
 | `source_file` | Nazwa pliku raw, z ktorego pochodzi rekord. | `iowa_liquor_sales_2023_part_000.csv` |
 | `load_timestamp` | Czas zaladowania do stagingu. | `2026-05-28 23:07:34` |
 | `invoice_and_item_number` | Oryginalny identyfikator linii sprzedazy ze zrodla. | `INV-54555400001` |
-| `date` | Data sprzedazy. | `2023-01-03` |
+| `date` | Data sprzedazy. | `2023-01-01` |
 | `store_number` | Numer sklepu ze zrodla. | `2190` |
 | `store_name` | Nazwa sklepu ze zrodla po normalizacji tekstu. | `Central City Liquor` |
 | `city` | Miasto po normalizacji. | `Des Moines` |
@@ -380,7 +382,7 @@ Projekt odpowiada na 12 pytan biznesowych. Zestaw jest celowo ulozony tak, aby k
 11. Jak roznia sie sprzedaz, wolumen i liczba faktur w weekendy oraz dni robocze?
 12. Ktore grupy opakowan i pojemnosci butelek generowaly najwyzsza sprzedaz, wolumen i marze?
 
-Pelne mapowanie: [business_requirements.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/business_requirements.md)
+Pelne mapowanie: [business_requirements.md](data-warehouse-iowa-liquor/docs/business_requirements.md)
 
 ## ETL Process
 
@@ -396,7 +398,7 @@ DAG Airflow `iowa_liquor_etl` wykonuje:
 
 Projekt uzywa prostego full refresh. To celowy wybor dla projektu studenckiego: latwiej pokazac i obronic ETL na prezentacji.
 
-Szczegoly ETL: [etl_description.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/etl_description.md)
+Szczegoly ETL: [etl_description.md](data-warehouse-iowa-liquor/docs/etl_description.md)
 
 ## Semantic Layer
 
@@ -510,10 +512,10 @@ In Airflow:
 
 ### 5. Run ETL from terminal
 
-Quick demo run for one day:
+Default full-year ETL run:
 
 ```powershell
-docker compose run --rm -e IOWA_START_DATE=2023-01-03 -e IOWA_END_DATE=2023-01-03 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
+docker compose run --rm -e IOWA_START_DATE=2023-01-01 -e IOWA_END_DATE=2023-12-31 -e SOCRATA_LIMIT=5000 airflow python -m src.run_initial_etl
 ```
 
 Python local run:
@@ -581,7 +583,7 @@ Invoke-WebRequest http://localhost:8501 -UseBasicParsing
 
 ## Current Verified Demo State
 
-Verified run for `2023-01-03`:
+Verified default full-year run for `2023-01-01` to `2023-12-31`:
 
 ```text
 staging rows: 10634
@@ -592,22 +594,25 @@ semantic views: 16 views returning data
 streamlit app: 0 exceptions in smoke test
 ```
 
+For broader validation, see [validation_report.md](data-warehouse-iowa-liquor/docs/validation_report.md). Full-year raw extraction is the default configured source range, and `dim_date` is intentionally populated as a full-year calendar dimension.
+
 ## Documentation
 
-- [project_description.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/project_description.md)
-- [business_requirements.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/business_requirements.md)
-- [dimensional_model.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/dimensional_model.md)
-- [model_wielowymiarowy_etap2.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/model_wielowymiarowy_etap2.md)
-- [uzasadnienie_modelu.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/uzasadnienie_modelu.md)
-- [warstwa_semantyczna.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/warstwa_semantyczna.md)
-- [etl_description.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/etl_description.md)
-- [pipeline_flow.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/pipeline_flow.md)
-- [presentation_notes.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/presentation_notes.md)
-- [progress.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/progress.md)
+- [project_description.md](data-warehouse-iowa-liquor/docs/project_description.md)
+- [business_requirements.md](data-warehouse-iowa-liquor/docs/business_requirements.md)
+- [dimensional_model.md](data-warehouse-iowa-liquor/docs/dimensional_model.md)
+- [model_wielowymiarowy_etap2.md](data-warehouse-iowa-liquor/docs/model_wielowymiarowy_etap2.md)
+- [uzasadnienie_modelu.md](data-warehouse-iowa-liquor/docs/uzasadnienie_modelu.md)
+- [warstwa_semantyczna.md](data-warehouse-iowa-liquor/docs/warstwa_semantyczna.md)
+- [etl_description.md](data-warehouse-iowa-liquor/docs/etl_description.md)
+- [pipeline_flow.md](data-warehouse-iowa-liquor/docs/pipeline_flow.md)
+- [presentation_notes.md](data-warehouse-iowa-liquor/docs/presentation_notes.md)
+- [validation_report.md](data-warehouse-iowa-liquor/docs/validation_report.md)
+- [progress.md](data-warehouse-iowa-liquor/docs/progress.md)
 
 ## Limitations
 
-- Default verified run used one-day slice for fast demo.
+- Default verified run uses the full-year 2023 range.
 - Full-year extract is possible but heavier on laptop resources.
 - Project uses full refresh, not incremental loading.
 - Container orchestration is Docker Compose, not Kubernetes.

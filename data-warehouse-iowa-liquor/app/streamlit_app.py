@@ -6,6 +6,7 @@ from io import BytesIO
 from pathlib import Path
 from urllib.parse import quote_plus
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
@@ -274,7 +275,7 @@ def render_q1():
         fig = px.bar(quarterly, x="year_quarter", y="total_sales", title="Sprzedaż kwartalna")
         show_chart(fig, key="q1_quarterly_sales")
     with c2:
-        fig = px.bar(yearly, x="year", y="total_sales", title="Sprzedaż roczna")
+        fig = px.bar(yearly, x="year", y="total_sales", title="Sprzedaż roczna", text_auto=".2s")
         show_chart(fig, key="q1_yearly_sales")
 
     show_report_table(
@@ -378,10 +379,11 @@ def render_q4():
             )
             .reset_index()
         )
+        city_map_df["log_sales"] = np.log1p(city_map_df["total_sales"])
         fig_city = px.scatter_mapbox(
-            city_map_df, lat="latitude", lon="longitude", size="total_sales", color="total_volume_liters",
+            city_map_df, lat="latitude", lon="longitude", size="log_sales", color="total_volume_liters",
             hover_name="city", hover_data=["county", "store_count", "total_sales", "total_volume_liters"],
-            zoom=5, height=550, title="Mapa miast (wielkość=sprzedaż)"
+            zoom=5, height=550, title="Mapa miast (wielkość punktów: skala logarytmiczna)"
         )
         fig_city.update_layout(mapbox_style="carto-positron")
         show_chart(fig_city, key="q4_city_map")
@@ -402,8 +404,8 @@ def render_q5():
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q5_sales")
     with c2:
-        fig = px.pie(df.head(15), names="vendor_name", values="total_sales", title="Udział w sprzedaży (Top 15)")
-        show_chart(fig, key="q5_pie")
+        fig = px.treemap(df.head(20), path=["vendor_name"], values="total_sales", title="Udział w sprzedaży (Top 20 dostawców)")
+        show_chart(fig, key="q5_treemap")
 
     show_report_table(
         "Podsumowanie dostawców",
@@ -434,6 +436,15 @@ def render_q6():
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q6_sales")
 
+    st.markdown("### Porównanie: Przychód vs Wolumen dla Top 50 produktów")
+    top_50 = df.sort_values("total_sales", ascending=False).head(50)
+    fig_scatter = px.scatter(
+        top_50, x="total_bottles_sold", y="total_sales", color="category_name", size="total_margin",
+        hover_name="item_description", log_x=True, log_y=True,
+        title="Sprzedaż vs Liczba Butelek (skala logarytmiczna)"
+    )
+    show_chart(fig_scatter, key="q6_scatter")
+
     show_report_table(
         "Top Produkty",
         top_sales.head(50),
@@ -451,6 +462,10 @@ def render_q7():
         return
 
     df["avg_unit_margin"] = pd.to_numeric(df["avg_unit_margin"], errors="coerce")
+    
+    # KRYTYCZNE: Odfiltrowanie produktów-widm (sprzedaż < $5000), żeby absurdalne pojedyczne butelki nie psuły wizualizacji
+    df = df[df["total_sales"] >= 5000]
+    
     df = df.dropna(subset=["avg_unit_margin"]).sort_values("avg_unit_margin", ascending=False)
     
     top_margin = df.head(20)
@@ -503,7 +518,7 @@ def render_q9():
 
     fig = px.scatter(
         df, x="total_volume_liters", y="total_sales", size="store_count", hover_name="county",
-        title="Wolumen a sprzedaż według regionu"
+        log_x=True, log_y=True, title="Wolumen a sprzedaż według regionu (Skala Logarytmiczna)"
     )
     show_chart(fig, key="q9_scatter")
 
@@ -564,10 +579,10 @@ def render_q11():
 
     c1, c2 = st.columns(2)
     with c1:
-        fig = px.bar(day_type, x="day_type", y="total_sales", color="day_type", title="Sprzedaż: weekend i dni robocze")
+        fig = px.bar(day_type, x="day_type", y="total_sales", color="day_type", log_y=True, title="Sprzedaż (Oś logarytmiczna)")
         show_chart(fig, key="q11_sales")
     with c2:
-        fig = px.bar(day_type, x="day_type", y="total_volume_liters", color="day_type", title="Wolumen: weekend i dni robocze")
+        fig = px.bar(day_type, x="day_type", y="total_volume_liters", color="day_type", log_y=True, title="Wolumen (Oś logarytmiczna)")
         show_chart(fig, key="q11_volume")
 
     st.info(
@@ -593,13 +608,11 @@ def render_q12():
 
     df = df.sort_values("total_sales", ascending=False)
     
-    fig = px.bar(
-        df.head(20).sort_values("total_sales", ascending=True), 
-        x="total_sales", y="volume_group", color="bottle_volume_ml", orientation="h",
-        title="Sprzedaż według grupy opakowania i pojemności"
+    fig = px.treemap(
+        df.head(30), path=["volume_group", "bottle_volume_ml"], values="total_sales",
+        title="Drzewo sprzedaży (Treemap) według grupy opakowania i pojemności"
     )
-    fig.update_layout(yaxis={"categoryorder": "total ascending"})
-    show_chart(fig, key="q12_bar")
+    show_chart(fig, key="q12_treemap")
 
     show_report_table(
         "Podsumowanie opakowań",

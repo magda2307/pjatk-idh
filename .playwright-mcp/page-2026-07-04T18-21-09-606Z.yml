@@ -1,0 +1,280 @@
+- generic [active] [ref=f1e1]:
+  - banner:
+    - navigation [ref=f1e2]:
+      - generic [ref=f1e3]:
+        - link [ref=f1e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=f1e6]
+        - generic [ref=f1e18]:
+          - list [ref=f1e19]:
+            - listitem [ref=f1e20]:
+              - link "DAGs" [ref=f1e21] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=f1e22]:
+              - link "Cluster Activity" [ref=f1e23] [cursor=pointer]:
+                - /url: /cluster_activity
+            - listitem [ref=f1e24]:
+              - link "Datasets" [ref=f1e25] [cursor=pointer]:
+                - /url: /datasets
+            - listitem [ref=f1e26]:
+              - link "Security" [ref=f1e27] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Security
+            - listitem [ref=f1e29]:
+              - link "Browse" [ref=f1e30] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Browse
+            - listitem [ref=f1e32]:
+              - link "Admin" [ref=f1e33] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Admin
+            - listitem [ref=f1e35]:
+              - link "Docs" [ref=f1e36] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Docs
+          - list [ref=f1e38]:
+            - listitem [ref=f1e39]:
+              - link "18:21 UTC" [ref=f1e40] [cursor=pointer]:
+                - /url: "#"
+                - time [ref=f1e41]:
+                  - text: 18:21
+                  - strong [ref=f1e42]: UTC
+            - listitem [ref=f1e44]:
+              - link "AU" [ref=f1e45] [cursor=pointer]:
+                - /url: "#"
+                - generic "Admin User" [ref=f1e46]:
+                  - generic [ref=f1e47]: AU
+  - generic [ref=f1e50]:
+    - generic [ref=f1e51]:
+      - text: Do not use SQLite as metadata DB in production – it should only be used for dev/testing. We recommend using Postgres or MySQL.
+      - link "Click here" [ref=f1e52] [cursor=pointer]:
+        - /url: https://airflow.apache.org/docs/apache-airflow/2.9.3/howto/set-up-database.html
+      - text: for more information.
+    - generic [ref=f1e53]:
+      - text: Do not use the SequentialExecutor in production.
+      - link "Click here" [ref=f1e54] [cursor=pointer]:
+        - /url: https://airflow.apache.org/docs/apache-airflow/2.9.3/executor/index.html
+      - text: for more information.
+    - heading "DAGs" [level=2] [ref=f1e55]
+    - generic [ref=f1e57]:
+      - generic [ref=f1e58]:
+        - link "All 1" [ref=f1e59] [cursor=pointer]:
+          - /url: /home?status=all
+          - text: All
+          - generic [ref=f1e60]: "1"
+        - link "Active 0" [ref=f1e61] [cursor=pointer]:
+          - /url: /home?status=active
+          - text: Active
+          - generic [ref=f1e62]: "0"
+        - link "Paused 1" [ref=f1e63] [cursor=pointer]:
+          - /url: /home?status=paused
+          - text: Paused
+          - generic [ref=f1e64]: "1"
+      - generic [ref=f1e65]:
+        - link "Running 0" [ref=f1e66] [cursor=pointer]:
+          - /url: /home?status=running
+          - text: Running
+          - generic [ref=f1e67]: "0"
+        - link "Failed 0" [ref=f1e68] [cursor=pointer]:
+          - /url: /home?status=failed
+          - text: Failed
+          - generic [ref=f1e69]: "0"
+      - combobox [ref=f1e75]:
+        - list [ref=f1e76]:
+          - listitem [ref=f1e77]:
+            - searchbox "Filter DAGs by tag" [ref=f1e78]
+      - generic [ref=f1e81]:
+        - generic [ref=f1e82]: Search DAGs
+        - searchbox "Search DAGs" [ref=f1e83]
+      - generic [ref=f1e84]:
+        - generic [ref=f1e85] [cursor=pointer]:
+          - checkbox "Auto-refresh" [checked] [ref=f1e86]
+          - text: Auto-refresh
+        - button [ref=f1e88] [cursor=pointer]:
+          - generic [ref=f1e89]: refresh
+    - table [ref=f1e92]:
+      - rowgroup [ref=f1e93]:
+        - row "info DAG Owner Runs Schedule Last Run Next Run Recent Tasks Actions Links" [ref=f1e94]:
+          - columnheader "info" [ref=f1e95]:
+            - generic [ref=f1e96]: info
+          - columnheader "DAG" [ref=f1e97]:
+            - tooltip "DAG" [ref=f1e98] [cursor=pointer]:
+              - text: DAG
+              - generic [ref=f1e99]: unfold_more
+          - columnheader "Owner" [ref=f1e100]:
+            - tooltip "Owner" [ref=f1e101] [cursor=pointer]:
+              - text: Owner
+              - generic [ref=f1e102]: unfold_more
+          - columnheader "Runs" [ref=f1e103]:
+            - text: Runs
+            - generic [ref=f1e104]: info
+          - columnheader "Schedule" [ref=f1e105]
+          - columnheader "Last Run" [ref=f1e106]:
+            - tooltip "Last Run" [ref=f1e107] [cursor=pointer]:
+              - text: Last Run
+              - generic [ref=f1e108]: unfold_more
+            - generic [ref=f1e109]: info
+          - columnheader "Next Run" [ref=f1e110]:
+            - tooltip "Next Run" [ref=f1e111] [cursor=pointer]:
+              - text: Next Run
+              - generic [ref=f1e112]: unfold_more
+            - generic [ref=f1e113]: info
+          - columnheader "Recent Tasks" [ref=f1e114]:
+            - text: Recent Tasks
+            - generic [ref=f1e115]: info
+          - columnheader "Actions" [ref=f1e116]
+          - columnheader "Links" [ref=f1e117]
+      - rowgroup [ref=f1e118]:
+        - row "iowa_liquor_etl data-warehouse iowa-liquor airflow None Trigger DAG Delete DAG Code Gantt Landing Tries Duration Calendar Graph Grid more_horiz" [ref=f1e119]:
+          - cell [ref=f1e120]:
+            - checkbox [ref=f1e122]
+          - cell "iowa_liquor_etl data-warehouse iowa-liquor" [ref=f1e124]:
+            - link "iowa_liquor_etl" [ref=f1e125] [cursor=pointer]:
+              - /url: /dags/iowa_liquor_etl/grid
+              - strong [ref=f1e126]: iowa_liquor_etl
+            - generic [ref=f1e127]:
+              - link "data-warehouse" [ref=f1e128] [cursor=pointer]:
+                - /url: "?tags=data-warehouse"
+              - link "iowa-liquor" [ref=f1e129] [cursor=pointer]:
+                - /url: "?tags=iowa-liquor"
+          - cell "airflow" [ref=f1e130]:
+            - link "airflow" [ref=f1e131] [cursor=pointer]:
+              - /url: "?search=airflow"
+          - cell [ref=f1e132]:
+            - img [ref=f1e133]:
+              - link "queued" [ref=f1e135] [cursor=pointer]:
+                - /url: /dagrun/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=queued
+                - generic "queued" [ref=f1e136]
+              - link "success" [ref=f1e138] [cursor=pointer]:
+                - /url: /dagrun/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=success
+                - generic "success" [ref=f1e139]
+              - link "running" [ref=f1e141] [cursor=pointer]:
+                - /url: /dagrun/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=running
+                - generic "running" [ref=f1e142]
+              - link "failed" [ref=f1e144] [cursor=pointer]:
+                - /url: /dagrun/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=failed
+                - generic "failed" [ref=f1e145]
+          - cell "None" [ref=f1e146]:
+            - link "None" [ref=f1e147] [cursor=pointer]:
+              - /url: /dagrun/list/?_flt_3_dag_id=iowa_liquor_etl
+            - generic [ref=f1e148]: info
+          - cell [ref=f1e149]
+          - cell [ref=f1e150]
+          - cell [ref=f1e151]:
+            - img [ref=f1e152]:
+              - link "none" [ref=f1e154] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_8_state=
+                - generic "none" [ref=f1e155]
+              - link "removed" [ref=f1e157] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=removed
+                - generic "removed" [ref=f1e158]
+              - link "scheduled" [ref=f1e160] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=scheduled
+                - generic "scheduled" [ref=f1e161]
+              - link "queued" [ref=f1e163] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=queued
+                - generic "queued" [ref=f1e164]
+              - link "running" [ref=f1e166] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=running
+                - generic "running" [ref=f1e167]
+              - link "success" [ref=f1e169] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=success
+                - generic "success" [ref=f1e170]
+              - link "restarting" [ref=f1e172] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=restarting
+                - generic "restarting" [ref=f1e173]
+              - link "failed" [ref=f1e175] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=failed
+                - generic "failed" [ref=f1e176]
+              - link "up_for_retry" [ref=f1e178] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=up_for_retry
+                - generic "up_for_retry" [ref=f1e179]
+              - link "up_for_reschedule" [ref=f1e181] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=up_for_reschedule
+                - generic "up_for_reschedule" [ref=f1e182]
+              - link "upstream_failed" [ref=f1e184] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=upstream_failed
+                - generic "upstream_failed" [ref=f1e185]
+              - link "skipped" [ref=f1e187] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=skipped
+                - generic "skipped" [ref=f1e188]
+              - link "deferred" [ref=f1e190] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=deferred
+                - generic "deferred" [ref=f1e191]
+              - link "shutdown" [ref=f1e193] [cursor=pointer]:
+                - /url: /taskinstance/list/?_flt_3_dag_id=iowa_liquor_etl&_flt_3_state=shutdown
+                - generic "shutdown" [ref=f1e194]
+          - cell "Trigger DAG Delete DAG" [ref=f1e195]:
+            - generic [ref=f1e196]:
+              - link "Trigger DAG" [ref=f1e197] [cursor=pointer]:
+                - /url: /dags/iowa_liquor_etl/trigger?redirect_url=%2Fhome
+                - generic [ref=f1e198]: play_arrow
+              - link "Delete DAG" [ref=f1e199] [cursor=pointer]:
+                - /url: /delete?dag_id=iowa_liquor_etl&redirect_url=%2Fhome
+                - generic [ref=f1e200]: delete_outline
+          - cell "Code Gantt Landing Tries Duration Calendar Graph Grid more_horiz" [ref=f1e201]:
+            - generic [ref=f1e202]:
+              - generic:
+                - link "Code":
+                  - /url: /dags/iowa_liquor_etl/code
+                  - generic [ref=f1e203] [cursor=pointer]: code
+                  - text: Code
+                - link "Gantt":
+                  - /url: /dags/iowa_liquor_etl/gantt
+                  - generic [ref=f1e204] [cursor=pointer]: vertical_distribute
+                  - text: Gantt
+                - link "Landing":
+                  - /url: /dags/iowa_liquor_etl/landing-times
+                  - generic [ref=f1e205] [cursor=pointer]: flight_land
+                  - text: Landing
+                - link "Tries":
+                  - /url: /dags/iowa_liquor_etl/tries
+                  - generic [ref=f1e206] [cursor=pointer]: repeat
+                  - text: Tries
+                - link "Duration":
+                  - /url: /dags/iowa_liquor_etl/duration
+                  - generic [ref=f1e207] [cursor=pointer]: hourglass_bottom
+                  - text: Duration
+                - link "Calendar":
+                  - /url: /dags/iowa_liquor_etl/calendar
+                  - generic [ref=f1e208] [cursor=pointer]: event
+                  - text: Calendar
+                - link "Graph":
+                  - /url: /dags/iowa_liquor_etl/graph
+                  - generic [ref=f1e209] [cursor=pointer]: account_tree
+                  - text: Graph
+                - link "Grid":
+                  - /url: /dags/iowa_liquor_etl/grid?num_runs=25
+                  - generic [ref=f1e210] [cursor=pointer]: grid_on
+                  - text: Grid
+              - generic [ref=f1e212]: more_horiz
+    - generic [ref=f1e213]:
+      - list [ref=f1e215]:
+        - listitem:
+          - link "«" [ref=f1e216]:
+            - /url: javascript:void(0)
+        - listitem:
+          - link "‹" [ref=f1e217]:
+            - /url: javascript:void(0)
+        - listitem:
+          - link "1" [ref=f1e218]:
+            - /url: javascript:void(0)
+        - listitem:
+          - link "›" [ref=f1e219]:
+            - /url: javascript:void(0)
+        - listitem:
+          - link "»" [ref=f1e220]:
+            - /url: javascript:void(0)
+      - generic [ref=f1e221]:
+        - text: Showing
+        - strong [ref=f1e222]: 1-1
+        - text: of
+        - strong [ref=f1e223]: "1"
+        - text: DAGs
+  - contentinfo [ref=f1e224]:
+    - generic [ref=f1e226]:
+      - text: "Version:"
+      - link "v2.9.3" [ref=f1e227] [cursor=pointer]:
+        - /url: https://pypi.python.org/pypi/apache-airflow/2.9.3
+      - text: "Git Version:"
+      - strong [ref=f1e228]: .release:81845de9d95a733b4eb7826aaabe23ba9813eba3

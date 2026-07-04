@@ -1,0 +1,1 @@
+[     384ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8080/login/?next=http%3A%2F%2Flocalhost%3A8080%2Fhome:0

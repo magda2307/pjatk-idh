@@ -1,0 +1,36 @@
+- generic [ref=e1]:
+  - banner:
+    - navigation [ref=e2]:
+      - generic [ref=e3]:
+        - link [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+        - generic [ref=e18]:
+          - list
+          - list [ref=e19]:
+            - listitem [ref=e20]:
+              - link "18:20 UTC" [ref=e21] [cursor=pointer]:
+                - /url: "#"
+                - time [ref=e22]:
+                  - text: 18:20
+                  - strong [ref=e23]: UTC
+            - listitem [ref=e25]:
+              - link "login Log In" [ref=e26] [cursor=pointer]:
+                - /url: /login/
+                - generic [ref=e27]: login
+                - text: Log In
+  - generic [ref=e32]:
+    - generic [ref=e34]: Sign In
+    - generic [ref=e36]:
+      - generic [ref=e37]: "Enter your login and password below:"
+      - generic [ref=e38]:
+        - generic [ref=e39]: "Username:"
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e43]: 
+            - textbox "Username:" [active] [ref=e44]
+          - generic [ref=e45]: "Password:"
+          - generic [ref=e46]:
+            - generic [ref=e48]: 
+            - textbox "Password:" [ref=e49]
+      - button "Sign In" [ref=e53] [cursor=pointer]

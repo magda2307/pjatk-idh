@@ -1,0 +1,108 @@
+- generic [active] [ref=f6e1]:
+  - banner:
+    - navigation [ref=f6e2]:
+      - generic [ref=f6e3]:
+        - link [ref=f6e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=f6e6]
+        - generic [ref=f6e18]:
+          - list [ref=f6e19]:
+            - listitem [ref=f6e20]:
+              - link "DAGs" [ref=f6e21] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=f6e22]:
+              - link "Cluster Activity" [ref=f6e23] [cursor=pointer]:
+                - /url: /cluster_activity
+            - listitem [ref=f6e24]:
+              - link "Datasets" [ref=f6e25] [cursor=pointer]:
+                - /url: /datasets
+            - listitem [ref=f6e26]:
+              - link "Security" [ref=f6e27] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Security
+            - listitem [ref=f6e29]:
+              - link "Browse" [ref=f6e30] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Browse
+            - listitem [ref=f6e32]:
+              - link "Admin" [ref=f6e33] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Admin
+            - listitem [ref=f6e35]:
+              - link "Docs" [ref=f6e36] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Docs
+          - list [ref=f6e38]:
+            - listitem [ref=f6e39]:
+              - link "18:28 UTC" [ref=f6e40] [cursor=pointer]:
+                - /url: "#"
+                - time [ref=f6e41]:
+                  - text: 18:28
+                  - strong [ref=f6e42]: UTC
+            - listitem [ref=f6e44]:
+              - link "AU" [ref=f6e45] [cursor=pointer]:
+                - /url: "#"
+                - generic "Admin User" [ref=f6e46]:
+                  - generic [ref=f6e47]: AU
+  - generic [ref=f6e50]:
+    - 'heading "Trigger DAG: iowa_liquor_etl" [level=2] [ref=f6e51]':
+      - text: "Trigger DAG:"
+      - link "iowa_liquor_etl" [ref=f6e52] [cursor=pointer]:
+        - /url: /dags/iowa_liquor_etl/grid
+    - generic [ref=f6e53]:
+      - generic [ref=f6e55]:
+        - generic [ref=f6e56]: Select Recent Configurations
+        - combobox "Select Recent Configurations" [ref=f6e57]:
+          - option "Default parameters" [selected]
+          - 'option "manual__2026-07-04T18:25:03+00:00: {\"start_date\": \"2023-01-03\", \"end_date\": \"2023-12-03\", \"limit\": 5000}"'
+          - 'option "manual__2026-07-04T18:23:28+00:00: {\"start_date\": \"2023-01-03\", \"end_date\": \"2023-01-13\", \"limit\": 500000}"'
+      - generic [ref=f6e58]:
+        - heading "DAG conf Parameters" [level=4] [ref=f6e60]
+        - generic [ref=f6e61]:
+          - table [ref=f6e62]:
+            - rowgroup [ref=f6e63]:
+              - 'row "start_date *: calendar_today 2023-01-01 Data początkowa zakresu danych. Format: YYYY-MM-DD, np. 2023-01-01." [ref=f6e64]':
+                - cell "start_date *:" [ref=f6e65]:
+                  - generic [ref=f6e66]:
+                    - text: start_date
+                    - strong [ref=f6e67]: "*"
+                    - text: ":"
+                - 'cell "calendar_today 2023-01-01 Data początkowa zakresu danych. Format: YYYY-MM-DD, np. 2023-01-01." [ref=f6e68]':
+                  - generic [ref=f6e69]:
+                    - generic [ref=f6e71] [cursor=pointer]: calendar_today
+                    - textbox "start_date *:" [ref=f6e72]: 2023-01-01
+                  - generic [ref=f6e73]: "Data początkowa zakresu danych. Format: YYYY-MM-DD, np. 2023-01-01."
+              - 'row "end_date *: calendar_today 2023-12-31 Data końcowa zakresu danych. Format: YYYY-MM-DD, np. 2023-12-31." [ref=f6e74]':
+                - cell "end_date *:" [ref=f6e75]:
+                  - generic [ref=f6e76]:
+                    - text: end_date
+                    - strong [ref=f6e77]: "*"
+                    - text: ":"
+                - 'cell "calendar_today 2023-12-31 Data końcowa zakresu danych. Format: YYYY-MM-DD, np. 2023-12-31." [ref=f6e78]':
+                  - generic [ref=f6e79]:
+                    - generic [ref=f6e81] [cursor=pointer]: calendar_today
+                    - textbox "end_date *:" [ref=f6e82]: 2023-12-31
+                  - generic [ref=f6e83]: "Data końcowa zakresu danych. Format: YYYY-MM-DD, np. 2023-12-31."
+              - 'row "limit *: 50000 Limit wierszy pobieranych w jednej stronie API. Domyślnie: 50000." [ref=f6e84]':
+                - cell "limit *:" [ref=f6e85]:
+                  - generic [ref=f6e86]:
+                    - text: limit
+                    - strong [ref=f6e87]: "*"
+                    - text: ":"
+                - 'cell "50000 Limit wierszy pobieranych w jednej stronie API. Domyślnie: 50000." [ref=f6e88]':
+                  - spinbutton "limit *:" [ref=f6e89]: "50000"
+                  - generic [ref=f6e90]: "Limit wierszy pobieranych w jednej stronie API. Domyślnie: 50000."
+          - heading "Generated Configuration JSON and Dagrun Options" [level=4] [ref=f6e94]:
+            - link "Generated Configuration JSON and Dagrun Options" [ref=f6e95] [cursor=pointer]:
+              - /url: "#accordion_json_conf_href"
+              - text: Generated Configuration JSON and Dagrun Options
+      - button "Trigger" [ref=f6e97] [cursor=pointer]
+      - link "Cancel" [ref=f6e98] [cursor=pointer]:
+        - /url: http://localhost:8080/dags/iowa_liquor_etl/grid
+  - contentinfo [ref=f6e99]:
+    - generic [ref=f6e101]:
+      - text: "Version:"
+      - link "v2.9.3" [ref=f6e102] [cursor=pointer]:
+        - /url: https://pypi.python.org/pypi/apache-airflow/2.9.3
+      - text: "Git Version:"
+      - strong [ref=f6e103]: .release:81845de9d95a733b4eb7826aaabe23ba9813eba3

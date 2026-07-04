@@ -1,0 +1,89 @@
+- generic [active] [ref=f3e1]:
+  - banner:
+    - navigation [ref=f3e2]:
+      - generic [ref=f3e3]:
+        - link [ref=f3e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=f3e6]
+        - generic [ref=f3e18]:
+          - list [ref=f3e19]:
+            - listitem [ref=f3e20]:
+              - link "DAGs" [ref=f3e21] [cursor=pointer]:
+                - /url: /home
+            - listitem [ref=f3e22]:
+              - link "Cluster Activity" [ref=f3e23] [cursor=pointer]:
+                - /url: /cluster_activity
+            - listitem [ref=f3e24]:
+              - link "Datasets" [ref=f3e25] [cursor=pointer]:
+                - /url: /datasets
+            - listitem [ref=f3e26]:
+              - link "Security" [ref=f3e27] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Security
+            - listitem [ref=f3e29]:
+              - link "Browse" [ref=f3e30] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Browse
+            - listitem [ref=f3e32]:
+              - link "Admin" [ref=f3e33] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Admin
+            - listitem [ref=f3e35]:
+              - link "Docs" [ref=f3e36] [cursor=pointer]:
+                - /url: javascript:void(0)
+                - text: Docs
+          - list [ref=f3e38]:
+            - listitem [ref=f3e39]:
+              - link "18:21 UTC" [ref=f3e40] [cursor=pointer]:
+                - /url: "#"
+                - time [ref=f3e41]:
+                  - text: 18:21
+                  - strong [ref=f3e42]: UTC
+            - listitem [ref=f3e44]:
+              - link "AU" [ref=f3e45] [cursor=pointer]:
+                - /url: "#"
+                - generic "Admin User" [ref=f3e46]:
+                  - generic [ref=f3e47]: AU
+  - generic [ref=f3e50]:
+    - 'heading "Trigger DAG: iowa_liquor_etl" [level=2] [ref=f3e51]':
+      - text: "Trigger DAG:"
+      - link "iowa_liquor_etl" [ref=f3e52] [cursor=pointer]:
+        - /url: /dags/iowa_liquor_etl/grid
+    - generic [ref=f3e53]:
+      - generic [ref=f3e54]:
+        - heading "DAG conf Parameters" [level=4] [ref=f3e56]
+        - generic [ref=f3e57]:
+          - table [ref=f3e58]:
+            - rowgroup [ref=f3e59]:
+              - 'row "start_date: 2023-01-03" [ref=f3e60]':
+                - cell "start_date:" [ref=f3e61]:
+                  - generic [ref=f3e62]: "start_date:"
+                - cell "2023-01-03" [ref=f3e63]:
+                  - textbox "start_date:" [ref=f3e64]: 2023-01-03
+              - 'row "end_date: 2023-01-03" [ref=f3e65]':
+                - cell "end_date:" [ref=f3e66]:
+                  - generic [ref=f3e67]: "end_date:"
+                - cell "2023-01-03" [ref=f3e68]:
+                  - textbox "end_date:" [ref=f3e69]: 2023-01-03
+              - 'row "limit: 5000" [ref=f3e70]':
+                - cell "limit:" [ref=f3e71]:
+                  - generic [ref=f3e72]: "limit:"
+                - cell "5000" [ref=f3e73]:
+                  - spinbutton "limit:" [ref=f3e74]: "5000"
+          - heading "Generated Configuration JSON and Dagrun Options" [level=4] [ref=f3e78]:
+            - link "Generated Configuration JSON and Dagrun Options" [ref=f3e79] [cursor=pointer]:
+              - /url: "#accordion_json_conf_href"
+              - text: Generated Configuration JSON and Dagrun Options
+      - generic [ref=f3e82] [cursor=pointer]:
+        - checkbox "Unpause DAG when triggered" [checked] [ref=f3e83]
+        - text: Unpause DAG when triggered
+      - button "Trigger" [ref=f3e85] [cursor=pointer]
+      - link "Cancel" [ref=f3e86] [cursor=pointer]:
+        - /url: http://localhost:8080/dags/iowa_liquor_etl/grid?tab=graph
+  - contentinfo [ref=f3e87]:
+    - generic [ref=f3e89]:
+      - text: "Version:"
+      - link "v2.9.3" [ref=f3e90] [cursor=pointer]:
+        - /url: https://pypi.python.org/pypi/apache-airflow/2.9.3
+      - text: "Git Version:"
+      - strong [ref=f3e91]: .release:81845de9d95a733b4eb7826aaabe23ba9813eba3
