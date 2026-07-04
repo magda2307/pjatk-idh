@@ -869,7 +869,7 @@
         <div>
           <div class="eyebrow">Projekt hurtowni danych</div>
           <h1>Hurtownia danych Iowa Liquor Sales</h1>
-          <p class="lead">Projekt obejmuje przepływ danych: publiczny zbiór Iowa Liquor Sales, ekstrakcję do plików CSV, staging w SQL Server, model gwiazdy, widoki semantyczne oraz raporty analityczne w Streamlit.</p>
+          <p class="lead">Pełny przepływ danych: od publicznego API Iowa Liquor Sales, przez ekstrakcję CSV, staging w SQL Server i model gwiazdy, aż po widoki semantyczne i raporty w Streamlit.</p>
         </div>
 
         <aside class="status-board" aria-label="Zakres projektu">
@@ -912,7 +912,7 @@
       <section id="demo">
         <div class="section-head">
           <h2>Kolejność demonstracji</h2>
-          <p>Kolejność prezentacji obejmuje uruchomienie środowiska Airflow, wykonanie przepływu ETL, weryfikację obiektów bazy danych oraz prezentację wyników w aplikacji Streamlit.</p>
+          <p>Start Docker, uruchomienie ETL przez Airflow, weryfikacja obiektów w SQL Server, wyniki w Streamlit.</p>
         </div>
 
         <div class="demo-sequence">
@@ -942,7 +942,7 @@
       <section id="input-data">
         <div class="section-head">
           <h2>Struktura danych wejściowych</h2>
-          <p>Tabela poniżej przedstawia strukturę źródłowego zbioru Iowa Liquor Sales, obejmującą opis każdego pola, jego znaczenie biznesowe oraz literalny przykład wartości. Przeciętnie dane z jednego pełnego roku (np. 2023) zawierają około <b>2,7 miliona transakcji</b> (linii na fakturach/itemów), ważąc w formacie CSV setki megabajtów.</p>
+          <p>Jeden wiersz źródłowy to jedna linia na fakturze (jeden produkt na jedno zamówienie sklepu). Dane z roku 2023 zawierają ok. <b>2,7&nbsp;mln wierszy</b>. W formacie CSV to kilkaset megabajtów. Część nazw kolumn w oryginalnym API różni się od tych używanych w projekcie — aliasy opisano w sekcji Dane w projekcie.</p>
         </div>
 
         <div class="table-wrap">
@@ -962,11 +962,11 @@
               <tr><td><code>address</code></td><td>Główny adres (ulica) lokalizacji sklepu.</td><td><code>3221 SE 14th St</code></td></tr>
               <tr><td><code>city</code></td><td>Miasto, w którym zlokalizowany jest sklep.</td><td><code>Des Moines</code></td></tr>
               <tr><td><code>zip_code</code></td><td>Kod pocztowy sklepu.</td><td><code>50320</code></td></tr>
-              <tr><td><code>store_location</code></td><td>Współrzędne geograficzne sklepu w formacie geometrycznym lub WKT (Długość/Szerokość geograficzna). Wymaga parsowania...</td><td><code>POINT (-93.596754 41.554101)</code></td></tr>
+              <tr><td><code>store_location</code></td><td>Współrzędne sklepu w formacie WKT (<code>POINT (lon lat)</code>). Projekt wyodrębnia z tego pola <code>latitude</code> i <code>longitude</code> przez regex.</td><td><code>POINT (-93.596754 41.554101)</code></td></tr>
               <tr><td><code>county_number</code></td><td>Kod hrabstwa (county) w stanie Iowa przypisany do sklepu.</td><td><code>77</code></td></tr>
               <tr><td><code>county</code></td><td>Nazwa hrabstwa w stanie Iowa (np. Polk, Linn).</td><td><code>POLK</code></td></tr>
               <tr><td><code>category</code></td><td>Kod identyfikujący kategorię trunku.</td><td><code>1011100</code></td></tr>
-              <tr><td><code>category_name</code></td><td>tekstowy opis kategorii</td><td><code>Blended Whiskies</code></td></tr>
+              <tr><td><code>category_name</code></td><td>Tekstowy opis kategorii trunku.</td><td><code>Blended Whiskies</code></td></tr>
               <tr><td><code>vendor_number</code></td><td>Unikalny identyfikator dostawcy / producenta marki (Vendor).</td><td><code>65</code></td></tr>
               <tr><td><code>vendor_name</code></td><td>Nazwa firmy będącej dostawcą, destylarnią lub oficjalnym importerem.</td><td><code>Jim Beam Brands</code></td></tr>
               <tr><td><code>item_number</code></td><td>Stanowy kod ID konkretnego produktu / asortymentu (SKU).</td><td><code>27783</code></td></tr>
@@ -1021,9 +1021,9 @@
         <div class="section-head">
           <h2>Źródło danych</h2>
           <div>
-            <p>Źródłem danych jest zbiór Iowa Liquor Sales. Implementacja zawiera mechanizm buforowania plików lokalnie w celu zapewnienia stabilności.</p>
+            <p>Dane pochodzą z publicznego zbioru Iowa Liquor Sales (Socrata / data.iowa.gov). Projekt buforuje pliki CSV lokalnie, żeby ETL działał niezależnie od dostępności API.</p>
             <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
-              <strong>Ciekawostka z życia inżyniera danych:</strong> Zaledwie w czerwcu 2026 r. stan Iowa postanowił bez wielkiego szumu przenieść swój portal z Socrata na Google Data Hub. Stare API wyparowało (zwracając urocze błędy 404), a nowe API obraziło się na paginację i każe nam pobierać kilka gigabajtów danych za każdym razem (brak wsparcia dla <code>$limit</code> i <code>$where</code>). Na szczęście nasz mechanizm fallbacku (<code>try...except</code>) i lokalny cache łapią ten błąd i płynnie podają zbuforowane dane. Uff! 😎
+              <strong>Uwaga praktyczna:</strong> W czerwcu 2026 stan Iowa przeniósł portal z Socrata na Google Data Hub. Stare API zaczęło zwracać 404, a nowe nie obsługuje paginacji (<code>$limit</code>, <code>$where</code>). Mechanizm fallbacku (<code>try...except RequestException</code>) łapie ten błąd i serwuje dane z lokalnego cache zamiast przerywać ETL.
             </div>
           </div>
         </div>
@@ -1057,7 +1057,7 @@
       <section id="data">
         <div class="section-head">
           <h2>Dane w projekcie</h2>
-          <p>Źródłem jest publiczny zbiór Iowa Liquor Sales. Jeden wiersz źródłowy opisuje jedną linię sprzedaży produktu: kiedy sprzedano produkt, w którym sklepie, jaki produkt i kategorię, od jakiego vendora, w jakim opakowaniu oraz za jaką wartość.</p>
+          <p>Jeden wiersz źródłowy = jedna linia faktury: kiedy, w którym sklepie, jaki produkt, od którego dostawcy, w jakim opakowaniu i za jaką kwotę. Projekt przemapowuje część nazw kolumn z API na spójne nazwy wewnętrzne: <code>invoice_line_no</code> → <code>invoice_and_item_number</code>, <code>store</code> → <code>store_number</code>, <code>name</code> → <code>store_name</code>, <code>im_desc</code> → <code>item_description</code>, <code>itemno</code> → <code>item_number</code>, <code>vendor_no</code> → <code>vendor_number</code>, <code>zipcode</code> → <code>zip_code</code>.</p>
         </div>
 
         <div class="table-wrap">
@@ -1106,16 +1106,16 @@
 
         <div class="three-col" style="margin-top:18px">
           <article class="card">
-            <h3>Staging</h3>
-            <p>Tabela <code>stg.iowa_liquor_sales_raw</code> przechowuje pola po normalizacji typów bazodanowych. Zapisywane są metadane: <code>source_file</code>, <code>load_timestamp</code> i <code>source_row_hash</code>.</p>
+            <h3>Staging (<code>stg</code>)</h3>
+            <p>Tabela <code>stg.iowa_liquor_sales_raw</code> jest przed każdym ładowaniem czyszczona (<code>TRUNCATE TABLE</code>), a następnie zasilana świeżymi danymi z plików CSV. Zapisywane są też metadane: <code>source_file</code>, <code>load_timestamp</code> i <code>source_row_hash</code>.</p>
           </article>
           <article class="card">
-            <h3>Hurtownia (Model)</h3>
-            <p>Do schematu <code>dw</code> ładowany jest model gwiazdy: centralna tabela faktów <code>fact_sales</code> oraz powiązane z nią wymiary.</p>
+            <h3>Hurtownia (<code>dw</code>)</h3>
+            <p>Model gwiazdy: centralna tabela faktów <code>fact_sales</code> z 6 wymiarami. Każde załadowanie to pełne odświeżenie (Full Refresh) — wymiary i fakty są usuwane i tworzone od nowa.</p>
           </article>
           <article class="card">
-            <h3>Raportowanie</h3>
-            <p>Aplikacja raportowa (Streamlit) odpytuje widoki ze schematu <code>sem</code> z pominięciem plików CSV.</p>
+            <h3>Raportowanie (<code>sem</code>)</h3>
+            <p>Streamlit odpytuje wyłącznie widoki ze schematu <code>sem</code>. Pliki CSV ani tabela staging nie są dostępne dla warstwy raportowej.</p>
           </article>
         </div>
       </section>
@@ -1124,20 +1124,21 @@
       <section id="layers">
         <div class="section-head">
           <h2>Warstwy danych</h2>
-          <p>Dane podzielono na trzy warstwy: Bronze, Silver i Gold.</p>
+          <p>Projekt stosuje trójwarstwową architekturę medalionu: Bronze (surowe pliki CSV), Silver (staging w SQL Server po czyszczeniu), Gold (model gwiazdy + widoki semantyczne).</p>
         </div>
 
         <div class="layer-stack">
           <article class="layer-card">
             <div class="layer-label">Bronze</div>
             <div>
-              <p>Warstwa Bronze to pliki CSV stanowiące surowy zrzut z API Socrata.</p>
-              <p>Skrypt ekstrakcyjny wykorzystuje paginację i zapewnia buforowanie w przypadku niedostępności API.</p>
+              <p>Surowe pliki CSV pobrane z API. Każda strona paginacji to osobny plik (<code>iowa_liquor_sales_YYYY_part_NNN.csv</code>). Pliki trafiają na dysk dopiero po pobraniu kompletnej strony &mdash; nie zapisujemy niepełnych danych.</p>
               <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
-                <strong>Architektura:</strong>
+                <strong>Szczegóły:</strong>
                 <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted); line-height: 1.5;">
-                  <li><strong>Atomowość operacji:</strong> Pliki zapisywane są tylko po pomyślnym pobraniu kompletu danych.</li>
-                  <li><strong>Zabezpieczenie sieciowe:</strong> Zastosowano mechanizm ponawiania zapytań HTTP.</li>
+                  <li><strong>Paginacja:</strong> Dane pobierane partiami (domyślnie 50&nbsp;000 wierszy) przez <code>$limit</code> i <code>$offset</code>.</li>
+                  <li><strong>Retry HTTP:</strong> 4 próby z wykładniczym opóźnieniem (<code>backoff_factor=1.5</code>), kody 429/5xx automatycznie ponawiane.</li>
+                  <li><strong>Fallback:</strong> Gdy API jest niedostępne, skrypt odczytuje poprzednio pobrane pliki i filtruje do zadanego zakresu dat.</li>
+                  <li><strong>Manifest:</strong> Po ekstrakcji zapisywany jest <code>extract_manifest.json</code> z listą plików, zakresem dat i liczbą wierszy.</li>
                 </ul>
               </div>
             </div>
@@ -1154,13 +1155,18 @@
           <article class="layer-card">
             <div class="layer-label">Silver</div>
             <div>
-              <p>Warstwa Silver to tabela <code>stg.iowa_liquor_sales_raw</code> zasilana relacją 1:1 z plików CSV.</p>
-              <p>Proces obejmuje typowanie danych przed masowym wstawieniem za pomocą <code>pyodbc.fast_executemany</code>.</p>
+              <p>Tabela <code>stg.iowa_liquor_sales_raw</code> &mdash; relacja 1:1 z plikami CSV, ale już po czyszczeniu typów i normalizacji tekstu. Ładowanie przez Pandas + <code>pyodbc.fast_executemany</code> w partiach po 5&nbsp;000 wierszy.</p>
               <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
-                <strong>Architektura:</strong>
+                <strong>Czyszczenie danych w tej warstwie:</strong>
                 <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted); line-height: 1.5;">
-                  <li><strong>Unifikacja danych:</strong> Puste wartości mapowane są na obiekt <code>None</code>.</li>
-                  <li><strong>CDC:</strong> Generowanie hasha <code>source_row_hash</code> dla wiersza.</li>
+                  <li><strong>Aliasy kolumn:</strong> Nazwy z API (np. <code>invoice_line_no</code>, <code>im_desc</code>) przemapowane na nazwy wewnętrzne.</li>
+                  <li><strong>Puste wartości:</strong> Puste stringi i <code>NaN</code> zamieniane na <code>None</code> (SQL <code>NULL</code>).</li>
+                  <li><strong>Klucze tekstowe:</strong> <code>store_number</code>, <code>category</code>, <code>vendor_number</code>, <code>item_number</code> &mdash; UPPERCASE.</li>
+                  <li><strong>Nazwy własne:</strong> <code>city</code>, <code>county</code> &mdash; Title Case.</li>
+                  <li><strong>Kod pocztowy:</strong> Regex wyodrębnia pierwsze 5 cyfr; rozszerzone kody i artefakty są odcinane.</li>
+                  <li><strong>Wartości finansowe:</strong> Znak <code>$</code> i separatory tysięcy usuwane; wynik parsowany do <code>DECIMAL</code>.</li>
+                  <li><strong>Współrzędne GPS:</strong> Z pola <code>store_location</code> (<code>POINT (lon lat)</code>) regex wyodrębnia <code>latitude</code> i <code>longitude</code>.</li>
+                  <li><strong>Row hash:</strong> SHA-256 z kombinacji kluczów wiersza &mdash; pozwala śledzić zmiany (CDC).</li>
                 </ul>
               </div>
             </div>
@@ -1183,8 +1189,8 @@
           <article class="layer-card">
             <div class="layer-label">Gold</div>
             <div>
-              <p>Warstwa Gold zawiera model gwiazdy w schemacie <code>dw</code> oraz widoki semantyczne w schemacie <code>sem</code>.</p>
-              <p>Procesy ładowania wykorzystują deduplikację danych oraz obsługę brakujących kluczy biznesowych przy użyciu <code>COALESCE</code>.</p>
+              <p>Model gwiazdy w schemacie <code>dw</code> i widoki semantyczne w schemacie <code>sem</code>. Ładowanie to Full Refresh: najpierw DELETE na faktach i wymiarach + <code>DBCC CHECKIDENT ... RESEED 0</code>, potem INSERT.</p>
+              <p></p>
               <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--gold);">
                 <strong>Architektura:</strong>
                 <ul style="margin-top: 8px; padding-left: 20px; color: var(--muted); line-height: 1.5;">
@@ -1316,152 +1322,103 @@ SELECT ... FROM ranked WHERE rn = 1;</pre>
         </div>
         </div>
 
-        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Opis Pól Tabeli Faktów (fact_sales)</h3>
+                <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Dlaczego taki podział wymiarów?</h3>
         <div class="field-grid" style="margin-top:18px">
           <article class="field-card" style="padding: 16px;">
-            <h3 style="margin-top: 0;">Klucze wymiarów i główny</h3>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
-              <li><strong>sales_key (PK)</strong>: Unikalny identyfikator wiersza.</li>
-              <li><strong>date_key (FK)</strong>: Data transakcji.</li>
-              <li><strong>store_key (FK)</strong>: Sklep dokonujący zakupu.</li>
-              <li><strong>product_key (FK)</strong>: Kupiony alkohol.</li>
-              <li><strong>category_key (FK)</strong>: Kategoria alkoholu.</li>
-              <li><strong>vendor_key (FK)</strong>: Dostawca towaru.</li>
-              <li><strong>packaging_key (FK)</strong>: Informacje o opakowaniu.</li>
-            </ul>
+            <h3 style="margin-top: 0; color: var(--blue);">1. Sklep i lokalizacja (<code>dim_store</code>)</h3>
+            <p style="margin: 0; font-size: 0.95em; line-height: 1.5; color: var(--muted);">
+              Odpowiada na pytanie: gdzie sprzedajemy? Pozwala analizować pokrycie rynku po city/county, porównywać sklepy i lokalizować luki geograficzne. Wymiar niezależny od tego, co konkretnie kupiono.
+            </p>
           </article>
           <article class="field-card" style="padding: 16px;">
-            <h3 style="margin-top: 0;">Atrybuty biznesowe</h3>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
-              <li><strong>invoice_number</strong>: Numer faktury ze źródła (pozwala grupować produkty z jednej transakcji).</li>
-            </ul>
+            <h3 style="margin-top: 0; color: var(--gold);">2. Produkt, kategoria i opakowanie (<code>dim_product</code>, <code>dim_category</code>, <code>dim_packaging</code>)</h3>
+            <p style="margin: 0; font-size: 0.95em; line-height: 1.5; color: var(--muted);">
+              Odpowiada na pytanie: co sprzedajemy? Rozbicie na 3 oddzielne wymiary umożliwia analizę na różnych poziomach granularności — od ogólnej kategorii (np. Whiskey), przez wielkość opakowania, aż po konkretny SKU.
+            </p>
           </article>
           <article class="field-card" style="padding: 16px;">
-            <h3 style="margin-top: 0;">Miary (Facts)</h3>
-            <ul style="margin: 0; padding-left: 20px; font-size: 0.95em; line-height: 1.5; color: var(--text-muted);">
-              <li><strong>sales_line_count</strong>: Licznik (zawsze 1) do zliczania wierszy paragonu.</li>
-              <li><strong>bottles_sold</strong>: Liczba sprzedanych butelek.</li>
-              <li><strong>sale_dollars</strong>: Wartość tej konkretnej pozycji w dolarach.</li>
-              <li><strong>volume_sold_liters</strong>: Łączna objętość (w litrach).</li>
-            </ul>
+            <h3 style="margin-top: 0; color: var(--brick);">3. Dostawca (<code>dim_vendor</code>)</h3>
+            <p style="margin: 0; font-size: 0.95em; line-height: 1.5; color: var(--muted);">
+              Odpowiada na pytanie: od kogo kupujemy? Pozwala mierzyć obrót i marżę na poziomie dostawcy — przydatne przy ocenie partnerów handlowych.
+            </p>
+          </article>
+          <article class="field-card" style="padding: 16px;">
+            <h3 style="margin-top: 0; color: var(--green);">4. Czas (<code>dim_date</code>)</h3>
+            <p style="margin: 0; font-size: 0.95em; line-height: 1.5; color: var(--muted);">
+              Odpowiada na pytanie: kiedy? Dedykowana tabela kalendarza z atrybutami: rok, kwartał, miesiąc, numer dnia tygodnia, flaga weekendu, nazwy miesięcy po polsku i po angielsku. Klucz daty to INT w formacie <code>YYYYMMDD</code> dla szybkiego filtrowania.
+            </p>
           </article>
         </div>
 
-        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Dodatkowe informacje o miarach</h3>
-        <div class="field-grid" style="margin-top:18px">
+        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Tabela faktów (<code>fact_sales</code>) — co mierzymy?</h3>
+        <p style="color: var(--ink); margin-bottom: 24px;">Każdy wiersz to jedna linia faktury. Tabela przechowuje wyłącznie wartości liczbowe (miary) i klucze obce do wymiarów — żadnych tekstów opisowych.</p>
+
+        <div class="field-grid">
           <article class="field-card">
-            <h3>Miary addytywne</h3>
-            <p><code>sale_dollars</code>, <code>bottles_sold</code>, <code>volume_sold_liters</code>, <code>volume_sold_gallons</code>, <code>margin_amount</code>, <code>sales_line_count</code>.</p>
+            <h3 style="color: var(--blue);">Przychód i marża</h3>
+            <p><strong><code>sale_dollars</code></strong> — wartość sprzedaży. <strong><code>margin_amount</code></strong> — marża kwotowa wyliczana przy INSERT jako <code>(retail − cost) × bottles_sold</code>. Obliczanie marży na poziomie wiersza, a nie po agregacji, eliminuje błędy matematyczne.</p>
           </article>
           <article class="field-card">
-            <h3>Miary nieaddytywne</h3>
-            <p><code>state_bottle_cost</code> i <code>state_bottle_retail</code> służą do obliczeń pochodnych i średnich.</p>
+            <h3 style="color: var(--gold);">Wolumen fizyczny</h3>
+            <p><strong><code>bottles_sold</code></strong> i <strong><code>volume_sold_liters</code></strong>. Wolumen w litrach pozwala porównywać sprzedaż niezależnie od zmian cen — tam gdzie przychody rosną tylko przez inflację, wolumen pokaże prawdziwy obraz.</p>
           </article>
           <article class="field-card">
-            <h3>Klucze i integralność</h3>
-            <p><code>fact_sales</code> zawiera klucze obce. Kontrole jakości zapewniają spójność relacji.</p>
+            <h3 style="color: var(--brick);">Licznik linii (<code>sales_line_count</code>)</h3>
+            <p>Kolumna zawsze równa <code>1</code>, dodana celowo. Narzędzia raportowe mogą liczyć transakcje przez <code>SUM(sales_line_count)</code> zamiast <code>COUNT(*)</code> — operacja <code>SUM</code> na kolumnie numerycznej jest wydajniejsza przy dużych wolumenach danych.</p>
           </article>
         </div>
         </div>
-
-
       </section>
 
       <section id="semantic">
         <div class="section-head">
-          <h2>Warstwa semantyczna i logika biznesowa</h2>
-          <p>Schemat <code>sem</code> stanowi pomost między fizycznym przechowywaniem a raportowaniem. Działa jako Single Source of Truth dla aplikacji Streamlit.</p>
+          <h2>Warstwa semantyczna</h2>
+          <p>Widoki w schemacie <code>sem</code> to gotowe, zagregowane zestawy danych dla każdego pytania biznesowego. Streamlit odpytuje tylko te widoki — nie dotyka tabel <code>dw</code> bezpośrednio.</p>
         </div>
 
-        <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--blue);">
-          <h3 style="margin-bottom: 12px; color: var(--blue);">Dlaczego nie odpytujemy bezpośrednio hurtowni (DW)?</h3>
-          <p style="margin-bottom: 12px; color: var(--ink);"><strong>Złożoność:</strong> Schemat gwiazdy jest zoptymalizowany pod bezpieczne przechowywanie, a nie proste odpytywanie. Wymagałby znajomości połączeń (JOIN) na kluczach technicznych od narzędzi raportujących.</p>
-          <p style="margin-bottom: 0; color: var(--ink);"><strong>Korzyści z warstwy semantycznej:</strong> Widoki działają jako tarcza ochronna. Przekształcają dane techniczne w gotowe koncepcje biznesowe, ukrywają złożoność relacji i centralizują trudne wyliczenia (jak średnie i udziały). Streamlit pobiera dzięki temu gotowe, poprawne wyniki, unikając dublowania kodu i ryzykownych wyliczeń na frontendzie.</p>
+                <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--blue);">
+          <h3 style="margin-bottom: 12px; color: var(--blue);">Dlaczego warstwa semantyczna?</h3>
+          <p style="margin-bottom: 12px; color: var(--ink);"><strong>1. Prostota dla raportów:</strong> Aplikacja nie musi pisać złożonych JOIN-ów po 6 tabelach. Odpytuje gotowy, płaski widok (np. <code>vw_sales_by_month</code>).</p>
+          <p style="margin-bottom: 12px; color: var(--ink);"><strong>2. Jedno źródło liczb:</strong> KPI takie jak udział procentowy czy średnia marża wyliczane są w jednym miejscu (widók SQL), a nie osobno w każdym raporcie. Wszędzie wychodzi ten sam wynik.</p>
+          <p style="margin-bottom: 0; color: var(--ink);"><strong>3. Poprawność agregacji:</strong> „Średnnia marży” wyliczana jako średnia z wcześniej zagregowanych wartości daje błędny wynik (average of averages). Widoki liczą ją zawsze od poziomu wiersza faktów w górę.</p>
         </div>
 
-        <div class="layer-stack">
+                <div class="layer-stack">
           <article class="layer-card" style="grid-template-columns: 220px minmax(0, 1fr);">
-            <div class="layer-label" style="color: var(--blue)">Bezpieczeństwo<br>dzielenia<br>(Division by Zero)</div>
+            <div class="layer-label" style="color: var(--blue)">Widók płaski<br>(<code>vw_sales_overview</code>)</div>
             <div>
-              <p>Zastosowanie <code>NULLIF</code> w obliczeniach zapobiega przerwaniu zapytań przez błędy dzielenia przez zero, zamieniając wynik na <code>NULL</code>.</p>
-              <div class="command" style="margin-top: 16px;">
-                <div class="command-head">
-                  <span>sql/04_create_semantic_views.sql (sem.vw_kpi_summary)</span>
-                </div>
-                <pre>SELECT
-    SUM(f.sale_dollars) / NULLIF(COUNT(DISTINCT f.invoice_number), 0) AS avg_invoice_value,
-    CAST(100.0 * SUM(f.margin_amount) / NULLIF(SUM(f.sale_dollars), 0) AS DECIMAL(9,2)) AS avg_margin_percent
-FROM dw.fact_sales f;</pre>
-              </div>
+              <p>JOIN-uje wszystkie 6 wymiarów z tabelą faktów w jedną, szeroką tabelę. Narzędzia BI i skrypty analityczne dostają gotowe dane bez potrzeby znajomości struktury schematu gwiazdy — żadnych kluczy technicznych, same nazwy i wartości.</p>
             </div>
           </article>
 
           <article class="layer-card" style="grid-template-columns: 220px minmax(0, 1fr);">
-            <div class="layer-label" style="color: var(--gold)">Kalkulacja<br>udziału w rynku<br>(Market Share)</div>
+            <div class="layer-label" style="color: var(--gold)">Pre-agregaty<br>(<code>vw_sales_by_month</code> itp.)</div>
             <div>
-              <p>Wykorzystanie <code>CTE</code> do wyizolowania sumy całkowitej w połączeniu z <code>CROSS JOIN</code> w celu obliczenia udziału procentowego kategorii.</p>
-              <div class="command" style="margin-top: 16px;">
-                <div class="command-head">
-                  <span>sql/04_create_semantic_views.sql (sem.vw_sales_by_category)</span>
-                </div>
-                <pre>WITH totals AS (
-    SELECT SUM(sale_dollars) AS all_sales FROM dw.fact_sales
-)
-SELECT
-    c.category_name,
-    CAST(100.0 * SUM(f.sale_dollars) / NULLIF(MAX(t.all_sales), 0) AS DECIMAL(9,2)) AS sales_share_percent
-FROM dw.fact_sales f
-CROSS JOIN totals t
-GROUP BY c.category_name;</pre>
-              </div>
+              <p>Gotowe podsumowania per miesiąc/kwartał/kategoria/sklep. Streamlit pobiera kilkanaście zagregowanych wierszy zamiast milionów wierszy z tabeli faktów — wykres liniowy ładuje się błyskawicznie.</p>
             </div>
           </article>
 
           <article class="layer-card" style="grid-template-columns: 220px minmax(0, 1fr);">
-            <div class="layer-label" style="color: var(--pink)">Problem średniej<br>ze średnich<br>(Podwójne grupowanie)</div>
+            <div class="layer-label" style="color: var(--brick)">Udziały (CTE + CROSS JOIN)<br>(<code>vw_sales_by_category</code> itp.)</div>
             <div>
-              <p>Kaskadowa agregacja wykorzystująca <code>CTE</code> do podsumowania obrotów sklepu przed uśrednieniem wyniku w wymiarze geograficznym.</p>
-              <div class="command" style="margin-top: 16px;">
-                <div class="command-head">
-                  <span>sql/04_create_semantic_views.sql (sem.vw_avg_sales_per_store_by_month_region)</span>
-                </div>
-                <pre>WITH monthly_store_sales AS (
-    SELECT d.year, d.month, s.city, s.store_key, SUM(f.sale_dollars) AS store_month_sales
-    FROM dw.fact_sales f
-    JOIN dw.dim_date d ON d.date_key = f.date_key
-    JOIN dw.dim_store s ON s.store_key = f.store_key
-    GROUP BY d.year, d.month, s.city, s.store_key
-)
-SELECT year, month, city, AVG(store_month_sales) AS avg_sales_per_store
-FROM monthly_store_sales
-GROUP BY year, month, city;</pre>
-              </div>
+              <p>Udział procentowy danej kategorii/dostawcy w całości sprzedaży wyliczany przez CTE: <code>WITH totals AS (SELECT SUM(...) FROM fact_sales)</code> + <code>CROSS JOIN totals</code>. Jeden skan tabeli faktów zamiast dwóch osobnych zapytań.</p>
             </div>
           </article>
 
           <article class="layer-card" style="grid-template-columns: 220px minmax(0, 1fr);">
-            <div class="layer-label" style="color: var(--green)">Master-View<br>(Płaska Denormalizacja)</div>
+            <div class="layer-label" style="color: var(--green)">Ochrona przed<br>dzieleniem przez zero</div>
             <div>
-              <p>Widok spłaszczający strukturę modelu gwiazdy w celu udostępnienia danych źródłowych w czytelnej formie bez kluczy technicznych.</p>
-              <div class="command" style="margin-top: 16px;">
-                <div class="command-head">
-                  <span>sql/04_create_semantic_views.sql (sem.vw_sales_overview)</span>
-                </div>
-                <pre>SELECT d.date, s.city, p.item_description, f.sale_dollars
-FROM dw.fact_sales f
-JOIN dw.dim_date d ON d.date_key = f.date_key
-JOIN dw.dim_store s ON s.store_key = f.store_key
-JOIN dw.dim_product p ON p.product_key = f.product_key;</pre>
-              </div>
+              <p>Każde dzielenie w widokach zabezpieczone przez <code>NULLIF(mianownik, 0)</code>. Dotyczy to m.in. <code>avg_margin_per_bottle</code>, <code>avg_invoice_value</code>, <code>sales_per_liter</code>, <code>avg_margin_percent</code>. Wynik <code>NULL</code> zamiast błędu SQL.</p>
             </div>
           </article>
         </div>
       </section>
 
+
       <section id="airflow">
         <div class="section-head">
           <h2>Airflow</h2>
-          <p>Airflow orkiestruje zadania ETL, zarządzając ich uruchamianiem, logowaniem i monitorowaniem.</p>
+          <p>Airflow uruchamia i monitoruje kolejne kroki ETL jako osobne zadania (taski). W razie błędu konkretnego taska można go ponowić bez uruchamiania całego przepływu od początku.</p>
         </div>
 
         <div class="two-col">
@@ -1495,83 +1452,45 @@ JOIN dw.dim_product p ON p.product_key = f.product_key;</pre>
         </div>
       </section>
 
-      <section id="sql">
+      
+
+      <section id="etl" data-also-id="szczegolowy-etl">
         <div class="section-head">
-          <h2>Dostęp w GitHub Codespaces i Baza SQL</h2>
-          <p>Instrukcje dotyczące logowania do bazy danych oraz eksponowania aplikacji na zewnątrz z wirtualnego środowiska Codespaces.</p>
-        </div>
-
-        <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--green);">
-          <h3 style="color: var(--green); margin-bottom: 8px;">Uruchomienie pełnego procesu ETL (Po Bożemu)</h3>
-          <p style="margin-bottom: 12px;">Aby uruchomić cały proces ETL (ekstrakcja danych, utworzenie bazy/schematów/tabel, ładowanie wymiarów i faktów, widoki semantyczne oraz testy jakościowe), wykonaj poniższą komendę w terminalu:</p>
-          <div class="command">
-            <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker compose run --rm airflow python -m src.run_initial_etl">Kopiuj</button></div>
-            <pre>docker compose run --rm airflow python -m src.run_initial_etl</pre>
-          </div>
-          <p style="margin-top: 12px; font-size: 14px; color: var(--muted);"><strong>Uwaga:</strong> Ta komenda automatycznie uruchomi i poczeka na pełną gotowość kontenera bazy danych (SQL Server), a następnie przeprowadzi pełną migrację i załaduje dane.</p>
-        </div>
-
-        <div class="two-col">
-          <article class="panel">
-            <h3>Dostęp do bazy SQL Server</h3>
-            <p><strong>Logowanie przez terminal kontenera (najszybsze):</strong></p>
-            <div class="command">
-              <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker exec -it iowa-liquor-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U admin -P admin -d IowaLiquorDW -C">Kopiuj</button></div>
-              <pre>docker exec -it iowa-liquor-sqlserver \
-  /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U admin -P "admin" -d IowaLiquorDW -C</pre>
-            </div>
-            <p style="margin-top: 14px;"><strong>Przykładowe zapytania:</strong></p>
-            <pre style="background: var(--paper-2); padding: 10px; border-radius: 6px;"><code>SELECT TOP 10 * FROM dw.fact_sales;
-GO
-SELECT TOP 10 * FROM dw.dim_store;
-GO
-QUIT</code></pre>
-            <p style="margin-top: 14px;">Zalecana jest również instalacja rozszerzenia <strong>SQL Server (mssql)</strong> w Codespaces: Server: <code>localhost,1433</code>, User: <code>admin</code>, Pass: <code>admin</code>, Database: <code>IowaLiquorDW</code>, Trust Server Certificate: <code>True</code>.</p>
-          </article>
-
-        </div>
-      </section>
-
-      <section id="etl">
-        <div class="section-head">
-          <h2>ETL</h2>
-          <p>Proces ETL podzielony jest na etapy: ekstrakcję, staging, transformację i weryfikację.</p>
-        </div>
-
-           <section id="szczegolowy-etl">
-        <div class="section-head">
-          <h2>Oś czasu Airflow: Opis zadań i transformacji</h2>
-          <p>Poniższa lista odpowiada po kolei zadaniom widocznym na grafie w interfejsie Airflow. Wzbogaciliśmy ją o <strong>konkretne przykłady z Inżynierii cech i Czyszczenia danych</strong> dokładnie tam, gdzie są wykonywane w kodzie (w Pythonie i SQL).</p>
+          <h2>ETL — szczegóły zadań</h2>
+          <p>Kolejność odpowiada kolejności tasków na grafie Airflow. Każde zadanie wywoływane jest przez osobną funkcję Python (<code>src/run_initial_etl.py</code> i <code>src/transform/warehouse_transform.py</code>).</p>
         </div>
 
         <div class="two-col">
           <article class="panel">
             <h3>1. extract_iowa_liquor_sales</h3>
-            <p><strong>Co robimy:</strong> Pobieramy dane z API.</p>
+            <p>Pobieranie danych z API Socrata dla zadanego zakresu dat.</p>
             <ul>
-              <li>Łączymy się z publicznym REST API (Socrata) dla zadanego przedziału dat. Z racji dużego wolumenu, pobieramy dane w małych paczkach (np. po 5000 wierszy) i odkładamy w formie plików CSV/JSON na dysku.</li>
-              <li>Mamy tu wbudowane zabezpieczenie na wypadek awarii sieci – jeżeli API odrzuci połączenie, używamy bloku <code>try...except</code>, by automatycznie wczytać starsze pliki z pamięci podręcznej (cache). Dzięki temu nie przerwiesz niespodziewanie pracy na pokazie.</li>
+              <li>Paginacja przez <code>$limit</code> i <code>$offset</code>; każda strona to osobny plik CSV na dysku.</li>
+              <li>Przy błędzie sieci: <code>try...except RequestException</code> → fallback na poprzednio pobrane pliki, filtrowane do zadanego zakresu dat.</li>
+              <li>Na końcu zapisywany jest manifest <code>extract_manifest.json</code> z listą plików i liczbą wierszy.</li>
             </ul>
           </article>
 
           <article class="panel">
             <h3>2. create_sql_objects</h3>
-            <p><strong>Co robimy:</strong> Zerujemy bazę i stawiamy puste tabele.</p>
+            <p>Inicjalizacja struktury bazy danych przez skrypty SQL <code>00</code>–<code>03</code>.</p>
             <ul>
-              <li>Na tym etapie ładujemy do serwera puste definicje bazy, czyli skrypty SQL (zaczynające się od <code>01...</code> do <code>03...</code>).</li>
-              <li>Nasz ETL działa w modelu "Full Refresh" – najpierw robimy bezwzględne <code>DROP CONSTRAINT</code> oraz <code>DROP TABLE</code> na istniejących strukturach, aby rozpocząć proces z idealnie wyczyszczoną bazą.</li>
-              <li>Od razu stawiamy docelowe struktury pod warstwę stagingową i naszą docelową gwiazdę (tabele wymiarów i faktów z wymuszonymi kluczami obcymi).</li>
+              <li>Skrypt <code>00</code>: CREATE DATABASE (jeśli nie istnieje).</li>
+              <li>Skrypt <code>01</code>: CREATE SCHEMA dla <code>stg</code>, <code>dw</code>, <code>sem</code>.</li>
+              <li>Skrypt <code>02</code>: CREATE TABLE dla staging.</li>
+              <li>Skrypt <code>03</code>: CREATE TABLE dla modelu gwiazdy (wymiary + fact_sales + FK). Skrypt jest idempotentny — sprawdza <code>IF OBJECT_ID(...) IS NULL</code> przed każdym CREATE.</li>
             </ul>
           </article>
         </div>
 
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
-            <h3>3. load_staging (Python / Pandas)</h3>
-            <p><strong>Co robimy:</strong> Przenosimy dane do SQL, wykonując gruntowne <strong>czyszczenie danych</strong> (Data Cleaning).</p>
+            <h3>3. load_staging (Python + Pandas)</h3>
+            <p>Czyszczenie danych i załadowanie do <code>stg.iowa_liquor_sales_raw</code>. Tabela jest najpierw czyszczona (<code>TRUNCATE TABLE</code>), potem wypełniana od nowa.</p>
             <ul>
-              <li><strong>Hash dla śledzenia:</strong> Łączymy datę, numer rachunku i numer sklepu w pojedynczy, unikalny podpis SHA-256. Następnie wykonujemy szereg operacji na tekście.</li>
+              <li><strong>Row hash (SHA-256):</strong> Wyliczany z kombinacji <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>item_number</code>, <code>sale_dollars</code>, <code>bottles_sold</code>, <code>source_file</code>. API nie gwarantuje unikalnego klucza, więc hash pełni rolę identyfikatora wiersza.</li>
+              <li><strong>Normalizacja tekstu:</strong> klucze → UPPERCASE, nazwy miejsc → Title Case, wielokrotne spacje usuwane.</li>
+              <li><strong>ZIP code:</strong> Regex wyodrębnia pierwsze 5 cyfr — odcina rozszerzone kody pocztowe i inne artefakty.</li>
             </ul>
             
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
@@ -1600,19 +1519,20 @@ QUIT</code></pre>
     match = re.search(r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", str(location))
     return float(match.group(2)), float(match.group(1)) if match else (None, None)</pre>
             </div>
-            <p style="margin-top: 10px; font-size: 13px;">Tak oczyszczony pakiet trafia do technicznej tabeli <code>stg.iowa_liquor_sales_raw</code> w SQL Server.</p>
+            <p style="margin-top: 10px; font-size: 13px;">Oczyszczone dane trafiają do tabeli <code>stg.iowa_liquor_sales_raw</code> w SQL Server.</p>
           </article>
 
           <article class="panel">
             <h3>4. load_dimensions (SQL)</h3>
-            <p><strong>Co robimy:</strong> Przelewamy dane ze stagingu do Wymiarów, aplikując tu <strong>inżynierię cech</strong> (Feature Engineering) i deduplikację.</p>
+            <p>Załadowanie danych ze stagingu do 6 tabel wymiarów z deduplikacją SCD Type 1.</p>
             <ul>
-              <li><strong>Odfiltrowanie duplikatów:</strong> Bierzemy tylko "najświeższy" wiersz sklepu używając <code>ROW_NUMBER() OVER(...)</code>. Resztę bezwzględnie odrzucamy.</li>
+              <li><strong>Deduplikacja (SCD Type 1):</strong> <code>ROW_NUMBER() OVER (PARTITION BY klucz ORDER BY date DESC)</code> — do wymiaru trafia tylko najnowszy znany stan (np. aktualny adres sklepu). Starsze wiersze z tym samym kluczem są odrzucane.</li>
+              <li><strong>Brakujące klucze:</strong> <code>COALESCE(NULLIF(store_number, ''), 'UNKNOWN')</code> — brakujący klucz biznesowy nie blokuje JOIN-a.</li>
             </ul>
 
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
             <h4>Wzbogacenie wymiaru daty</h4>
-            <p>Rozbicie daty <code>"2023-11-25"</code> na komponenty w celu łatwiejszej analityki weekendowej.</p>
+            <p>Wyodrębnianie dodatkowych atrybutów, takich jak typ dnia (weekend/dzień roboczy).</p>
             <div class="command" style="margin-top: 10px;">
               <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
 <pre>CASE WHEN DATENAME(weekday, date) IN ('Saturday', 'Sunday') 
@@ -1623,8 +1543,8 @@ END AS day_name_pl</pre>
             </div>
 
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
-            <h4>Kategoryzacja pojemności (Bucketing)</h4>
-            <p>Grupowanie trudnych wartości jak <code>750ml</code> do zwięzłego klastra analitycznego <code>"standard"</code>.</p>
+            <h4>Kategoryzacja pojemności</h4>
+            <p>Grupowanie fizycznych pojemności (np. <code>750ml</code>) do analitycznych przedziałów (np. <code>"standard"</code>).</p>
             <div class="command" style="margin-top: 10px;">
               <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
 <pre>CASE
@@ -1637,7 +1557,7 @@ END AS volume_group</pre>
 
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
             <h4>Obsługa braków danych (Imputacja)</h4>
-            <p>Puste kategorie `NULL` w stagingu są zamieniane na `UNKNOWN`.</p>
+            <p>Puste kategorie <code>NULL</code> uzupełniane są wartością domyślną <code>'UNKNOWN'</code>.</p>
             <div class="command" style="margin-top: 10px;">
               <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
 <pre>JOIN dw.dim_category c
@@ -1649,18 +1569,18 @@ END AS volume_group</pre>
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
             <h3>5. load_fact_sales</h3>
-            <p><strong>Co robimy:</strong> Ładujemy transakcje na czysto i wyliczamy twarde miary na poziomie pojedynczego zdarzenia (faktu).</p>
+            <p><strong>Opis etapu:</strong> Ładowanie danych do tabeli faktów i wyliczanie miar podstawowych.</p>
             <ul>
-              <li>Uderzamy do tabel wymiarów (wielki <code>JOIN</code>) zastępując dane tekstowe numerycznymi identyfikatorami (Model Gwiazdy).</li>
+              <li>Wykonywane jest powiązanie z tabelami wymiarów (przy użyciu klauzuli <code>JOIN</code>), które zastępuje wartości tekstowe identyfikatorami.</li>
             </ul>
 
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
             <h4>Wyliczanie miar pochodnych (Inżynieria Cech)</h4>
-            <p>Już na etapie wprowadzania faktów wyliczamy kluczowe wartości, które muszą być utrwalone na najniższym poziomie ziarna:</p>
+            <p>Podczas wprowadzania faktów wyliczane są kluczowe wartości na najniższym poziomie ziarna:</p>
             <ul style="margin-bottom: 12px; font-size: 14px;">
-              <li><strong>Marża kwotowa (<code>margin_amount</code>):</strong> <br><code>(Retail - Cost) * Bottles</code>. Dlaczego tutaj? Liczenie marży po agregacji (np. średnia cena minus średni koszt pomnożone przez sumę butelek) dałoby błędny wynik matematyczny. Marżę trzeba liczyć per paragon, a potem sumować.</li>
-              <li><strong>Licznik linii (<code>sales_line_count</code>):</strong> <br>Każdy wiersz otrzymuje twarde <code>1</code>. Pozwala to na ultraszybkie zliczanie wielkości koszyka, średnich wolumenów czy częstotliwości zakupów poprzez zwykłe sumowanie w warstwach analitycznych, bez używania obciążających obliczeń typu <code>COUNT</code>.</li>
-              <li><strong>Tarcza przed NULLami (<code>COALESCE</code>):</strong> <br>Wszystkie miary wolumenowe są objęte funkcją <code>COALESCE(pole, 0)</code>. Dlaczego? Bazy danych mają to do siebie, że jeśli w agregacji sumującej np. 100 tys. wierszy trafi się jeden <code>NULL</code> (brak danych ze źródła), całe równanie może rozsypać się wyrzucając globalny błąd lub <code>NULL</code>. Zmuszamy braki danych do bycia bezpiecznym zerem.</li>
+              <li><strong>Marża kwotowa (<code>margin_amount</code>):</strong> <br><code>(Retail - Cost) * Bottles</code>. Obliczanie marży przed agregacją zapobiega błędom matematycznym. Zawsze wyliczana jest dla każdego paragonu osobno, a następnie sumowana.</li>
+              <li><strong>Licznik linii (<code>sales_line_count</code>):</strong> <br>Każdemu wierszowi przypisywana jest wartość <code>1</code>. Umożliwia to zliczanie liczby koszyków i transakcji przy użyciu prostej operacji <code>SUM</code> zamiast bardziej zasobochłonnego <code>COUNT</code>.</li>
+              <li><strong>Obsługa braków danych (<code>COALESCE</code>):</strong> <br>Wszystkie miary wolumenowe zabezpieczone są funkcją <code>COALESCE(pole, 0)</code>. W przypadku agregacji wartość <code>NULL</code> mogłaby spowodować błędny wynik całego zestawienia, dlatego braki zastępowane są zerem.</li>
             </ul>
             <div class="command" style="margin-top: 10px;">
               <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
@@ -1671,17 +1591,32 @@ END AS volume_group</pre>
           </article>
 
           <article class="panel">
-            <h3>6. create_semantic_views</h3>
-            <p><strong>Co robimy:</strong> Budujemy widoki pod aplikację (Warstwa Gold) i wyliczamy miary złożone.</p>
+            <h3>6. create_semantic_views (Warstwa Semantyczna)</h3>
+            <p><strong>Opis etapu:</strong> Tworzenie widoków agregujących (Warstwa Gold) i wyliczanie miar złożonych.</p>
             <ul>
-              <li>Gdybyśmy pozwolili Pythonowi i Streamlitowi zliczać miliony wierszy w przeglądarce, aplikacja działałaby strasznie wolno. Dlatego powołujemy gotowe widoki (skryptem <code>CREATE VIEW sem.[nazwa]</code>).</li>
+              <li><strong>Dlaczego tworzymy warstwę semantyczną?</strong> Surowe tabele faktów są potężne, ale wymagają pisania skomplikowanych złączeń (JOIN-ów). Warstwa semantyczna to zbiór widoków (<code>CREATE VIEW sem.[nazwa]</code>), które:
+                <ul style="margin-top: 4px; margin-bottom: 4px; padding-left: 20px;">
+                  <li>Ukrywają zawiłości modelu gwiazdy (schemat `dw`) przed aplikacjami końcowymi.</li>
+                  <li>Ustanawiają "jedno źródło prawdy" dla wyliczeń KPI, aby wszystkie dashboardy pokazywały to samo.</li>
+                  <li>Przenoszą ciężki wysiłek agregacji danych z frontendu (aplikacji Streamlit) bezpośrednio na silnik bazy SQL, który jest do tego zoptymalizowany.</li>
+                </ul>
+              </li>
             </ul>
             <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
             <h4>Wyliczanie miar analitycznych</h4>
-            <p>W widokach wyliczamy wskaźniki (KPI), które mają sens tylko w kontekście zagregowanym (np. cała kategoria lub sklep):</p>
+            <p>W widokach wyliczane są wskaźniki (KPI), które mają sens tylko w kontekście zagregowanym (np. cała kategoria lub sklep):</p>
             <ul style="font-size: 14px;">
-              <li><strong>Wskaźniki udziału (np. <code>sales_share_percent</code>):</strong> <br>Wyliczamy udział danego segmentu w całości sprzedaży używając zagnieżdżonego <code>CROSS JOIN</code> z sumą całkowitą bazy. Zrzuca to potężny ciężar analityczny z samej aplikacji.</li>
-              <li><strong>Średnie (np. <code>sales_per_liter</code>, <code>avg_margin_percent</code>):</strong> <br>Każde dzielenie zasilające średnią zabezpieczone jest funkcją <code>NULLIF(mianownik, 0)</code>. Dlaczego tak a nie inaczej? Ponieważ standardowe dzielenie przez zero w SQL powoduje natychmiastowy "Fatal Error" przerywający działanie. <code>NULLIF</code> zamienia zero na łagodny NULL, dzięki czemu wiersz bez wolumenu zwraca po prostu pustą średnią zamiast zawieszać cały dashboard.</li>
+              <li><strong>Zaawansowane wskaźniki udziału (CTE + <code>CROSS JOIN</code>):</strong> <br>Udział danego segmentu wyliczany jest przy użyciu klauzuli <code>WITH totals AS (SELECT SUM(...) FROM fact_sales)</code>, a następnie operacji <code>CROSS JOIN totals</code>. Pozwala to w jednym, wydajnym zapytaniu odnieść wartość pojedynczej grupy do całości bazy, unikając wielokrotnego skanowania tabeli faktów.</li>
+              <li><strong>Złożone Średnie:</strong> <br>Każde dzielenie zabezpieczone jest funkcją <code>NULLIF(mianownik, 0)</code>, aby uniknąć błędu dzielenia przez zero w SQL.</li>
+              <li><strong>Przykłady wyliczanych miar pochodnych:</strong>
+                <ul style="margin-top: 6px; padding-left: 20px; color: var(--text-muted);">
+                  <li><code>avg_margin_per_bottle</code> – Średnia kwota marży z jednej sprzedanej butelki</li>
+                  <li><code>avg_unit_margin</code> – Różnica między ceną detaliczną a hurtową</li>
+                  <li><code>avg_invoice_value</code> – Średnia kwotowa wielkość zamówienia (wartość koszyka)</li>
+                  <li><code>avg_bottles_per_invoice</code> – Średnia wielkość zamówienia (liczba butelek na rachunek)</li>
+                  <li><code>sales_per_store</code> – Średnia generowana wartość sprzedaży na jeden sklep</li>
+                </ul>
+              </li>
             </ul>
           </article>
         </div>
@@ -1689,10 +1624,10 @@ END AS volume_group</pre>
         <div class="two-col" style="margin-top:18px">
           <article class="panel">
             <h3>7. run_quality_checks</h3>
-            <p><strong>Co robimy:</strong> Sprawdzamy spójność danych na sam koniec.</p>
+            <p><strong>Opis etapu:</strong> Weryfikacja spójności danych po przetworzeniu.</p>
             <ul>
-              <li><strong>Zaginione dane:</strong> Używamy <code>LEFT JOIN</code>, aby upewnić się, że każda pozycja na fakturze ma przypisany odpowiedni Sklep, Produkt i Datę. Jeśli brakuje powiązań, proces zostaje wstrzymany.</li>
-              <li><strong>Ubytki ilościowe:</strong> Weryfikujemy, czy liczba wgranych początkowo wierszy zgadza się z ostateczną liczbą w tabeli Faktów. W przypadku niezgodności proces zostaje przerwany.</li>
+              <li><strong>Brakujące klucze obce:</strong> Zastosowanie instrukcji <code>LEFT JOIN</code> weryfikuje, czy każda pozycja faktów jest poprawnie przypisana do swoich wymiarów. Wykrycie braków skutkuje wstrzymaniem zadania.</li>
+              <li><strong>Zgodność wierszy:</strong> Sprawdzane jest, czy liczba wierszy w tabelach wejściowych odpowiada liczbie w tabeli docelowej po deduplikacji. Odchylenia powodują błąd procesu.</li>
             </ul>
           </article>
         </div>
@@ -1870,10 +1805,48 @@ def read_view(view_name: str) -> pd.DataFrame:
           <h2>Podsumowanie</h2>
         </div>
         <div class="callout">
-          <strong>Podsumowanie techniczne:</strong> SQL Server przechowuje hurtownię, Airflow uruchamia ETL, schemat <code>dw</code> zawiera model gwiazdy, schemat <code>sem</code> udostępnia warstwę semantyczną, a Streamlit pełni rolę raportową.
+          <strong>Podsumowanie techniczne:</strong> <strong>Stack:</strong> SQL Server (hurtownia) · Airflow (orkiestracja ETL) · Python + Pandas (czyszczenie i ładowanie) · schemat <code>dw</code> (model gwiazdy: 1 tabela faktów + 6 wymiarów) · schemat <code>sem</code> (13 widoków semantycznych) · Streamlit (raporty) · Docker Compose (konteneryzacja).
         </div>
       </section>
-    </main>
+    
+      <section id="sql">
+        <div class="section-head">
+          <h2>Pomocnicze: Dostęp w GitHub Codespaces i Baza SQL</h2>
+          <p>Instrukcje dotyczące logowania do bazy danych oraz eksponowania aplikacji na zewnątrz z wirtualnego środowiska Codespaces.</p>
+        </div>
+
+        <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--green);">
+          <h3 style="color: var(--green); margin-bottom: 8px;">Uruchomienie pełnego ETL</h3>
+          <p style="margin-bottom: 12px;">Jedno polecenie uruchamia cały pipeline: ekstrakcja → staging → wymiary → fakty → widoki semantyczne → kontrole jakości.</p>
+          <div class="command">
+            <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker compose run --rm airflow python -m src.run_initial_etl">Kopiuj</button></div>
+            <pre>docker compose run --rm airflow python -m src.run_initial_etl</pre>
+          </div>
+          <p style="margin-top: 12px; font-size: 14px; color: var(--muted);"><strong>Uwaga:</strong> Ta komenda automatycznie uruchomi i poczeka na pełną gotowość kontenera bazy danych (SQL Server), a następnie przeprowadzi pełną migrację i załaduje dane.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Dostęp do bazy SQL Server</h3>
+            <p><strong>Logowanie przez terminal kontenera (najszybsze):</strong></p>
+            <div class="command">
+              <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker exec -it iowa-liquor-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U admin -P admin -d IowaLiquorDW -C">Kopiuj</button></div>
+              <pre>docker exec -it iowa-liquor-sqlserver \
+  /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U admin -P "admin" -d IowaLiquorDW -C</pre>
+            </div>
+            <p style="margin-top: 14px;"><strong>Przykładowe zapytania:</strong></p>
+            <pre style="background: var(--paper-2); padding: 10px; border-radius: 6px;"><code>SELECT TOP 10 * FROM dw.fact_sales;
+GO
+SELECT TOP 10 * FROM dw.dim_store;
+GO
+QUIT</code></pre>
+            <p style="margin-top: 14px;">Zalecana jest również instalacja rozszerzenia <strong>SQL Server (mssql)</strong> w Codespaces: Server: <code>localhost,1433</code>, User: <code>admin</code>, Pass: <code>admin</code>, Database: <code>IowaLiquorDW</code>, Trust Server Certificate: <code>True</code>.</p>
+          </article>
+
+        </div>
+      </section>
+</main>
   </div>
 
   <script>
