@@ -1,0 +1,21 @@
+{
+  "name": "Iowa Liquor Data Warehouse",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "onCreateCommand": "docker compose pull && docker compose build",
+  "postStartCommand": "docker compose up -d",
+  "forwardPorts": [1433, 8080, 8501],
+  "portsAttributes": {
+    "8080": {
+      "label": "Airflow UI",
+      "onAutoForward": "openBrowser"
+    },
+    "8501": {
+      "label": "Streamlit Dashboard",
+      "onAutoForward": "openBrowser"
+    },
+    "1433": {
+      "label": "SQL Server",
+      "onAutoForward": "ignore"
+    }
+  }
+}
