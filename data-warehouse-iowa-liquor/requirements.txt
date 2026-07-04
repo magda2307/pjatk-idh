@@ -6,3 +6,5 @@ requests
 SQLAlchemy
 streamlit
 plotly
+jupyter
+ipykernel

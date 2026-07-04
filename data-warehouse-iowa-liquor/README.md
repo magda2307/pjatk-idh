@@ -79,19 +79,49 @@ Initial ETL finished
 
 Pełniejsza instrukcja jest w [docs/start_na_czystym_komputerze.md](docs/start_na_czystym_komputerze.md).
 
-## Uruchomienie w GitHub Codespaces
+## Uruchomienie w GitHub Codespaces i widoczność aplikacji
 
-Projekt można również uruchomić w chmurze za pomocą GitHub Codespaces (które ma wbudowaną obsługę Dockera):
+Projekt można łatwo i w pełni uruchomić w chmurze za pomocą GitHub Codespaces (które ma wbudowaną obsługę Dockera):
 
 1. Na stronie repozytorium na GitHubie kliknij zielony przycisk **Code** -> zakładka **Codespaces** -> **Create codespace on main**.
 2. Poczekaj na uruchomienie środowiska (otworzy się VS Code w przeglądarce).
-3. W terminalu na dole ekranu uruchom:
+3. W terminalu na dole ekranu uruchom instalację kontenerów:
    ```bash
    docker compose up -d sqlserver airflow streamlit
    ```
-4. Codespaces automatycznie wykryje usługi i przekieruje porty. Przejdź do zakładki **Ports** (obok Terminala).
-5. Kliknij ikonę globu (Open in Browser) przy portach `8080` (Airflow) i `8501` (Streamlit).
-6. Uruchom proces ETL identycznie jak w przypadku lokalnym (przez Airflow UI lub terminal).
+4. **Port Forwarding (jak udostępnić aplikacje promotorowi):**
+   - Codespaces automatycznie wykryje usługi. Przejdź do zakładki **Ports** w dolnym panelu obok Terminala.
+   - Od razu zobaczysz porty `8080` (Airflow) oraz `8501` (Streamlit).
+   - Kliknij ikonę globu (**Open in Browser**) przy porcie `8501`, by go otworzyć.
+   - **Bardzo ważne:** domyślnie aplikacja jest chroniona logowaniem do Twojego GitHuba. Jeśli podczas obrony chcesz np. udostępnić ekran promotorowi ze swojego laptopa to wszystko działa. Ale **jeśli chcesz podesłać komuś link do działającej apki**, kliknij prawym przyciskiem myszy na port `8501` w panelu Ports -> wybierz **Port Visibility** -> Zmień na **Public**.
+5. Uruchom proces ETL przez terminal kontenera lub w UI Airflow (tak jak w przypadku lokalnym).
+
+### Logowanie do bazy danych SQL Server w Codespaces
+
+Podczas obrony możesz chcieć pokazać, że tabele faktycznie leżą na serwerze i zapytać o nie czystym SQL.
+
+**Opcja A: Przez wbudowany w kontener terminal (najszybciej):**
+```bash
+docker exec -it iowa-liquor-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U admin -P "admin" -d IowaLiquorDW -C
+```
+Przykładowe zapytania:
+```sql
+SELECT TOP 10 * FROM dw.fact_sales;
+GO
+SELECT TOP 10 * FROM dw.dim_store;
+GO
+QUIT
+```
+
+**Opcja B: Przez rozszerzenie w Codespaces:**
+1. Zainstaluj w webowym VS Code rozszerzenie `SQL Server (mssql)` (Microsoft).
+2. Dodaj połączenie:
+   - Server: `localhost` lub `127.0.0.1`
+   - Database: `IowaLiquorDW`
+   - Authentication Type: `SQL Login`
+   - User name: `admin` (lub `sa`)
+   - Password: `admin` (lub `YourStrongPassword123`)
+   - Encrypt: `Mandatory` i **Trust Server Certificate: `True`** (obowiązkowo włącz zaufanie!).
 
 ## Jeśli Airflow nie odpowiada
 

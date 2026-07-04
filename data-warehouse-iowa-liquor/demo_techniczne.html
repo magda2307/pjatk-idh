@@ -935,6 +935,51 @@
         </div>
       </section>
 
+      <section id="input-data">
+        <div class="section-head">
+          <h2>Struktura danych wejściowych</h2>
+          <p>Tabela poniżej przedstawia strukturę źródłowego zbioru Iowa Liquor Sales, obejmującą opis każdego pola, jego znaczenie biznesowe oraz literalny przykład wartości. Przeciętnie dane z jednego pełnego roku (np. 2023) zawierają około <b>2,7 miliona transakcji</b> (linii na fakturach/itemów), ważąc w formacie CSV setki megabajtów.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pole (kolumna)</th>
+                <th>Opis i znaczenie biznesowe</th>
+                <th>Przykład wartości</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>invoice_and_item_number</code></td><td>Unikalny identyfikator linii na fakturze. Konkatenacja numeru faktury oraz numeru pozycji (np. INV-xxxxx i 0001).</td><td><code>INV-55106800001</code></td></tr>
+              <tr><td><code>date</code></td><td>Data wystawienia faktury i realizacji zamówienia dla sklepu.</td><td><code>2023-01-01</code></td></tr>
+              <tr><td><code>store_number</code></td><td>Unikalny numer przypisany do sklepu detalicznego zamawiającego alkohol.</td><td><code>2633</code></td></tr>
+              <tr><td><code>store_name</code></td><td>Nazwa sklepu, często zawiera również nazwę sieci, miasto lub informacje o lokalizacji.</td><td><code>Hy-Vee #3 / BDI / Des Moines</code></td></tr>
+              <tr><td><code>address</code></td><td>Główny adres (ulica) lokalizacji sklepu.</td><td><code>3221 SE 14th St</code></td></tr>
+              <tr><td><code>city</code></td><td>Miasto, w którym zlokalizowany jest sklep.</td><td><code>Des Moines</code></td></tr>
+              <tr><td><code>zip_code</code></td><td>Kod pocztowy sklepu.</td><td><code>50320</code></td></tr>
+              <tr><td><code>store_location</code></td><td>Współrzędne geograficzne sklepu w formacie geometrycznym lub WKT (Długość/Szerokość geograficzna). Często wymaga parsowania w procesie ETL.</td><td><code>POINT (-93.596754 41.554101)</code></td></tr>
+              <tr><td><code>county_number</code></td><td>Kod hrabstwa (county) w stanie Iowa przypisany do sklepu.</td><td><code>77</code></td></tr>
+              <tr><td><code>county</code></td><td>Nazwa hrabstwa w stanie Iowa (np. Polk, Linn).</td><td><code>POLK</code></td></tr>
+              <tr><td><code>category</code></td><td>Kod identyfikujący kategorię trunku.</td><td><code>1011100</code></td></tr>
+              <tr><td><code>category_name</code></td><td>Tekstowy opis kategorii trunku alkoholu wysokoprocentowego.</td><td><code>Blended Whiskies</code></td></tr>
+              <tr><td><code>vendor_number</code></td><td>Unikalny identyfikator dostawcy / producenta marki (Vendor).</td><td><code>65</code></td></tr>
+              <tr><td><code>vendor_name</code></td><td>Nazwa firmy będącej dostawcą, destylarnią lub oficjalnym importerem.</td><td><code>Jim Beam Brands</code></td></tr>
+              <tr><td><code>item_number</code></td><td>Stanowy kod ID konkretnego produktu / asortymentu (SKU).</td><td><code>27783</code></td></tr>
+              <tr><td><code>item_description</code></td><td>Nazwa detaliczna produktu alkoholowego sprzedawanego w ramach kodu.</td><td><code>Jim Beam Apple</code></td></tr>
+              <tr><td><code>pack</code></td><td>Liczba butelek w opakowaniu hurtowym / kartonie zamawianym przez sklep.</td><td><code>12</code></td></tr>
+              <tr><td><code>bottle_volume_ml</code></td><td>Pojemność pojedynczej butelki wyrażona w mililitrach (ml).</td><td><code>750</code></td></tr>
+              <tr><td><code>state_bottle_cost</code></td><td>Koszt nabycia jednej butelki przez stan Iowa (w dolarach). Podstawa kalkulacji marży.</td><td><code>$10.49</code></td></tr>
+              <tr><td><code>state_bottle_retail</code></td><td>Sugerowana lub narzucona cena sprzedaży detalicznej jednej butelki (w dolarach).</td><td><code>$15.74</code></td></tr>
+              <tr><td><code>bottles_sold</code></td><td>Fizyczna liczba sprzedanych/zamówionych butelek przez sklep w danej linii na fakturze.</td><td><code>12</code></td></tr>
+              <tr><td><code>sale_dollars</code></td><td>Całkowita wartość sprzedaży (w dolarach) dla tej pozycji na fakturze (bottles_sold * state_bottle_retail).</td><td><code>$188.88</code></td></tr>
+              <tr><td><code>volume_sold_liters</code></td><td>Zsumowany wolumen sprzedanego alkoholu w litrach w danej pozycji na fakturze.</td><td><code>9.00</code></td></tr>
+              <tr><td><code>volume_sold_gallons</code></td><td>Zsumowany wolumen sprzedanego alkoholu przeliczony na galony.</td><td><code>2.37</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="business">
         <div class="section-head">
           <h2>Pytania biznesowe</h2>
@@ -951,18 +996,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr><td>1</td><td>Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code>, Przegląd zarządczy</td></tr>
-              <tr><td>2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code>, Produkty i kategorie</td></tr>
-              <tr><td>3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code>, Wyniki sklepów</td></tr>
-              <tr><td>4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, Geografia</td></tr>
-              <tr><td>5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code>, Produkty i kategorie</td></tr>
-              <tr><td>6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code>, Produkty i kategorie</td></tr>
-              <tr><td>7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code>, Produkty i kategorie</td></tr>
-              <tr><td>8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code>, Produkty i kategorie</td></tr>
-              <tr><td>9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code>, Geografia</td></tr>
-              <tr><td>10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code>, Wyniki sklepów</td></tr>
-              <tr><td>11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code>, Przegląd zarządczy</td></tr>
-              <tr><td>12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q1</td><td>Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code>, Przegląd zarządczy</td></tr>
+              <tr><td>Q2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code>, Wyniki sklepów</td></tr>
+              <tr><td>Q4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, Geografia</td></tr>
+              <tr><td>Q5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code>, Geografia</td></tr>
+              <tr><td>Q10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code>, Wyniki sklepów</td></tr>
+              <tr><td>Q11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code>, Przegląd zarządczy</td></tr>
+              <tr><td>Q12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code>, Produkty i kategorie</td></tr>
             </tbody>
           </table>
         </div>
@@ -1079,6 +1124,18 @@
             <strong>Wartość surowa:</strong> <code>"$1,234.56"</code><br>
             <strong>Po transformacji:</strong> <code>1234.56</code> (Typ: <code>DECIMAL</code>)</p>
             <p>Usunięcie symboli walut i separatorów tysięcy za pomocą metod na ciągach znaków w Pythonie. Skrypt wymusza rzutowanie na typ numeryczny przed wczytaniem danych do SQL Server.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
+<pre>def clean_money_or_number(series: pd.Series) -> pd.Series:
+    cleaned = (
+        series.astype("string")
+        .str.replace("$", "", regex=False)
+        .str.replace(",", "", regex=False)
+        .str.strip()
+    )
+    return pd.to_numeric(cleaned, errors="coerce")</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Dane źródłowe zawierają zanieczyszczenia, które uniemożliwiają poprawne typowanie w bazie (np. <code>$</code>, <code>,</code>). Wyczyszczenie po stronie Pythona (Pandas) pozwala na bezpieczny i szybki bulk insert natywnych typów numerycznych do bazy bez obciążania jej uciążliwymi operacjami na łańcuchach znaków.</p>
           </article>
 
           <article class="panel">
@@ -1087,6 +1144,19 @@
             <strong>Wartość surowa:</strong> <code>"POINT (-91.530463 41.666324)"</code><br>
             <strong>Po transformacji:</strong> <code>latitude: 41.666324</code>, <code>longitude: -91.530463</code> (Typ: <code>FLOAT</code>)</p>
             <p>Zastosowanie wyrażeń regularnych do wyodrębnienia szerokości i długości geograficznej z formatu przestrzennego WKT.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/load/sqlserver_loader.py</span></div>
+<pre>def parse_location_value(location: object) -> tuple[float | None, float | None]:
+    if not isinstance(location, str):
+        return None, None
+    match = re.search(r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", location)
+    if not match:
+        return None, None
+    longitude = float(match.group(1))
+    latitude = float(match.group(2))
+    return latitude, longitude</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Zamiast przechowywać długi łańcuch tekstowy typu POINT, optymalne jest wyodrębnienie dwóch niezależnych kolumn numerycznych. Standardowe raporty w narzędziach BI lub warstwy map przestrzennych w Streamlit natywnie przyjmują współrzędne w postaci dziesiętnej.</p>
           </article>
 
           <article class="panel">
@@ -1095,6 +1165,17 @@
             <strong>Wartość surowa:</strong> <code>"2023-11-25"</code><br>
             <strong>Po transformacji:</strong> <code>year: 2023</code>, <code>month: 11</code>, <code>quarter: 4</code>, <code>is_weekend: 1</code>, <code>day_name_pl: 'Sobota'</code></p>
             <p>Rozbicie daty na komponenty oraz dodanie znacznika typu dnia (weekend) w celu usprawnienia agregacji.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>CASE WHEN DATENAME(weekday, date) IN ('Saturday', 'Sunday') 
+     THEN 1 ELSE 0 END AS is_weekend,
+CASE DATENAME(weekday, date)
+    WHEN 'Monday' THEN 'poniedzialek'
+    /* ... */
+    WHEN 'Sunday' THEN 'niedziela'
+END AS day_name_pl</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Analiza wzorców sprzedaży w zależności od dni roboczych/weekendów jest powszechnym wymogiem biznesowym. Umieszczenie tej logiki statycznie w strukturze wymiaru bazy <code>dim_date</code> gwarantuje, że skomplikowana kalkulacja realizowana jest tylko raz w trakcie ładowania (ETL), co radykalnie poprawia czytelność zapytań SQL i przyspiesza wyświetlanie raportów.</p>
           </article>
 
           <article class="panel">
@@ -1103,6 +1184,17 @@
             <strong>Wartość surowa:</strong> <code>750</code>, <code>1750</code>, <code>50</code><br>
             <strong>Po transformacji:</strong> <code>volume_group</code> -> <code>"standard"</code>, <code>"large"</code>, <code>"small"</code></p>
             <p>Grupowanie ciągłych wartości pojemności do dyskretnych przedziałów analitycznych.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>CASE
+    WHEN bottle_volume_ml = 0 THEN 'unknown'
+    WHEN bottle_volume_ml &lt; 500 THEN 'small'
+    WHEN bottle_volume_ml &lt; 1000 THEN 'standard'
+    WHEN bottle_volume_ml &lt; 1750 THEN 'large'
+    ELSE 'extra_large'
+END AS volume_group</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Wartości ciągłe liczbowe (jak pojemność w ml) są trudne do ogólnej analizy trendowej. Przypisanie ich poprzez instrukcję CASE do zamkniętych klastrów "wiader" (ang. <i>buckets</i>) upraszcza zbiór. Zamiast kilkuset punktów otrzymujemy zwięzły atrybut wymiaru <code>dim_packaging</code> idealny do filtrowania i tworzenia czytelnych wykresów z udziałami (np. Pie Charts).</p>
           </article>
           
           <article class="panel">
@@ -1111,6 +1203,12 @@
             <strong>Logika:</strong> <code>(Retail - Cost) * Bottles</code><br>
             <strong>Po transformacji:</strong> Nowa miara: <code>margin_amount</code></p>
             <p>Kalkulacja marży kwotowej na poziomie wiersza w celu uproszczenia zapytań agregujących.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>(COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0))
+    * COALESCE(raw.bottles_sold, 0) AS margin_amount</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Materializacja kluczowej miary, jaką jest marża na etapie transformacji `fact_sales` likwiduje problem i koszty jej liczenia "w locie" na każdym żądaniu raportu. Funkcje COALESCE gwarantują tutaj odporność na błędy (NULLe) powodujące puste zwroty, zabezpieczając matematyczne równanie bazowe.</p>
           </article>
 
           <article class="panel">
@@ -1119,6 +1217,12 @@
             <strong>Wartość surowa:</strong> <code>NULL</code>, <code>NaN</code>, puste <code>""</code><br>
             <strong>Po transformacji:</strong> <code>"UNKNOWN"</code></p>
             <p>Przypisanie wartości domyślnej "UNKNOWN" dla brakujących danych przy użyciu funkcji <code>COALESCE</code>.</p>
+            <div class="command" style="margin-top: 14px;">
+              <div class="command-head"><span>src/transform/warehouse_transform.py</span></div>
+<pre>JOIN dw.dim_category c
+    ON c.category_number = COALESCE(NULLIF(raw.category, ''), 'UNKNOWN')</pre>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px;"><strong>Dlaczego tak:</strong> Modelowanie wymiarowe często napotyka problem integralności danych. Fakty korzystają głównie ze złączeń <code>INNER JOIN</code>. Bez przypisania wartości "UNKNOWN" rekordy faktu o braku kategorii byłyby systemowo tracone ze strumienia. Konstrukcja <code>COALESCE(NULLIF(...))</code> to tzw. <i>early binding</i>, który kieruje brak do wiersza atrapowego "UNKNOWN", ocalając istotne miary wolumenowe paragonu.</p>
           </article>
         </div>
       </section>
@@ -1331,12 +1435,46 @@ SELECT ... FROM ranked WHERE rn = 1;</pre>
             <p><code>fact_sales</code> zawiera klucze obce. Kontrole jakości zapewniają spójność relacji.</p>
           </article>
         </div>
+        </div>
+
+        <h3 style="margin-top: 36px; font-size: 24px; font-family: 'Segoe UI', system-ui, sans-serif;">Architektoniczne "Dlaczego?" - Uzasadnienie Modelu</h3>
+        <div class="two-col" style="margin-top: 18px;">
+          <article class="panel">
+            <h3>Dlaczego takie ziarno faktu?</h3>
+            <p><strong>Decyzja:</strong> Jeden rekord w <code>fact_sales</code> to jedna linia z paragonu.<br>
+            <strong>Dlaczego:</strong> Zapobiega to przedwczesnej agregacji w ETL i zachowuje maksymalną szczegółowość. Dzięki temu hurtownia może swobodnie agregować dane w dowolnych przekrojach na życzenie biznesu.</p>
+          </article>
+
+          <article class="panel">
+            <h3>Dlaczego geografia jest w sklepie?</h3>
+            <p><strong>Decyzja:</strong> Brak osobnego <code>dim_geography</code>. Atrybuty lokalizacyjne są w <code>dim_store</code>.<br>
+            <strong>Dlaczego:</strong> W tym projekcie sklep i jego lokalizacja są nierozerwalnie powiązane. Tworzenie osobnego wymiaru prowadziłoby do dublowania danych. Utrzymanie geografii w sklepie zachowuje prostotę klasycznej gwiazdy.</p>
+          </article>
+
+          <article class="panel">
+            <h3>Dlaczego kategoria i produkt są osobno?</h3>
+            <p><strong>Decyzja:</strong> Wydzielono osobno <code>dim_product</code> oraz <code>dim_category</code>.<br>
+            <strong>Dlaczego:</strong> Analizy biznesowe i raporty najczęściej dotyczą poziomu kategorii. Osobny wymiar poprawia czytelność zapytań agregujących i odciąża zapytania na wyższym poziomie, pozostawiając szczegóły w wymiarze produktu.</p>
+          </article>
+
+          <article class="panel">
+            <h3>Dlaczego vendor i opakowanie to osobne wymiary?</h3>
+            <p><strong>Decyzja:</strong> Stworzono niezależne <code>dim_vendor</code> i <code>dim_packaging</code>.<br>
+            <strong>Dlaczego:</strong> Biznes wymaga niezależnej analizy marżowości poszczególnych dostawców oraz porównywania wolumenu sprzedaży na podstawie fizycznej wielkości butelek. Wydzielenie tych aspektów daje czyste osie analizy niezależne od hierarchii produktu.</p>
+          </article>
+        </div>
       </section>
 
       <section id="semantic">
         <div class="section-head">
           <h2>Warstwa semantyczna i logika biznesowa</h2>
-          <p>Schemat <code>sem</code> wydziela logikę biznesową od fizycznej bazy. Stosuje zasadę Single Source of Truth dla spójności raportowania.</p>
+          <p>Schemat <code>sem</code> stanowi pomost między fizycznym przechowywaniem a raportowaniem. Działa jako Single Source of Truth dla aplikacji Streamlit.</p>
+        </div>
+
+        <div class="panel" style="margin-bottom: 24px; border-left: 8px solid var(--blue);">
+          <h3 style="margin-bottom: 12px; color: var(--blue);">Dlaczego nie odpytujemy bezpośrednio hurtowni (DW)?</h3>
+          <p style="margin-bottom: 12px; color: var(--ink);"><strong>Złożoność:</strong> Schemat gwiazdy jest zoptymalizowany pod bezpieczne przechowywanie, a nie proste odpytywanie. Wymagałby znajomości połączeń (JOIN) na kluczach technicznych od narzędzi raportujących.</p>
+          <p style="margin-bottom: 0; color: var(--ink);"><strong>Korzyści z warstwy semantycznej:</strong> Widoki działają jako tarcza ochronna. Przekształcają dane techniczne w gotowe koncepcje biznesowe, ukrywają złożoność relacji i centralizują trudne wyliczenia (jak średnie i udziały). Streamlit pobiera dzięki temu gotowe, poprawne wyniki, unikając dublowania kodu i ryzykownych wyliczeń na frontendzie.</p>
         </div>
 
         <div class="layer-stack">
@@ -1455,6 +1593,46 @@ JOIN dw.dim_product p ON p.product_key = f.product_key;</pre>
         </div>
       </section>
 
+      <section id="codespaces">
+        <div class="section-head">
+          <h2>Dostęp w GitHub Codespaces i Baza SQL</h2>
+          <p>Instrukcje dotyczące logowania do bazy danych oraz eksponowania aplikacji na zewnątrz z wirtualnego środowiska Codespaces.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Dostęp do bazy SQL Server</h3>
+            <p><strong>Logowanie przez terminal kontenera (najszybsze):</strong></p>
+            <div class="command">
+              <div class="command-head"><span>Terminal</span><button class="copy" data-copy="docker exec -it iowa-liquor-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U admin -P admin -d IowaLiquorDW -C">Kopiuj</button></div>
+              <pre>docker exec -it iowa-liquor-sqlserver \
+  /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U admin -P "admin" -d IowaLiquorDW -C</pre>
+            </div>
+            <p style="margin-top: 14px;"><strong>Przykładowe zapytania:</strong></p>
+            <pre style="background: var(--paper-2); padding: 10px; border-radius: 6px;"><code>SELECT TOP 10 * FROM dw.fact_sales;
+GO
+SELECT TOP 10 * FROM dw.dim_store;
+GO
+QUIT</code></pre>
+            <p style="margin-top: 14px;">Zalecana jest również instalacja rozszerzenia <strong>SQL Server (mssql)</strong> w Codespaces: Server: <code>localhost,1433</code>, User: <code>admin</code>, Pass: <code>admin</code>, Database: <code>IowaLiquorDW</code>, Trust Server Certificate: <code>True</code>.</p>
+          </article>
+
+          <article class="panel">
+            <h3>Port Forwarding (Widoczność w przeglądarce)</h3>
+            <p>Domyślnie Codespaces izoluje porty. Aby zobaczyć aplikacje:</p>
+            <ol>
+              <li>W dolnym panelu VS Code wejdź w zakładkę <strong>Ports</strong>.</li>
+              <li>Kliknij ikonę globu (<strong>Open in Browser</strong>) przy portach <code>8501</code> (Streamlit) oraz <code>8080</code> (Airflow).</li>
+            </ol>
+            <div class="callout" style="margin-top: 14px; font-size: 15px; border-left-color: var(--blue);">
+              <strong>Publiczny dostęp do Streamlit:</strong>
+              <p style="margin-top: 8px; margin-bottom: 0;">Aby promotor mógł otworzyć link na swoim komputerze bez logowania do Twojego konta GitHub, kliknij prawym na port <strong>8501</strong> w zakładce Ports -&gt; <strong>Port Visibility</strong> -&gt; Zmień na <strong>Public</strong>.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="etl">
         <div class="section-head">
           <h2>ETL</h2>
@@ -1560,10 +1738,6 @@ JOIN dw.dim_product p ON p.product_key = f.product_key;</pre>
             </ul>
           </article>
 
-          <article class="panel">
-            <h3>Szybkie podsumowanie kroków (do prezentacji)</h3>
-            <p style="font-style: italic; color: var(--ink);">"Użyliśmy w pełni zdefiniowanego strumienia. Wymusiliśmy sprowadzanie na środowisko plików CSV (Extract), które poprzez model transformacji zapytań w warstwie operacyjnej SQL Server załadowane zostały do silnie odseparowanego warstwą pośrednią stagingu (Load/Stg), skąd odpowiednia logika deduplikacyjna załadowała poszczególne wymiary i ostatecznie złożyła do tablicy faktów (DW). Proces wieńczy kompilacja zestawu ustandaryzowanych biznesowo widoków połączona z absolutnymi i mierzalnymi wymogami jakości poprzez zbiór wywołań wertykalnych bazujących m.in. na teście Orphaned Keys."</p>
-          </article>
         </div>
       </section>
 
