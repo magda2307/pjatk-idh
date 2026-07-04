@@ -1,0 +1,2343 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]: Iowa Liquor DW
+    - navigation "Nawigacja" [ref=e5]:
+      - link "Start" [ref=e6] [cursor=pointer]:
+        - /url: "#start"
+      - link "Źródło" [ref=e7] [cursor=pointer]:
+        - /url: "#zrodlo"
+      - link "Pipeline" [ref=e8] [cursor=pointer]:
+        - /url: "#pipeline"
+      - link "1 Ekstrakcja" [ref=e9] [cursor=pointer]:
+        - /url: "#krok1"
+      - link "2 SQL init" [ref=e10] [cursor=pointer]:
+        - /url: "#krok2"
+      - link "3 Staging" [ref=e11] [cursor=pointer]:
+        - /url: "#krok3"
+      - link "Model" [ref=e12] [cursor=pointer]:
+        - /url: "#model"
+      - link "4 Wymiary" [ref=e13] [cursor=pointer]:
+        - /url: "#krok4"
+      - link "5 Fakty" [ref=e14] [cursor=pointer]:
+        - /url: "#krok5"
+      - link "6 Widoki" [ref=e15] [cursor=pointer]:
+        - /url: "#krok6"
+      - link "7 QC" [ref=e16] [cursor=pointer]:
+        - /url: "#krok7"
+      - link "Dashboard" [ref=e17] [cursor=pointer]:
+        - /url: "#dashboard"
+      - link "Dostęp" [ref=e18] [cursor=pointer]:
+        - /url: "#dostep"
+  - main [ref=e19]:
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]: Projekt na zaliczenie - PJATK IDH - s32924, Magdalena Sokolowska
+        - heading "Iowa Liquor Sales DW" [level=1] [ref=e23]
+        - paragraph [ref=e24]: "Pełny przepływ: publiczne API stanu Iowa → pliki CSV → SQL Server → model gwiazdy → widoki semantyczne → Streamlit. Poniżej opisano każdy krok w kolejności wykonania pipeline'u."
+      - complementary "Stack techniczny" [ref=e25]:
+        - heading "Stack techniczny" [level=2] [ref=e26]
+        - list [ref=e27]:
+          - listitem [ref=e28]:
+            - generic [ref=e30]: Python 3.12 + Pandas - ekstrakcja i czyszczenie danych
+          - listitem [ref=e31]:
+            - generic [ref=e33]:
+              - text: "SQL Server 2022 - schematy:"
+              - code [ref=e34]: stg
+              - text: ","
+              - code [ref=e35]: dw
+              - text: ","
+              - code [ref=e36]: sem
+          - listitem [ref=e37]:
+            - generic [ref=e39]:
+              - text: Apache Airflow 2 - DAG
+              - code [ref=e40]: iowa_liquor_etl
+              - text: ", 7 tasków"
+          - listitem [ref=e41]:
+            - generic [ref=e43]:
+              - text: Streamlit - raporty na widokach
+              - code [ref=e44]: sem.*
+          - listitem [ref=e45]:
+            - generic [ref=e47]: Docker Compose - konteneryzacja całości
+    - generic [ref=e48]:
+      - article [ref=e49]:
+        - generic [ref=e50]:
+          - strong [ref=e51]: Airflow UI
+          - text: Panel DAG-ów, logi tasków, status uruchomień.
+        - link "localhost:8080" [ref=e52] [cursor=pointer]:
+          - /url: http://localhost:8080
+      - article [ref=e53]:
+        - generic [ref=e54]:
+          - strong [ref=e55]: Streamlit
+          - text: Raporty analityczne po załadowaniu danych.
+        - link "localhost:8501" [ref=e56] [cursor=pointer]:
+          - /url: http://localhost:8501
+      - article [ref=e57]:
+        - generic [ref=e58]:
+          - strong [ref=e59]: ETL - uruchomienie ręczne
+          - text: Pełny pipeline z terminala, bez Airflow.
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: terminal
+            - button "Kopiuj" [ref=e63] [cursor=pointer]
+          - generic [ref=e64]: docker compose run --rm airflow python -m src.run_initial_etl
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - heading "Źródło danych" [level=2] [ref=e67]
+        - paragraph [ref=e68]: Publiczny rejestr hurtowej sprzedaży alkoholu stanu Iowa (Iowa Alcoholic Beverages Division). Każda dostawa do sklepu rejestrowana jako osobna linia faktury. Dane historyczne od 2012 r., ok. 2,7 mln wierszy rocznie.
+      - generic [ref=e69]:
+        - strong [ref=e70]: Zmiana API - czerwiec 2026.
+        - text: Stan Iowa przeniósł portal z Socrata na Google Data Hub. Stare API zwraca 404. Nowe nie obsługuje paginacji (
+        - code [ref=e71]: $limit
+        - text: ","
+        - code [ref=e72]: $offset
+        - text: ","
+        - code [ref=e73]: $where
+        - text: ). Projekt obsługuje to automatycznie przez fallback na lokalny cache plików CSV - szczegóły w kroku 1.
+      - table [ref=e75]:
+        - rowgroup [ref=e76]:
+          - row "Kolumna w API Nazwa wewnętrzna Typ docelowy Opis i transformacja Przykład" [ref=e77]:
+            - columnheader "Kolumna w API" [ref=e78]
+            - columnheader "Nazwa wewnętrzna" [ref=e79]
+            - columnheader "Typ docelowy" [ref=e80]
+            - columnheader "Opis i transformacja" [ref=e81]
+            - columnheader "Przykład" [ref=e82]
+        - rowgroup [ref=e83]:
+          - row "invoice_line_no invoice_and_item_number NVARCHAR, UPPER Unikalny numer linii faktury. Jeden wiersz = jedna dostawa jednego SKU (Stock Keeping Unit - jednostka magazynowa) do jednego sklepu jednego dnia. INV-36103700002" [ref=e84]:
+            - cell "invoice_line_no" [ref=e85]:
+              - code [ref=e86]: invoice_line_no
+            - cell "invoice_and_item_number" [ref=e87]:
+              - code [ref=e88]: invoice_and_item_number
+            - cell "NVARCHAR, UPPER" [ref=e89]
+            - cell "Unikalny numer linii faktury. Jeden wiersz = jedna dostawa jednego SKU (Stock Keeping Unit - jednostka magazynowa) do jednego sklepu jednego dnia." [ref=e90]
+            - cell "INV-36103700002" [ref=e91]:
+              - code [ref=e92]: INV-36103700002
+          - row "date date DATE Data transakcji. Parsowana przez pd.to_datetime(..., errors='coerce') - nieparsowalne → NULL. 2023-01-15" [ref=e93]:
+            - cell "date" [ref=e94]:
+              - code [ref=e95]: date
+            - cell "date" [ref=e96]:
+              - code [ref=e97]: date
+            - cell "DATE" [ref=e98]
+            - cell "Data transakcji. Parsowana przez pd.to_datetime(..., errors='coerce') - nieparsowalne → NULL." [ref=e99]:
+              - text: Data transakcji. Parsowana przez
+              - code [ref=e100]: pd.to_datetime(..., errors='coerce')
+              - text: "- nieparsowalne → NULL."
+            - cell "2023-01-15" [ref=e101]:
+              - code [ref=e102]: 2023-01-15
+          - row "store store_number NVARCHAR, UPPER Numer licencji sklepu - klucz biznesowy wymiaru dim_store. Puste → 'UNKNOWN'. 2633" [ref=e103]:
+            - cell "store" [ref=e104]:
+              - code [ref=e105]: store
+            - cell "store_number" [ref=e106]:
+              - code [ref=e107]: store_number
+            - cell "NVARCHAR, UPPER" [ref=e108]
+            - cell "Numer licencji sklepu - klucz biznesowy wymiaru dim_store. Puste → 'UNKNOWN'." [ref=e109]:
+              - text: Numer licencji sklepu - klucz biznesowy wymiaru
+              - code [ref=e110]: dim_store
+              - text: . Puste →
+              - code [ref=e111]: "'UNKNOWN'"
+              - text: .
+            - cell "2633" [ref=e112]:
+              - code [ref=e113]: "2633"
+          - row "name store_name NVARCHAR Nazwa handlowa sklepu. Hy-Vee Food Store" [ref=e114]:
+            - cell "name" [ref=e115]:
+              - code [ref=e116]: name
+            - cell "store_name" [ref=e117]:
+              - code [ref=e118]: store_name
+            - cell "NVARCHAR" [ref=e119]
+            - cell "Nazwa handlowa sklepu." [ref=e120]
+            - cell "Hy-Vee Food Store" [ref=e121]:
+              - code [ref=e122]: Hy-Vee Food Store
+          - row "address address NVARCHAR Ulica i numer. 3221 SE 14th St" [ref=e123]:
+            - cell "address" [ref=e124]:
+              - code [ref=e125]: address
+            - cell "address" [ref=e126]:
+              - code [ref=e127]: address
+            - cell "NVARCHAR" [ref=e128]
+            - cell "Ulica i numer." [ref=e129]
+            - cell "3221 SE 14th St" [ref=e130]:
+              - code [ref=e131]: 3221 SE 14th St
+          - row "city city NVARCHAR, Title Case Miasto - normalizowane do Title Case (DES MOINES → Des Moines). Des Moines" [ref=e132]:
+            - cell "city" [ref=e133]:
+              - code [ref=e134]: city
+            - cell "city" [ref=e135]:
+              - code [ref=e136]: city
+            - cell "NVARCHAR, Title Case" [ref=e137]
+            - cell "Miasto - normalizowane do Title Case (DES MOINES → Des Moines)." [ref=e138]:
+              - text: Miasto - normalizowane do Title Case (
+              - code [ref=e139]: DES MOINES
+              - text: →
+              - code [ref=e140]: Des Moines
+              - text: ).
+            - cell "Des Moines" [ref=e141]:
+              - code [ref=e142]: Des Moines
+          - row "zipcode zip_code NVARCHAR (5 cyfr) Regex wyodrębnia pierwsze 5 cyfr. Rozszerzone kody (np. 50320-1234) są skracane. 50320" [ref=e143]:
+            - cell "zipcode" [ref=e144]:
+              - code [ref=e145]: zipcode
+            - cell "zip_code" [ref=e146]:
+              - code [ref=e147]: zip_code
+            - cell "NVARCHAR (5 cyfr)" [ref=e148]
+            - cell "Regex wyodrębnia pierwsze 5 cyfr. Rozszerzone kody (np. 50320-1234) są skracane." [ref=e149]:
+              - text: Regex wyodrębnia pierwsze 5 cyfr. Rozszerzone kody (np.
+              - code [ref=e150]: 50320-1234
+              - text: ) są skracane.
+            - cell "50320" [ref=e151]:
+              - code [ref=e152]: "50320"
+          - 'row "store_location store_location + latitude / longitude NVARCHAR + DECIMAL Format WKT: POINT (lon lat). Regex parsuje do dwóch osobnych kolumn numerycznych. POINT (-93.60 41.55)" [ref=e153]':
+            - cell "store_location" [ref=e154]:
+              - code [ref=e155]: store_location
+            - cell "store_location + latitude / longitude" [ref=e156]:
+              - code [ref=e157]: store_location
+              - text: +
+              - code [ref=e158]: latitude
+              - text: /
+              - code [ref=e159]: longitude
+            - cell "NVARCHAR + DECIMAL" [ref=e160]
+            - 'cell "Format WKT: POINT (lon lat). Regex parsuje do dwóch osobnych kolumn numerycznych." [ref=e161]':
+              - text: "Format WKT:"
+              - code [ref=e162]: POINT (lon lat)
+              - text: . Regex parsuje do dwóch osobnych kolumn numerycznych.
+            - cell "POINT (-93.60 41.55)" [ref=e163]:
+              - code [ref=e164]: POINT (-93.60 41.55)
+          - row "county_number county_number NVARCHAR, UPPER Kod hrabstwa Iowa. 77" [ref=e165]:
+            - cell "county_number" [ref=e166]:
+              - code [ref=e167]: county_number
+            - cell "county_number" [ref=e168]:
+              - code [ref=e169]: county_number
+            - cell "NVARCHAR, UPPER" [ref=e170]
+            - cell "Kod hrabstwa Iowa." [ref=e171]
+            - cell "77" [ref=e172]:
+              - code [ref=e173]: "77"
+          - row "county county NVARCHAR, Title Case Nazwa hrabstwa - normalizowana do Title Case. Polk" [ref=e174]:
+            - cell "county" [ref=e175]:
+              - code [ref=e176]: county
+            - cell "county" [ref=e177]:
+              - code [ref=e178]: county
+            - cell "NVARCHAR, Title Case" [ref=e179]
+            - cell "Nazwa hrabstwa - normalizowana do Title Case." [ref=e180]
+            - cell "Polk" [ref=e181]:
+              - code [ref=e182]: Polk
+          - row "category category NVARCHAR, UPPER Stanowy kod kategorii trunku - klucz biznesowy dim_category. Puste → 'UNKNOWN'. 1011100" [ref=e183]:
+            - cell "category" [ref=e184]:
+              - code [ref=e185]: category
+            - cell "category" [ref=e186]:
+              - code [ref=e187]: category
+            - cell "NVARCHAR, UPPER" [ref=e188]
+            - cell "Stanowy kod kategorii trunku - klucz biznesowy dim_category. Puste → 'UNKNOWN'." [ref=e189]:
+              - text: Stanowy kod kategorii trunku - klucz biznesowy
+              - code [ref=e190]: dim_category
+              - text: . Puste →
+              - code [ref=e191]: "'UNKNOWN'"
+              - text: .
+            - cell "1011100" [ref=e192]:
+              - code [ref=e193]: "1011100"
+          - row "category_name category_name NVARCHAR Opis słowny kategorii. Blended Whiskies" [ref=e194]:
+            - cell "category_name" [ref=e195]:
+              - code [ref=e196]: category_name
+            - cell "category_name" [ref=e197]:
+              - code [ref=e198]: category_name
+            - cell "NVARCHAR" [ref=e199]
+            - cell "Opis słowny kategorii." [ref=e200]
+            - cell "Blended Whiskies" [ref=e201]:
+              - code [ref=e202]: Blended Whiskies
+          - row "vendor_no vendor_number NVARCHAR, UPPER Numer dostawcy - klucz biznesowy dim_vendor. Puste → 'UNKNOWN'. 65" [ref=e203]:
+            - cell "vendor_no" [ref=e204]:
+              - code [ref=e205]: vendor_no
+            - cell "vendor_number" [ref=e206]:
+              - code [ref=e207]: vendor_number
+            - cell "NVARCHAR, UPPER" [ref=e208]
+            - cell "Numer dostawcy - klucz biznesowy dim_vendor. Puste → 'UNKNOWN'." [ref=e209]:
+              - text: Numer dostawcy - klucz biznesowy
+              - code [ref=e210]: dim_vendor
+              - text: . Puste →
+              - code [ref=e211]: "'UNKNOWN'"
+              - text: .
+            - cell "65" [ref=e212]:
+              - code [ref=e213]: "65"
+          - row "vendor_name vendor_name NVARCHAR Nazwa firmy dostawczej. Jim Beam Brands" [ref=e214]:
+            - cell "vendor_name" [ref=e215]:
+              - code [ref=e216]: vendor_name
+            - cell "vendor_name" [ref=e217]:
+              - code [ref=e218]: vendor_name
+            - cell "NVARCHAR" [ref=e219]
+            - cell "Nazwa firmy dostawczej." [ref=e220]
+            - cell "Jim Beam Brands" [ref=e221]:
+              - code [ref=e222]: Jim Beam Brands
+          - row "itemno item_number NVARCHAR, UPPER Stanowy SKU (Stock Keeping Unit - jednostka magazynowa) produktu - klucz biznesowy dim_product. Puste → 'UNKNOWN'. 27783" [ref=e223]:
+            - cell "itemno" [ref=e224]:
+              - code [ref=e225]: itemno
+            - cell "item_number" [ref=e226]:
+              - code [ref=e227]: item_number
+            - cell "NVARCHAR, UPPER" [ref=e228]
+            - cell "Stanowy SKU (Stock Keeping Unit - jednostka magazynowa) produktu - klucz biznesowy dim_product. Puste → 'UNKNOWN'." [ref=e229]:
+              - text: Stanowy SKU (Stock Keeping Unit - jednostka magazynowa) produktu - klucz biznesowy
+              - code [ref=e230]: dim_product
+              - text: . Puste →
+              - code [ref=e231]: "'UNKNOWN'"
+              - text: .
+            - cell "27783" [ref=e232]:
+              - code [ref=e233]: "27783"
+          - row "im_desc item_description NVARCHAR Opis produktu. Jim Beam Black 1.75L" [ref=e234]:
+            - cell "im_desc" [ref=e235]:
+              - code [ref=e236]: im_desc
+            - cell "item_description" [ref=e237]:
+              - code [ref=e238]: item_description
+            - cell "NVARCHAR" [ref=e239]
+            - cell "Opis produktu." [ref=e240]
+            - cell "Jim Beam Black 1.75L" [ref=e241]:
+              - code [ref=e242]: Jim Beam Black 1.75L
+          - row "pack pack DECIMAL Liczba butelek w kartonie - część klucza dim_packaging. 12" [ref=e243]:
+            - cell "pack" [ref=e244]:
+              - code [ref=e245]: pack
+            - cell "pack" [ref=e246]:
+              - code [ref=e247]: pack
+            - cell "DECIMAL" [ref=e248]
+            - cell "Liczba butelek w kartonie - część klucza dim_packaging." [ref=e249]:
+              - text: Liczba butelek w kartonie - część klucza
+              - code [ref=e250]: dim_packaging
+              - text: .
+            - cell "12" [ref=e251]:
+              - code [ref=e252]: "12"
+          - row "bottle_volume_ml bottle_volume_ml DECIMAL Pojemność butelki w ml - część klucza dim_packaging. 1750" [ref=e253]:
+            - cell "bottle_volume_ml" [ref=e254]:
+              - code [ref=e255]: bottle_volume_ml
+            - cell "bottle_volume_ml" [ref=e256]:
+              - code [ref=e257]: bottle_volume_ml
+            - cell "DECIMAL" [ref=e258]
+            - cell "Pojemność butelki w ml - część klucza dim_packaging." [ref=e259]:
+              - text: Pojemność butelki w ml - część klucza
+              - code [ref=e260]: dim_packaging
+              - text: .
+            - cell "1750" [ref=e261]:
+              - code [ref=e262]: "1750"
+          - row "state_bottle_cost state_bottle_cost DECIMAL Cena hurtowa za butelkę (stan Iowa → sklep). Strip $ i ,, parse do DECIMAL. 12.48" [ref=e263]:
+            - cell "state_bottle_cost" [ref=e264]:
+              - code [ref=e265]: state_bottle_cost
+            - cell "state_bottle_cost" [ref=e266]:
+              - code [ref=e267]: state_bottle_cost
+            - cell "DECIMAL" [ref=e268]
+            - cell "Cena hurtowa za butelkę (stan Iowa → sklep). Strip $ i ,, parse do DECIMAL." [ref=e269]:
+              - text: Cena hurtowa za butelkę (stan Iowa → sklep). Strip
+              - code [ref=e270]: $
+              - text: i
+              - code [ref=e271]: ","
+              - text: ", parse do DECIMAL."
+            - cell "12.48" [ref=e272]:
+              - code [ref=e273]: "12.48"
+          - 'row "state_bottle_retail state_bottle_retail DECIMAL Zalecana cena detaliczna. Użyta do wyliczenia marży: (retail - cost) × bottles_sold. 18.72" [ref=e274]':
+            - cell "state_bottle_retail" [ref=e275]:
+              - code [ref=e276]: state_bottle_retail
+            - cell "state_bottle_retail" [ref=e277]:
+              - code [ref=e278]: state_bottle_retail
+            - cell "DECIMAL" [ref=e279]
+            - 'cell "Zalecana cena detaliczna. Użyta do wyliczenia marży: (retail - cost) × bottles_sold." [ref=e280]':
+              - text: "Zalecana cena detaliczna. Użyta do wyliczenia marży:"
+              - code [ref=e281]: (retail - cost) × bottles_sold
+              - text: .
+            - cell "18.72" [ref=e282]:
+              - code [ref=e283]: "18.72"
+          - row "sale_bottles bottles_sold DECIMAL Liczba sprzedanych butelek w transakcji. 6" [ref=e284]:
+            - cell "sale_bottles" [ref=e285]:
+              - code [ref=e286]: sale_bottles
+            - cell "bottles_sold" [ref=e287]:
+              - code [ref=e288]: bottles_sold
+            - cell "DECIMAL" [ref=e289]
+            - cell "Liczba sprzedanych butelek w transakcji." [ref=e290]
+            - cell "6" [ref=e291]:
+              - code [ref=e292]: "6"
+          - row "sale_dollars sale_dollars DECIMAL Wartość transakcji w USD. Strip $ i ,. 112.32" [ref=e293]:
+            - cell "sale_dollars" [ref=e294]:
+              - code [ref=e295]: sale_dollars
+            - cell "sale_dollars" [ref=e296]:
+              - code [ref=e297]: sale_dollars
+            - cell "DECIMAL" [ref=e298]
+            - cell "Wartość transakcji w USD. Strip $ i ,." [ref=e299]:
+              - text: Wartość transakcji w USD. Strip
+              - code [ref=e300]: $
+              - text: i
+              - code [ref=e301]: ","
+              - text: .
+            - cell "112.32" [ref=e302]:
+              - code [ref=e303]: "112.32"
+          - row "sale_liters volume_sold_liters DECIMAL Wolumen w litrach. 10.5" [ref=e304]:
+            - cell "sale_liters" [ref=e305]:
+              - code [ref=e306]: sale_liters
+            - cell "volume_sold_liters" [ref=e307]:
+              - code [ref=e308]: volume_sold_liters
+            - cell "DECIMAL" [ref=e309]
+            - cell "Wolumen w litrach." [ref=e310]
+            - cell "10.5" [ref=e311]:
+              - code [ref=e312]: "10.5"
+          - row "sale_gallons volume_sold_gallons DECIMAL Wolumen w galonach (pomocnicze). 2.77" [ref=e313]:
+            - cell "sale_gallons" [ref=e314]:
+              - code [ref=e315]: sale_gallons
+            - cell "volume_sold_gallons" [ref=e316]:
+              - code [ref=e317]: volume_sold_gallons
+            - cell "DECIMAL" [ref=e318]
+            - cell "Wolumen w galonach (pomocnicze)." [ref=e319]
+            - cell "2.77" [ref=e320]:
+              - code [ref=e321]: "2.77"
+    - generic [ref=e322]:
+      - generic [ref=e323]:
+        - heading "Pipeline - 7 kroków" [level=2] [ref=e324]
+        - paragraph [ref=e325]:
+          - text: Kolejność wywołań w funkcji
+          - code [ref=e326]: run_initial_etl()
+          - text: (
+          - code [ref=e327]: src/run_initial_etl.py
+          - text: ). Każdy krok to osobny task w Airflow. Przy błędzie konkretnego taska można go ponowić bez restartu całego DAG-u.
+      - generic [ref=e328]:
+        - generic [ref=e329]:
+          - generic [ref=e330]: 1. extract
+          - generic [ref=e331]: API Socrata → pliki CSV na dysku
+          - text: ">"
+        - generic [ref=e332]:
+          - generic [ref=e333]: 2. create_sql_objects
+          - generic [ref=e334]: "Skrypty SQL 00–03: CREATE DB / SCHEMA / TABLE"
+          - text: ">"
+        - generic [ref=e335]:
+          - generic [ref=e336]: 3. load_staging
+          - generic [ref=e337]: TRUNCATE + CSV → stg.iowa_liquor_sales_raw
+          - text: ">"
+        - generic [ref=e338]:
+          - generic [ref=e339]: 4. load_dimensions
+          - generic [ref=e340]: DELETE + RESEED + stg → 6 tabel dw.dim_*
+          - text: ">"
+        - generic [ref=e341]:
+          - generic [ref=e342]: 5. load_fact_sales
+          - generic [ref=e343]: DELETE + stg JOIN 6 dim → dw.fact_sales
+          - text: ">"
+        - generic [ref=e344]:
+          - generic [ref=e345]: 6. semantic_views
+          - generic [ref=e346]: CREATE OR ALTER 16 widoków sem.*
+          - text: ">"
+        - generic [ref=e347]:
+          - generic [ref=e348]: 7. quality_checks
+          - generic [ref=e349]: 14 zapytań SQL → Python → ValueError lub OK
+      - generic "Taski DAG-a Airflow" [ref=e350]:
+        - article [ref=e351]:
+          - generic [ref=e352]: extract_iowa_liquor_sales
+          - generic [ref=e353]: Ekstrakcja z API lub fallback na cache
+        - article [ref=e354]:
+          - generic [ref=e355]: create_sql_objects
+          - generic [ref=e356]: Inicjalizacja struktury bazy
+        - article [ref=e357]:
+          - generic [ref=e358]: load_staging
+          - generic [ref=e359]: Czyszczenie danych + bulk INSERT
+        - article [ref=e360]:
+          - generic [ref=e361]: load_dimensions
+          - generic [ref=e362]: SCD Type 1 → 6 wymiarów
+        - article [ref=e363]:
+          - generic [ref=e364]: load_fact_sales
+          - generic [ref=e365]: JOIN 6 wymiarów + INSERT + marża
+        - article [ref=e366]:
+          - generic [ref=e367]: create_semantic_views
+          - generic [ref=e368]: 16 widoków sem.*
+        - article [ref=e369]:
+          - generic [ref=e370]: run_quality_checks
+          - generic [ref=e371]: 14 zapytań → walidacja Python
+    - generic [ref=e372]:
+      - generic [ref=e373]:
+        - heading "Krok 1 Ekstrakcja" [level=2] [ref=e374]:
+          - text: Krok 1
+          - text: Ekstrakcja
+        - paragraph [ref=e375]:
+          - code [ref=e376]: extract_iowa_liquor_sales()
+          - text: w
+          - code [ref=e377]: src/extract/socrata_extract.py
+          - text: . Pobiera dane z Socrata API dla zakresu dat z konfiguracji (
+          - code [ref=e378]: IOWA_START_DATE
+          - text: ","
+          - code [ref=e379]: IOWA_END_DATE
+          - text: "). Wynik: lista plików CSV na dysku."
+      - generic [ref=e380]:
+        - article [ref=e381]:
+          - heading "Ścieżka normalna - API działa" [level=3] [ref=e382]
+          - list [ref=e383]:
+            - listitem [ref=e384]:
+              - strong [ref=e385]: Walidacja konfiguracji
+              - text: "- format dat YYYY-MM-DD, start ≤ end, limit > 0. Błąd konfiguracji = ValueError przed jakimkolwiek requestem."
+            - listitem [ref=e386]:
+              - strong [ref=e387]: Sesja HTTP z retry
+              - text: "- 4 próby,"
+              - code [ref=e388]: backoff_factor=1.5
+              - text: "(opóźnienia: 0s, 1.5s, 3s, 6s), kody"
+              - code [ref=e389]: 429/500/502/503/504
+              - text: automatycznie ponawiane.
+            - listitem [ref=e390]:
+              - strong [ref=e391]: Paginacja
+              - text: "- parametry:"
+              - code [ref=e392]: $where=date between '...' and '...'
+              - text: ","
+              - code [ref=e393]: $limit
+              - text: ","
+              - code [ref=e394]: $offset
+              - text: ","
+              - code [ref=e395]: $order=date,invoice_line_no
+              - text: . Strony pobierane kolejno aż API zwróci 0 wierszy.
+            - listitem [ref=e396]:
+              - strong [ref=e397]: Zapis atomowy
+              - text: "- każda strona ląduje w katalogu tymczasowym"
+              - code [ref=e398]: data/raw/_extract_tmp/
+              - text: ". Stare pliki kasowane dopiero po pomyślnym pobraniu wszystkich stron. Nazwy:"
+              - code [ref=e399]: iowa_liquor_sales_YYYY_part_NNN.csv
+              - text: .
+            - listitem [ref=e400]:
+              - strong [ref=e401]: Manifest
+              - text: "- plik"
+              - code [ref=e402]: data/processed/extract_manifest.json
+              - text: z listą plików, zakresem dat, liczbą wierszy i timestampem UTC. Krok 3 używa manifestu do znalezienia plików.
+        - article [ref=e403]:
+          - heading "Ścieżka awaryjna - API niedostępne" [level=3] [ref=e404]
+          - list [ref=e405]:
+            - listitem [ref=e406]:
+              - code [ref=e407]: requests.RequestException
+              - text: złapany przez blok
+              - code [ref=e408]: except
+              - text: .
+            - listitem [ref=e409]: Katalog tymczasowy kasowany - brak niekompletnych plików.
+            - listitem [ref=e410]:
+              - text: Funkcja
+              - code [ref=e411]: write_cached_extract_from_raw_files()
+              - text: skanuje
+              - code [ref=e412]: data/raw/
+              - text: po plikach z poprzednich runów.
+            - listitem [ref=e413]:
+              - text: Wiersze z tych plików filtrowane po kolumnie
+              - code [ref=e414]: date
+              - text: do zadanego zakresu. Wyniki zapisywane do
+              - code [ref=e415]: data/processed/fallback_raw/
+              - text: .
+            - listitem [ref=e416]:
+              - text: Jeśli brak plików cache lub żaden wiersz nie pasuje do zakresu dat -
+              - code [ref=e417]: FileNotFoundError
+              - text: i ETL się zatrzymuje.
+          - generic [ref=e418]:
+            - generic [ref=e420]: socrata_extract.py
+            - generic [ref=e421]: "except requests.RequestException as exc: shutil.rmtree(download_dir, ignore_errors=True) logger.warning(\"Source API extraction failed: %s\", exc) return write_cached_extract_from_raw_files( raw_dir, extract_config, file_prefix )"
+      - generic [ref=e422]:
+        - strong [ref=e423]: "Wynik:"
+        - text: lista obiektów
+        - code [ref=e424]: Path
+        - text: → pliki CSV gotowe do przetworzenia. Liczba plików zależy od zakresu dat i
+        - code [ref=e425]: SOCRATA_LIMIT
+        - text: . Manifest zapisany.
+    - generic [ref=e426]:
+      - generic [ref=e427]:
+        - heading "Krok 2 Inicjalizacja SQL" [level=2] [ref=e428]:
+          - text: Krok 2
+          - text: Inicjalizacja SQL
+        - paragraph [ref=e429]:
+          - code [ref=e430]: create_sql_objects()
+          - text: . Wykonuje 4 skrypty SQL w kolejności. Wszystkie są
+          - strong [ref=e431]: idempotentne
+          - text: "- sprawdzają istnienie obiektów przed tworzeniem, można uruchamiać wielokrotnie."
+      - generic [ref=e432]:
+        - article [ref=e433]:
+          - generic [ref=e434]: Skrypt 00
+          - paragraph [ref=e436]:
+            - strong [ref=e437]: 00_create_database.sql
+            - text: "- wykonywany na bazie"
+            - code [ref=e438]: master
+            - text: (jedyne miejsce gdzie połączenie idzie do master, nie do docelowej bazy). Tworzy bazę
+            - code [ref=e439]: IowaLiquorDW
+            - text: przez
+            - code [ref=e440]: IF NOT EXISTS
+            - text: .
+        - article [ref=e441]:
+          - generic [ref=e442]: Skrypt 01
+          - paragraph [ref=e444]:
+            - strong [ref=e445]: 01_create_schemas.sql
+            - text: "- tworzy 3 schematy przez"
+            - code [ref=e446]: IF NOT EXISTS
+            - text: ":"
+            - code [ref=e447]: stg
+            - text: (Silver - staging po czyszczeniu),
+            - code [ref=e448]: dw
+            - text: (Gold - model gwiazdy),
+            - code [ref=e449]: sem
+            - text: "(widoki semantyczne dla raportów). Warstwa Bronze jest poza SQL Serverem: to pliki CSV na dysku."
+        - article [ref=e450]:
+          - generic [ref=e451]: Skrypt 02
+          - paragraph [ref=e453]:
+            - strong [ref=e454]: 02_create_staging_tables.sql
+            - text: "- tworzy"
+            - code [ref=e455]: stg.iowa_liquor_sales_raw
+            - text: ". Kolumny techniczne:"
+            - code [ref=e456]: staging_key BIGINT IDENTITY(1,1) PK
+            - text: ","
+            - code [ref=e457]: source_file NVARCHAR(260)
+            - text: ","
+            - code [ref=e458]: load_timestamp DATETIME2 DEFAULT SYSUTCDATETIME()
+            - text: ","
+            - code [ref=e459]: source_row_hash CHAR(64)
+            - text: ", oraz wszystkie pola z CSV (klucze jako NVARCHAR, miary jako DECIMAL/INT)."
+        - article [ref=e460]:
+          - generic [ref=e461]: Skrypt 03
+          - paragraph [ref=e463]:
+            - strong [ref=e464]: 03_create_dw_tables.sql
+            - text: "- tworzy 7 tabel przez"
+            - code [ref=e465]: IF OBJECT_ID(...) IS NULL
+            - text: ":"
+            - code [ref=e466]: dim_date
+            - text: (klucz INT YYYYMMDD, nie IDENTITY),
+            - code [ref=e467]: dim_store
+            - text: ","
+            - code [ref=e468]: dim_product
+            - text: ","
+            - code [ref=e469]: dim_category
+            - text: ","
+            - code [ref=e470]: dim_vendor
+            - text: ","
+            - code [ref=e471]: dim_packaging
+            - text: (klucze IDENTITY),
+            - code [ref=e472]: fact_sales
+            - text: (klucze IDENTITY + 6 FK). FK definiowane na końcu skryptu przez
+            - code [ref=e473]: ALTER TABLE ... ADD CONSTRAINT FOREIGN KEY
+            - text: .
+      - generic [ref=e474]:
+        - strong [ref=e475]: "Wynik:"
+        - text: baza z kompletną strukturą tabel i kluczy obcych. Tabele puste - dane ładowane w krokach 3–5.
+    - generic [ref=e476]:
+      - generic [ref=e477]:
+        - heading "Krok 3 Staging" [level=2] [ref=e478]:
+          - text: Krok 3
+          - text: Staging
+        - paragraph [ref=e479]:
+          - code [ref=e480]: load_staging_from_raw_files()
+          - text: w
+          - code [ref=e481]: src/load/sqlserver_loader.py
+          - text: . Czyści dane przez Pandas i ładuje do
+          - code [ref=e482]: stg.iowa_liquor_sales_raw
+          - text: .
+          - strong [ref=e483]: "Pierwsze działanie: TRUNCATE TABLE"
+          - text: "- staging zawsze zaczyna od zera."
+      - generic [ref=e484]:
+        - article [ref=e485]:
+          - heading "Transformacje danych - po kolei" [level=3] [ref=e486]
+          - list [ref=e487]:
+            - listitem [ref=e488]:
+              - strong [ref=e489]: Wczytanie CSV
+              - text: "-"
+              - code [ref=e490]: pd.read_csv(dtype=str, keep_default_na=False)
+              - text: . Wszystko jako string, bez automatycznego parsowania typów i bez zamiany wartości na NaN.
+            - listitem [ref=e491]:
+              - strong [ref=e492]: Normalizacja nazw kolumn
+              - text: "- lowercase, niealfanumeryczne →"
+              - code [ref=e493]: _
+              - text: ", trim podkreśleń."
+            - listitem [ref=e494]:
+              - strong [ref=e495]: Aliasy kolumn API
+              - text: "- przemapowanie 10 nazw:"
+              - code [ref=e496]: invoice_line_no→invoice_and_item_number
+              - text: ","
+              - code [ref=e497]: store→store_number
+              - text: ","
+              - code [ref=e498]: name→store_name
+              - text: ","
+              - code [ref=e499]: zipcode→zip_code
+              - text: ","
+              - code [ref=e500]: vendor_no→vendor_number
+              - text: ","
+              - code [ref=e501]: itemno→item_number
+              - text: ","
+              - code [ref=e502]: im_desc→item_description
+              - text: ","
+              - code [ref=e503]: sale_bottles→bottles_sold
+              - text: ","
+              - code [ref=e504]: sale_liters→volume_sold_liters
+              - text: ","
+              - code [ref=e505]: sale_gallons→volume_sold_gallons
+              - text: .
+            - listitem [ref=e506]:
+              - strong [ref=e507]: Parsowanie GPS
+              - text: "- jeśli brak osobnych kolumn"
+              - code [ref=e508]: latitude
+              - text: /
+              - code [ref=e509]: longitude
+              - text: ", regex wyciąga je z"
+              - code [ref=e510]: POINT (lon lat)
+              - text: ". Wynik: dwie kolumny DECIMAL."
+            - listitem [ref=e511]:
+              - strong [ref=e512]: Uzupełnienie brakujących kolumn
+              - text: "- każda kolumna z listy"
+              - code [ref=e513]: STAGING_COLUMNS
+              - text: której nie ma w CSV → dodawana jako
+              - code [ref=e514]: None
+              - text: .
+            - listitem [ref=e515]:
+              - strong [ref=e516]: Row hash SHA-256
+              - text: "-"
+              - code [ref=e517]: hashlib.sha256("|".join(values).encode()).hexdigest()
+              - text: "z 7 pól:"
+              - code [ref=e518]: invoice_and_item_number
+              - text: ","
+              - code [ref=e519]: date
+              - text: ","
+              - code [ref=e520]: store_number
+              - text: ","
+              - code [ref=e521]: item_number
+              - text: ","
+              - code [ref=e522]: sale_dollars
+              - text: ","
+              - code [ref=e523]: bottles_sold
+              - text: ","
+              - code [ref=e524]: source_file
+              - text: . Identyfikator wiersza do Change Data Capture.
+            - listitem [ref=e525]:
+              - strong [ref=e526]: UPPERCASE
+              - text: "dla kluczy biznesowych:"
+              - code [ref=e527]: invoice_and_item_number
+              - text: ","
+              - code [ref=e528]: store_number
+              - text: ","
+              - code [ref=e529]: county_number
+              - text: ","
+              - code [ref=e530]: category
+              - text: ","
+              - code [ref=e531]: vendor_number
+              - text: ","
+              - code [ref=e532]: item_number
+              - text: .
+            - listitem [ref=e533]:
+              - strong [ref=e534]: Title Case
+              - text: "dla nazw geograficznych:"
+              - code [ref=e535]: city
+              - text: ","
+              - code [ref=e536]: county
+              - text: .
+            - listitem [ref=e537]:
+              - strong [ref=e538]: Normalizacja ogólnego tekstu
+              - text: "- strip whitespace, wielokrotne spacje → jedna spacja, puste stringi →"
+              - code [ref=e539]: None
+              - text: "dla:"
+              - code [ref=e540]: store_name
+              - text: ","
+              - code [ref=e541]: address
+              - text: ","
+              - code [ref=e542]: store_location
+              - text: ","
+              - code [ref=e543]: category_name
+              - text: ","
+              - code [ref=e544]: vendor_name
+              - text: ","
+              - code [ref=e545]: item_description
+              - text: ","
+              - code [ref=e546]: source_file
+              - text: .
+            - listitem [ref=e547]:
+              - strong [ref=e548]: Kod pocztowy
+              - text: "- regex wyciąga wszystkie cyfry, zwraca pierwsze 5. Jeśli mniej niż 5 cyfr - oryginalny tekst bez zmian."
+            - listitem [ref=e549]:
+              - strong [ref=e550]: Wartości finansowe i numeryczne
+              - text: "- strip"
+              - code [ref=e551]: $
+              - text: ", strip"
+              - code [ref=e552]: ","
+              - text: ","
+              - code [ref=e553]: pd.to_numeric(errors='coerce')
+              - text: ". Dla:"
+              - code [ref=e554]: state_bottle_cost
+              - text: ","
+              - code [ref=e555]: state_bottle_retail
+              - text: ","
+              - code [ref=e556]: sale_dollars
+              - text: ","
+              - code [ref=e557]: bottles_sold
+              - text: ","
+              - code [ref=e558]: pack
+              - text: ","
+              - code [ref=e559]: bottle_volume_ml
+              - text: ","
+              - code [ref=e560]: proof
+              - text: ","
+              - code [ref=e561]: volume_sold_liters
+              - text: ","
+              - code [ref=e562]: volume_sold_gallons
+              - text: ","
+              - code [ref=e563]: latitude
+              - text: ","
+              - code [ref=e564]: longitude
+              - text: .
+            - listitem [ref=e565]:
+              - strong [ref=e566]: Data
+              - text: "-"
+              - code [ref=e567]: pd.to_datetime(errors='coerce').dt.date
+              - text: . Nieparsowalne daty →
+              - code [ref=e568]: None
+              - text: .
+            - listitem [ref=e569]:
+              - strong [ref=e570]: Finalny NULL sweep
+              - text: "-"
+              - code [ref=e571]: df.where(pd.notnull(df), None)
+              - text: "- wszystkie NaN → Python"
+              - code [ref=e572]: None
+              - text: = SQL
+              - code [ref=e573]: "NULL"
+              - text: .
+        - article [ref=e574]:
+          - heading "Ładowanie do SQL Server" [level=3] [ref=e575]
+          - paragraph [ref=e576]: "Kolejność:"
+          - list [ref=e577]:
+            - listitem [ref=e578]:
+              - code [ref=e579]: TRUNCATE TABLE stg.iowa_liquor_sales_raw
+              - text: "- reset staging przed każdym ładowaniem."
+            - listitem [ref=e580]:
+              - text: "Pętla po plikach CSV - dla każdego:"
+              - code [ref=e581]: read_and_prepare_csv()
+              - text: +
+              - code [ref=e582]: insert_dataframe_to_staging()
+              - text: .
+          - generic [ref=e583]:
+            - generic [ref=e585]: sqlserver_loader.py - bulk INSERT
+            - generic [ref=e586]: "cursor.fast_executemany = True for start in range(0, len(rows), 5000): cursor.executemany( insert_sql, rows[start : start + 5000] )"
+          - paragraph [ref=e587]:
+            - code [ref=e588]: fast_executemany=True
+            - text: "- pyodbc wysyła batch wierszy jako jedną operację zamiast N osobnych INSERTów. Znacznie szybsze dla milionów wierszy."
+          - generic [ref=e589]:
+            - generic [ref=e591]: sqlserver_loader.py - GPS parsing
+            - generic [ref=e592]: match = re.search( r"\((-?\d+(?:\.\d+)?)\s*,?\s+(-?\d+(?:\.\d+)?)\)", str(location) ) longitude = float(match.group(1)) latitude = float(match.group(2))
+          - generic [ref=e593]:
+            - generic [ref=e595]: sqlserver_loader.py - ZIP normalizacja
+            - generic [ref=e596]: digits = re.sub(r"[^0-9]", "", text) return digits[:5] if len(digits) >= 5 else text
+          - generic [ref=e597]:
+            - generic [ref=e599]: sqlserver_loader.py - wartości finansowe
+            - generic [ref=e600]: series.astype("string") .str.replace("$", "", regex=False) .str.replace(",", "", regex=False) .str.strip() pd.to_numeric(cleaned, errors="coerce")
+      - generic [ref=e601]:
+        - strong [ref=e602]: "Wynik:"
+        - code [ref=e603]: stg.iowa_liquor_sales_raw
+        - text: z wszystkimi wierszami po czyszczeniu. Poprawne typy, spójne klucze (UPPER), ujednolicone teksty, NULL zamiast pustych stringów, hash każdego wiersza i timestamp załadowania. Zwracana liczba wierszy.
+    - generic [ref=e604]:
+      - generic [ref=e605]:
+        - heading "Model gwiazdy" [level=2] [ref=e606]
+        - paragraph [ref=e607]:
+          - text: Schemat
+          - code [ref=e608]: dw
+          - text: ". 1 tabela faktów + 6 wymiarów. Klucze zastępcze: IDENTITY(1,1) dla 5 wymiarów i fact_sales. Wyjątek:"
+          - code [ref=e609]: dim_date
+          - text: używa klucza INT
+          - code [ref=e610]: YYYYMMDD
+          - text: .
+      - generic "Diagram modelu gwiazdy" [ref=e611]:
+        - paragraph [ref=e612]: SCHEMAT dw - MODEL GWIAZDY
+        - img
+        - article [ref=e613]:
+          - generic [ref=e614]: dw.dim_product
+          - generic [ref=e615]:
+            - generic [ref=e616]:
+              - generic [ref=e617]: PK
+              - code [ref=e618]: product_key IDENTITY
+            - generic [ref=e619]:
+              - generic [ref=e620]: BK
+              - code [ref=e621]: item_number
+            - code [ref=e623]: item_description
+        - article [ref=e624]:
+          - generic [ref=e625]: dw.dim_date
+          - generic [ref=e626]:
+            - generic [ref=e627]:
+              - generic [ref=e628]: PK
+              - code [ref=e629]: date_key INT YYYYMMDD
+            - code [ref=e631]: date, day, month, quarter, year
+            - code [ref=e633]: day_name_en / day_name_pl
+            - code [ref=e635]: month_name_en / month_name_pl
+            - code [ref=e637]: is_weekend BIT, year_month
+        - article [ref=e638]:
+          - generic [ref=e639]: dw.dim_store
+          - generic [ref=e640]:
+            - generic [ref=e641]:
+              - generic [ref=e642]: PK
+              - code [ref=e643]: store_key IDENTITY
+            - generic [ref=e644]:
+              - generic [ref=e645]: BK
+              - code [ref=e646]: store_number
+            - code [ref=e648]: store_name, address
+            - code [ref=e650]: city, zip_code, county
+            - code [ref=e652]: state_name = 'Iowa'
+            - code [ref=e654]: latitude, longitude
+        - article [ref=e655]:
+          - generic [ref=e656]: dw.fact_sales ★
+          - generic [ref=e657]:
+            - generic [ref=e658]:
+              - generic [ref=e659]: PK
+              - code [ref=e660]: sales_key BIGINT IDENTITY
+            - generic [ref=e661]:
+              - generic [ref=e662]: FK
+              - code [ref=e663]: date_key → dim_date
+            - generic [ref=e664]:
+              - generic [ref=e665]: FK
+              - code [ref=e666]: store_key → dim_store
+            - generic [ref=e667]:
+              - generic [ref=e668]: FK
+              - code [ref=e669]: product_key → dim_product
+            - generic [ref=e670]:
+              - generic [ref=e671]: FK
+              - code [ref=e672]: category_key → dim_category
+            - generic [ref=e673]:
+              - generic [ref=e674]: FK
+              - code [ref=e675]: vendor_key → dim_vendor
+            - generic [ref=e676]:
+              - generic [ref=e677]: FK
+              - code [ref=e678]: packaging_key → dim_packaging
+            - code [ref=e680]: invoice_number
+            - code [ref=e682]: source_row_hash SHA-256
+            - generic [ref=e683]:
+              - generic [ref=e684]: M
+              - code [ref=e685]: sales_line_count = 1
+            - generic [ref=e686]:
+              - generic [ref=e687]: M
+              - code [ref=e688]: bottles_sold
+            - generic [ref=e689]:
+              - generic [ref=e690]: M
+              - code [ref=e691]: sale_dollars
+            - generic [ref=e692]:
+              - generic [ref=e693]: M
+              - code [ref=e694]: volume_sold_liters
+            - generic [ref=e695]:
+              - generic [ref=e696]: M
+              - code [ref=e697]: volume_sold_gallons
+            - generic [ref=e698]:
+              - generic [ref=e699]: M
+              - code [ref=e700]: state_bottle_cost
+            - generic [ref=e701]:
+              - generic [ref=e702]: M
+              - code [ref=e703]: state_bottle_retail
+            - generic [ref=e704]:
+              - generic [ref=e705]: M
+              - code [ref=e706]: margin_amount (wyliczona)
+            - code [ref=e708]: load_timestamp
+        - article [ref=e709]:
+          - generic [ref=e710]: dw.dim_vendor
+          - generic [ref=e711]:
+            - generic [ref=e712]:
+              - generic [ref=e713]: PK
+              - code [ref=e714]: vendor_key IDENTITY
+            - generic [ref=e715]:
+              - generic [ref=e716]: BK
+              - code [ref=e717]: vendor_number
+            - code [ref=e719]: vendor_name
+        - article [ref=e720]:
+          - generic [ref=e721]: dw.dim_packaging
+          - generic [ref=e722]:
+            - generic [ref=e723]:
+              - generic [ref=e724]: PK
+              - code [ref=e725]: packaging_key IDENTITY
+            - code [ref=e727]: pack
+            - code [ref=e729]: bottle_volume_ml
+            - generic [ref=e730]:
+              - generic [ref=e731]: W
+              - code [ref=e732]: volume_group (wyliczona)
+        - article [ref=e733]:
+          - generic [ref=e734]: dw.dim_category
+          - generic [ref=e735]:
+            - generic [ref=e736]:
+              - generic [ref=e737]: PK
+              - code [ref=e738]: category_key IDENTITY
+            - generic [ref=e739]:
+              - generic [ref=e740]: BK
+              - code [ref=e741]: category_number
+            - code [ref=e743]: category_name
+      - generic [ref=e744]:
+        - article [ref=e745]:
+          - heading "BK - klucz biznesowy" [level=3] [ref=e746]
+          - paragraph [ref=e747]:
+            - text: Klucz z danych źródłowych (
+            - code [ref=e748]: store_number
+            - text: ","
+            - code [ref=e749]: item_number
+            - text: ", itp.). Używany do JOIN-ów przy ładowaniu i do identyfikacji w raportach. Nie jest FK - to zastępczy IDENTITY pełni rolę FK w fact_sales."
+        - article [ref=e750]:
+          - heading "M - miara / W - wyliczona" [level=3] [ref=e751]
+          - paragraph [ref=e752]:
+            - text: "M: wartość liczbowa z transakcji (bottles_sold, sale_dollars, itp.). W: kolumna wyliczona przy INSERT - nie pochodzi bezpośrednio ze źródła ("
+            - code [ref=e753]: margin_amount
+            - text: ","
+            - code [ref=e754]: volume_group
+            - text: ","
+            - code [ref=e755]: sales_line_count
+            - text: ).
+        - article [ref=e756]:
+          - heading "UNKNOWN - fallback key" [level=3] [ref=e757]
+          - paragraph [ref=e758]:
+            - text: Wymiary tekstowe mogą zawierać wiersz z kluczem biznesowym
+            - code [ref=e759]: "'UNKNOWN'"
+            - text: ", jeśli w stagingu pojawił się NULL albo pusty string dla danego klucza. Dzięki temu takie rekordy nie giną przy JOIN-ach, a brakujące wartości są widoczne i policzalne."
+    - generic [ref=e760]:
+      - generic [ref=e761]:
+        - heading "Krok 4 Wymiary" [level=2] [ref=e762]:
+          - text: Krok 4
+          - text: Wymiary
+        - paragraph [ref=e763]:
+          - code [ref=e764]: load_dimensions()
+          - text: . Ładuje 6 tabel wymiarów ze stagingu.
+          - strong [ref=e765]: "Full Refresh:"
+          - text: przed ładowaniem - DELETE wszystkich faktów i wymiarów + DBCC CHECKIDENT RESEED 0 (reset IDENTITY).
+      - generic [ref=e766]:
+        - strong [ref=e767]: Kolejność DELETE jest krytyczna.
+        - text: Najpierw
+        - code [ref=e768]: DELETE FROM dw.fact_sales
+        - text: "- bo fact_sales ma FK do wszystkich wymiarów. Potem DELETE na każdym wymiarze. Bez tej kolejności SQL Server odmawia usunięcia rekordów z wymiaru który ma powiązane fakty."
+      - generic [ref=e769]:
+        - article [ref=e770]:
+          - generic [ref=e771]: dim_date
+          - generic [ref=e772]:
+            - paragraph [ref=e773]:
+              - strong [ref=e774]: "Źródło:"
+              - code [ref=e775]: SELECT DISTINCT date FROM stg WHERE date IS NOT NULL
+            - paragraph [ref=e776]:
+              - strong [ref=e777]: "Co wyliczane przy INSERT:"
+            - list [ref=e778]:
+              - listitem [ref=e779]:
+                - code [ref=e780]: date_key = CONVERT(INT, FORMAT(date, 'yyyyMMdd'))
+                - text: "- np."
+                - code [ref=e781]: "20230115"
+                - text: . Klucz INT zamiast DATE umożliwia szybkie filtrowanie zakresów bez konwersji typów.
+              - listitem [ref=e782]:
+                - code [ref=e783]: day, month, quarter, year, day_of_week
+                - text: "- przez funkcje SQL"
+                - code [ref=e784]: DAY()
+                - text: ","
+                - code [ref=e785]: MONTH()
+                - text: ","
+                - code [ref=e786]: DATEPART()
+                - text: .
+              - listitem [ref=e787]:
+                - code [ref=e788]: day_name_en
+                - text: =
+                - code [ref=e789]: DATENAME(weekday, date)
+              - listitem [ref=e790]:
+                - code [ref=e791]: day_name_pl
+                - text: "- CASE WHEN na"
+                - code [ref=e792]: DATENAME
+                - text: → polska nazwa dnia.
+              - listitem [ref=e793]:
+                - code [ref=e794]: month_name_en
+                - text: =
+                - code [ref=e795]: DATENAME(month, date)
+              - listitem [ref=e796]:
+                - code [ref=e797]: month_name_pl
+                - text: "- CASE WHEN na"
+                - code [ref=e798]: MONTH()
+                - text: → polska nazwa miesiąca.
+              - listitem [ref=e799]:
+                - code [ref=e800]: is_weekend = 1
+                - text: gdy Saturday lub Sunday, inaczej 0.
+              - listitem [ref=e801]:
+                - code [ref=e802]: year_month = FORMAT(date, 'yyyy-MM')
+                - text: "- string do grupowania w raportach."
+        - article [ref=e803]:
+          - generic [ref=e804]:
+            - text: dim_store
+            - text: dim_product
+            - text: dim_category
+            - text: dim_vendor
+          - generic [ref=e805]:
+            - paragraph [ref=e806]:
+              - strong [ref=e807]: "Problem:"
+              - text: tabela źródłowa jest transakcyjna - ten sam sklep (ten sam
+              - code [ref=e808]: store_number
+              - text: ) może mieć różne adresy w różnych transakcjach (błędy, zmiany w czasie). Do wymiaru musi trafić dokładnie 1 wiersz per klucz biznesowy.
+            - paragraph [ref=e809]:
+              - strong [ref=e810]: "Rozwiązanie - SCD Type 1 (overwrite, najnowszy stan):"
+            - generic [ref=e811]:
+              - generic [ref=e813]: warehouse_transform.py - dim_store (pattern identyczny dla dim_product/category/vendor)
+              - generic [ref=e814]: WITH ranked AS ( SELECT *, ROW_NUMBER() OVER ( PARTITION BY COALESCE(NULLIF(store_number, ''), 'UNKNOWN') ORDER BY date DESC, staging_key DESC ) AS rn FROM stg.iowa_liquor_sales_raw ) INSERT INTO dw.dim_store ( store_number, store_name, address, city, zip_code, county, state_name, source_store_location, latitude, longitude ) SELECT COALESCE(NULLIF(store_number, ''), 'UNKNOWN'), store_name, address, city, zip_code, county, 'Iowa', store_location, latitude, longitude FROM ranked WHERE rn = 1;
+            - paragraph [ref=e815]:
+              - code [ref=e816]: ROW_NUMBER() OVER (PARTITION BY klucz ORDER BY date DESC)
+              - text: "-"
+              - code [ref=e817]: rn=1
+              - text: to wiersz z najpóźniejszą datą. Jeśli kilka wierszy ma tę samą datę -
+              - code [ref=e818]: staging_key DESC
+              - text: jako tiebreaker.
+              - code [ref=e819]: COALESCE(NULLIF(...,''),'UNKNOWN')
+              - text: "- NULL i pusty string zamieniany na"
+              - code [ref=e820]: "'UNKNOWN'"
+              - text: przed partycjonowaniem, więc te wiersze trafiają do jednej grupy (nie wiele grup NULL).
+        - article [ref=e821]:
+          - generic [ref=e822]: dim_packaging
+          - generic [ref=e823]:
+            - paragraph [ref=e824]:
+              - strong [ref=e825]: "Klucz naturalny:"
+              - text: kombinacja
+              - code [ref=e826]: (pack, bottle_volume_ml)
+              - text: "- nie ma deduplikacji per jeden klucz tekstowy, bo opakowań nie \"nadpisujesz\"."
+              - code [ref=e827]: SELECT DISTINCT pack, bottle_volume_ml FROM stg
+              - text: "+ wyliczona kolumna:"
+            - generic [ref=e828]:
+              - generic [ref=e830]: warehouse_transform.py - volume_group (feature engineering)
+              - generic [ref=e831]: CASE WHEN bottle_volume_ml = 0 THEN 'unknown' WHEN bottle_volume_ml < 500 THEN 'small' WHEN bottle_volume_ml < 1000 THEN 'standard' WHEN bottle_volume_ml < 1750 THEN 'large' ELSE 'extra_large' END AS volume_group
+            - paragraph [ref=e832]:
+              - code [ref=e833]: volume_group
+              - text: nie pochodzi ze źródła - wyliczana przy ładowaniu. Pozwala filtrować i grupować w raportach (
+              - emphasis [ref=e834]: "\"sprzedaż butelek small vs large\""
+              - text: ) bez analizowania wartości liczbowych.
+      - generic [ref=e835]:
+        - strong [ref=e836]: "Wynik:"
+        - text: 6 tabel wymiarów. Każdy klucz biznesowy dokładnie raz. Klucze zastępcze (IDENTITY) przydzielone od nowa po RESEED 0. Krok loguje liczbę wierszy w każdym wymiarze.
+    - generic [ref=e837]:
+      - generic [ref=e838]:
+        - heading "Krok 5 Tabela faktów" [level=2] [ref=e839]:
+          - text: Krok 5
+          - text: Tabela faktów
+        - paragraph [ref=e840]:
+          - code [ref=e841]: load_fact_sales()
+          - text: . Łączy staging z 6 wymiarami przez INNER JOIN i ładuje
+          - code [ref=e842]: dw.fact_sales
+          - text: ". Grain: jeden wiersz = jedna linia faktury (jeden SKU (Stock Keeping Unit - jednostka magazynowa), jeden sklep, jeden dzień)."
+      - generic [ref=e843]:
+        - article [ref=e844]:
+          - heading "INSERT - pełny SQL" [level=3] [ref=e845]
+          - generic [ref=e846]:
+            - generic [ref=e848]: warehouse_transform.py - load_fact_sales
+            - generic [ref=e849]: "-- Przed INSERT: DELETE FROM dw.fact_sales; DBCC CHECKIDENT ('dw.fact_sales', RESEED, 0); INSERT INTO dw.fact_sales ( date_key, store_key, product_key, category_key, vendor_key, packaging_key, invoice_number, source_row_hash, sales_line_count, bottles_sold, sale_dollars, volume_sold_liters, volume_sold_gallons, state_bottle_cost, state_bottle_retail, margin_amount ) SELECT d.date_key, s.store_key, p.product_key, c.category_key, v.vendor_key, pk.packaging_key, raw.invoice_and_item_number, raw.source_row_hash, 1 AS sales_line_count, COALESCE(raw.bottles_sold, 0), COALESCE(raw.sale_dollars, 0), COALESCE(raw.volume_sold_liters, 0), COALESCE(raw.volume_sold_gallons, 0), COALESCE(raw.state_bottle_cost, 0), COALESCE(raw.state_bottle_retail, 0), (COALESCE(raw.state_bottle_retail, 0) - COALESCE(raw.state_bottle_cost, 0)) * COALESCE(raw.bottles_sold, 0) AS margin_amount FROM stg.iowa_liquor_sales_raw raw JOIN dw.dim_date d ON d.date = raw.date JOIN dw.dim_store s ON s.store_number = COALESCE(NULLIF(raw.store_number,''),'UNKNOWN') JOIN dw.dim_product p ON p.item_number = COALESCE(NULLIF(raw.item_number,''),'UNKNOWN') JOIN dw.dim_category c ON c.category_number = COALESCE(NULLIF(raw.category,''),'UNKNOWN') JOIN dw.dim_vendor v ON v.vendor_number = COALESCE(NULLIF(raw.vendor_number,''),'UNKNOWN') JOIN dw.dim_packaging pk ON pk.pack = COALESCE(raw.pack, 0) AND pk.bottle_volume_ml = COALESCE(raw.bottle_volume_ml, 0) WHERE COALESCE(raw.sale_dollars, 0) >= 0 AND COALESCE(raw.bottles_sold, 0) >= 0 AND COALESCE(raw.volume_sold_liters, 0) >= 0;"
+        - article [ref=e850]:
+          - heading "Decyzje projektowe" [level=3] [ref=e851]
+          - paragraph [ref=e852]:
+            - strong [ref=e853]: "Marża wyliczana przy INSERT, nie po agregacji:"
+            - code [ref=e854]: margin_amount = (retail - cost) × bottles_sold
+            - text: na poziomie wiersza. Gdyby liczyć marżę na zagregowanych danych (np. średnią cost × suma bottles), wynik byłby błędny matematycznie. Wyliczenie na ziarnku faktów i późniejszy SUM jest jedyną poprawną metodą.
+          - paragraph [ref=e855]:
+            - strong [ref=e856]: "sales_line_count = 1:"
+            - text: Stała wartość 1 w każdym wierszu faktów. Widoki semantyczne mogą liczyć liczbę linii sprzedaży przez
+            - code [ref=e857]: SUM(sales_line_count)
+            - text: ", a liczbę faktur osobno przez"
+            - code [ref=e858]: COUNT(DISTINCT invoice_number)
+            - text: . Dzięki temu raport jasno rozróżnia linię faktury od całej faktury.
+          - paragraph [ref=e859]:
+            - strong [ref=e860]: "INNER JOIN zamiast LEFT JOIN:"
+            - text: Wiersz bez daty albo bez dopasowania do wymiaru nie trafia do faktów. To jest celowe - fakt ma mieć komplet kluczy obcych. Dla tekstowych kluczy biznesowych
+            - code [ref=e861]: COALESCE(NULLIF(...),'UNKNOWN')
+            - text: grupuje NULL i pusty string w jeden klucz; jeśli takie wiersze występują w stagingu, odpowiedni rekord
+            - code [ref=e862]: UNKNOWN
+            - text: powstaje w wymiarze podczas ładowania.
+          - paragraph [ref=e863]:
+            - strong [ref=e864]: "Filtr ujemnych miar (WHERE ≥ 0):"
+            - text: Wiersze z ujemną sprzedażą (zwroty, korekty) są wykluczane z faktów. Liczba wykluczonych wierszy raportowana przez kontrolę jakości
+            - code [ref=e865]: raw_negative_measure_rows_excluded_from_fact
+            - text: "- widoczna w logach, nie powoduje błędu."
+          - paragraph [ref=e866]:
+            - strong [ref=e867]: "COALESCE na NULL-e w miarach:"
+            - code [ref=e868]: COALESCE(bottles_sold, 0)
+            - text: itp. - NULL w mierze nie powoduje NULL w fakcie. Wiersz z nieznaną liczbą butelek trafia do faktów z wartością 0, a nie jest pomijany przez JOIN/WHERE.
+      - generic [ref=e869]:
+        - strong [ref=e870]: "Wynik:"
+        - code [ref=e871]: dw.fact_sales
+        - text: z pełnym zestawem miar i 6 kluczami obcymi. Zwracany
+        - code [ref=e872]: COUNT(*)
+        - text: z tabeli faktów.
+    - generic [ref=e873]:
+      - generic [ref=e874]:
+        - heading "Krok 6 Widoki semantyczne" [level=2] [ref=e875]:
+          - text: Krok 6
+          - text: Widoki semantyczne
+        - paragraph [ref=e876]:
+          - code [ref=e877]: create_semantic_views()
+          - text: "- skrypt"
+          - code [ref=e878]: sql/04_create_semantic_views.sql
+          - text: . Tworzy 16 widoków przez
+          - code [ref=e879]: CREATE OR ALTER VIEW
+          - text: "- jeśli istnieją, nadpisywane bez DROP. Streamlit odpytuje tylko"
+          - code [ref=e880]: sem.*
+          - text: ", nie"
+          - code [ref=e881]: dw.*
+          - text: .
+      - generic [ref=e882]:
+        - strong [ref=e883]: Dlaczego warstwa semantyczna?
+        - text: (1) Aplikacja dostaje gotowe, zagregowane dane - nie pisze JOIN-ów po 6 tabelach. (2) KPI i udziały % liczone w jednym miejscu - wszędzie ten sam wynik. (3) Dzielenie przez zero obsługiwane przez
+        - code [ref=e884]: NULLIF
+        - text: "- błąd SQL zamieniany na NULL. (4) Nowy raport = nowy widok, bez dotykania tabel."
+      - generic [ref=e885]:
+        - generic [ref=e886]:
+          - strong [ref=e887]: "Wynik:"
+          - text: 16 widoków dostępnych w schemacie
+          - code [ref=e888]: sem
+          - text: .
+          - code [ref=e889]: CREATE OR ALTER
+          - text: "- istniejące widoki nadpisywane bez DROP, uprawnienia zachowane."
+        - generic [ref=e891]:
+          - heading "Krok 7 Kontrole jakości" [level=2] [ref=e892]:
+            - text: Krok 7
+            - text: Kontrole jakości
+          - paragraph [ref=e893]:
+            - code [ref=e894]: run_quality_checks()
+            - text: +
+            - code [ref=e895]: validate_quality_check_results()
+            - text: . Skrypt
+            - code [ref=e896]: sql/05_quality_checks.sql
+            - text: "- 14 zapytań SELECT, każde zwraca parę"
+            - code [ref=e897]: (check_name, check_value)
+            - text: . Python waliduje wszystkie wyniki naraz i zbiera błędy. Jeden
+            - code [ref=e898]: ValueError
+            - text: z listą wszystkich nieudanych kontroli = Airflow task FAILED.
+        - table [ref=e900]:
+          - rowgroup [ref=e901]:
+            - row "Widok Grain / agregacja Kluczowe techniki Do czego używane Przykład danych (Top 5 wierszy)" [ref=e902]:
+              - columnheader "Widok" [ref=e903]
+              - columnheader "Grain / agregacja" [ref=e904]
+              - columnheader "Kluczowe techniki" [ref=e905]
+              - columnheader "Do czego używane" [ref=e906]
+              - columnheader "Przykład danych (Top 5 wierszy)" [ref=e907]
+          - rowgroup [ref=e908]:
+            - 'row "vw_sales_overview Wiersz faktów (brak agregacji) 6× INNER JOIN Nie używany przez Streamlit. Płaski widok — wszystkie kolumny, brak kluczy zastępczych. Do ad-hoc analiz SQL i eksportu danych. date store_name city category_name item_description sale_dollars margin_amount 2023-01-02 Hy-Vee #1 Des Moines Blended Whiskies Jim Beam Black 1.75L 112.32 37.44 2023-01-02 Casey’s #4 Ames Vodkas Tito’s Handmade 750ml 89.76 26.93 2023-01-03 Fareway #12 Iowa City Tequilas Jose Cuervo Gold 1L 74.40 22.32 2023-01-03 Hy-Vee #1 Des Moines Rum Captain Morgan Spiced 1.75L 98.56 32.85 2023-01-04 HY-VEE #3 Sioux City Whisky Jack Daniel’s Old No.7 750ml 55.20 16.56 Brak agregacji — jeden wiersz = jedna linia faktury. Wszystkie nazwy zamiast kluczy zastępczych." [ref=e909]':
+              - cell "vw_sales_overview" [ref=e910]:
+                - code [ref=e911]: vw_sales_overview
+              - cell "Wiersz faktów (brak agregacji)" [ref=e912]
+              - cell "6× INNER JOIN" [ref=e913]
+              - cell "Nie używany przez Streamlit. Płaski widok — wszystkie kolumny, brak kluczy zastępczych. Do ad-hoc analiz SQL i eksportu danych." [ref=e914]:
+                - strong [ref=e916]: Nie używany przez Streamlit.
+                - text: Płaski widok — wszystkie kolumny, brak kluczy zastępczych. Do ad-hoc analiz SQL i eksportu danych.
+              - 'cell "date store_name city category_name item_description sale_dollars margin_amount 2023-01-02 Hy-Vee #1 Des Moines Blended Whiskies Jim Beam Black 1.75L 112.32 37.44 2023-01-02 Casey’s #4 Ames Vodkas Tito’s Handmade 750ml 89.76 26.93 2023-01-03 Fareway #12 Iowa City Tequilas Jose Cuervo Gold 1L 74.40 22.32 2023-01-03 Hy-Vee #1 Des Moines Rum Captain Morgan Spiced 1.75L 98.56 32.85 2023-01-04 HY-VEE #3 Sioux City Whisky Jack Daniel’s Old No.7 750ml 55.20 16.56 Brak agregacji — jeden wiersz = jedna linia faktury. Wszystkie nazwy zamiast kluczy zastępczych." [ref=e917]':
+                - generic [ref=e918]:
+                  - table [ref=e919]:
+                    - rowgroup [ref=e920]:
+                      - row "date store_name city category_name item_description sale_dollars margin_amount" [ref=e921]:
+                        - columnheader "date" [ref=e922]
+                        - columnheader "store_name" [ref=e923]
+                        - columnheader "city" [ref=e924]
+                        - columnheader "category_name" [ref=e925]
+                        - columnheader "item_description" [ref=e926]
+                        - columnheader "sale_dollars" [ref=e927]
+                        - columnheader "margin_amount" [ref=e928]
+                    - rowgroup [ref=e929]:
+                      - 'row "2023-01-02 Hy-Vee #1 Des Moines Blended Whiskies Jim Beam Black 1.75L 112.32 37.44" [ref=e930]':
+                        - cell "2023-01-02" [ref=e931]
+                        - 'cell "Hy-Vee #1" [ref=e932]'
+                        - cell "Des Moines" [ref=e933]
+                        - cell "Blended Whiskies" [ref=e934]
+                        - cell "Jim Beam Black 1.75L" [ref=e935]
+                        - cell "112.32" [ref=e936]
+                        - cell "37.44" [ref=e937]
+                      - 'row "2023-01-02 Casey’s #4 Ames Vodkas Tito’s Handmade 750ml 89.76 26.93" [ref=e938]':
+                        - cell "2023-01-02" [ref=e939]
+                        - 'cell "Casey’s #4" [ref=e940]'
+                        - cell "Ames" [ref=e941]
+                        - cell "Vodkas" [ref=e942]
+                        - cell "Tito’s Handmade 750ml" [ref=e943]
+                        - cell "89.76" [ref=e944]
+                        - cell "26.93" [ref=e945]
+                      - 'row "2023-01-03 Fareway #12 Iowa City Tequilas Jose Cuervo Gold 1L 74.40 22.32" [ref=e946]':
+                        - cell "2023-01-03" [ref=e947]
+                        - 'cell "Fareway #12" [ref=e948]'
+                        - cell "Iowa City" [ref=e949]
+                        - cell "Tequilas" [ref=e950]
+                        - cell "Jose Cuervo Gold 1L" [ref=e951]
+                        - cell "74.40" [ref=e952]
+                        - cell "22.32" [ref=e953]
+                      - 'row "2023-01-03 Hy-Vee #1 Des Moines Rum Captain Morgan Spiced 1.75L 98.56 32.85" [ref=e954]':
+                        - cell "2023-01-03" [ref=e955]
+                        - 'cell "Hy-Vee #1" [ref=e956]'
+                        - cell "Des Moines" [ref=e957]
+                        - cell "Rum" [ref=e958]
+                        - cell "Captain Morgan Spiced 1.75L" [ref=e959]
+                        - cell "98.56" [ref=e960]
+                        - cell "32.85" [ref=e961]
+                      - 'row "2023-01-04 HY-VEE #3 Sioux City Whisky Jack Daniel’s Old No.7 750ml 55.20 16.56" [ref=e962]':
+                        - cell "2023-01-04" [ref=e963]
+                        - 'cell "HY-VEE #3" [ref=e964]'
+                        - cell "Sioux City" [ref=e965]
+                        - cell "Whisky" [ref=e966]
+                        - cell "Jack Daniel’s Old No.7 750ml" [ref=e967]
+                        - cell "55.20" [ref=e968]
+                        - cell "16.56" [ref=e969]
+                  - paragraph [ref=e970]: Brak agregacji — jeden wiersz = jedna linia faktury. Wszystkie nazwy zamiast kluczy zastępczych.
+            - row "vw_sales_by_month Rok + kwartał + miesiąc GROUP BY, SUM, COUNT DISTINCT Streamlit Q1. Trend miesięczny, kwartalny i roczny sprzedaży. Streamlit pobiera ~36 wierszy zamiast 2.7M faktów, po stronie Python robi groupby([year, quarter]).sum() i groupby([year]).sum(). year quarter month year_month total_sales total_bottles_sold total_margin invoice_count store_count 2023 1 1 2023-01 18 432 110.42 412 830 5 529 633.13 89 412 1 842 2023 1 2 2023-02 16 877 045.18 378 291 5 063 113.55 81 204 1 836 2023 1 3 2023-03 20 103 887.61 450 124 6 031 166.28 97 651 1 849 2023 2 4 2023-04 19 558 230.44 438 012 5 867 469.13 94 387 1 840 2023 2 5 2023-05 21 234 901.77 476 523 6 370 470.53 103 210 1 853 36 wierszy dla 3 lat. Streamlit pobiera te kilkadziesiąt wierszy zamiast 2.7M faktów." [ref=e971]:
+              - cell "vw_sales_by_month" [ref=e972]:
+                - code [ref=e973]: vw_sales_by_month
+              - cell "Rok + kwartał + miesiąc" [ref=e974]
+              - cell "GROUP BY, SUM, COUNT DISTINCT" [ref=e975]
+              - cell "Streamlit Q1. Trend miesięczny, kwartalny i roczny sprzedaży. Streamlit pobiera ~36 wierszy zamiast 2.7M faktów, po stronie Python robi groupby([year, quarter]).sum() i groupby([year]).sum()." [ref=e976]:
+                - strong [ref=e978]: Streamlit Q1.
+                - text: Trend miesięczny, kwartalny i roczny sprzedaży. Streamlit pobiera ~36 wierszy zamiast 2.7M faktów, po stronie Python robi
+                - code [ref=e979]: groupby([year, quarter]).sum()
+                - text: i
+                - code [ref=e980]: groupby([year]).sum()
+                - text: .
+              - cell "year quarter month year_month total_sales total_bottles_sold total_margin invoice_count store_count 2023 1 1 2023-01 18 432 110.42 412 830 5 529 633.13 89 412 1 842 2023 1 2 2023-02 16 877 045.18 378 291 5 063 113.55 81 204 1 836 2023 1 3 2023-03 20 103 887.61 450 124 6 031 166.28 97 651 1 849 2023 2 4 2023-04 19 558 230.44 438 012 5 867 469.13 94 387 1 840 2023 2 5 2023-05 21 234 901.77 476 523 6 370 470.53 103 210 1 853 36 wierszy dla 3 lat. Streamlit pobiera te kilkadziesiąt wierszy zamiast 2.7M faktów." [ref=e981]:
+                - generic [ref=e982]:
+                  - table [ref=e983]:
+                    - rowgroup [ref=e984]:
+                      - row "year quarter month year_month total_sales total_bottles_sold total_margin invoice_count store_count" [ref=e985]:
+                        - columnheader "year" [ref=e986]
+                        - columnheader "quarter" [ref=e987]
+                        - columnheader "month" [ref=e988]
+                        - columnheader "year_month" [ref=e989]
+                        - columnheader "total_sales" [ref=e990]
+                        - columnheader "total_bottles_sold" [ref=e991]
+                        - columnheader "total_margin" [ref=e992]
+                        - columnheader "invoice_count" [ref=e993]
+                        - columnheader "store_count" [ref=e994]
+                    - rowgroup [ref=e995]:
+                      - row "2023 1 1 2023-01 18 432 110.42 412 830 5 529 633.13 89 412 1 842" [ref=e996]:
+                        - cell "2023" [ref=e997]
+                        - cell "1" [ref=e998]
+                        - cell "1" [ref=e999]
+                        - cell "2023-01" [ref=e1000]
+                        - cell "18 432 110.42" [ref=e1001]
+                        - cell "412 830" [ref=e1002]
+                        - cell "5 529 633.13" [ref=e1003]
+                        - cell "89 412" [ref=e1004]
+                        - cell "1 842" [ref=e1005]
+                      - row "2023 1 2 2023-02 16 877 045.18 378 291 5 063 113.55 81 204 1 836" [ref=e1006]:
+                        - cell "2023" [ref=e1007]
+                        - cell "1" [ref=e1008]
+                        - cell "2" [ref=e1009]
+                        - cell "2023-02" [ref=e1010]
+                        - cell "16 877 045.18" [ref=e1011]
+                        - cell "378 291" [ref=e1012]
+                        - cell "5 063 113.55" [ref=e1013]
+                        - cell "81 204" [ref=e1014]
+                        - cell "1 836" [ref=e1015]
+                      - row "2023 1 3 2023-03 20 103 887.61 450 124 6 031 166.28 97 651 1 849" [ref=e1016]:
+                        - cell "2023" [ref=e1017]
+                        - cell "1" [ref=e1018]
+                        - cell "3" [ref=e1019]
+                        - cell "2023-03" [ref=e1020]
+                        - cell "20 103 887.61" [ref=e1021]
+                        - cell "450 124" [ref=e1022]
+                        - cell "6 031 166.28" [ref=e1023]
+                        - cell "97 651" [ref=e1024]
+                        - cell "1 849" [ref=e1025]
+                      - row "2023 2 4 2023-04 19 558 230.44 438 012 5 867 469.13 94 387 1 840" [ref=e1026]:
+                        - cell "2023" [ref=e1027]
+                        - cell "2" [ref=e1028]
+                        - cell "4" [ref=e1029]
+                        - cell "2023-04" [ref=e1030]
+                        - cell "19 558 230.44" [ref=e1031]
+                        - cell "438 012" [ref=e1032]
+                        - cell "5 867 469.13" [ref=e1033]
+                        - cell "94 387" [ref=e1034]
+                        - cell "1 840" [ref=e1035]
+                      - row "2023 2 5 2023-05 21 234 901.77 476 523 6 370 470.53 103 210 1 853" [ref=e1036]:
+                        - cell "2023" [ref=e1037]
+                        - cell "2" [ref=e1038]
+                        - cell "5" [ref=e1039]
+                        - cell "2023-05" [ref=e1040]
+                        - cell "21 234 901.77" [ref=e1041]
+                        - cell "476 523" [ref=e1042]
+                        - cell "6 370 470.53" [ref=e1043]
+                        - cell "103 210" [ref=e1044]
+                        - cell "1 853" [ref=e1045]
+                  - paragraph [ref=e1046]: 36 wierszy dla 3 lat. Streamlit pobiera te kilkadziesiąt wierszy zamiast 2.7M faktów.
+            - row "vw_sales_by_day_type Rok + miesiąc + weekend/weekday CASE WHEN, GROUP BY Streamlit Q11. Porównanie weekend vs dzień roboczy. Streamlit robi groupby(day_type).sum() po stronie Python. Widok zawiera kolumnę is_weekend BIT i CASE WHEN → etykieta Weekend/Weekday. year year_month day_type total_sales total_bottles_sold invoice_count 2023 2023-01 Weekday 14 128 344.18 316 447 68 521 2023 2023-01 Weekend 4 303 766.24 96 383 20 891 2023 2023-02 Weekday 12 981 204.76 290 183 62 394 2023 2023-02 Weekend 3 895 840.42 88 108 18 810 2023 2023-03 Weekday 15 479 813.44 346 295 75 120 Porównanie sprzedaży weekendowej vs roboczej per miesiąc." [ref=e1047]:
+              - cell "vw_sales_by_day_type" [ref=e1048]:
+                - code [ref=e1049]: vw_sales_by_day_type
+              - cell "Rok + miesiąc + weekend/weekday" [ref=e1050]
+              - cell "CASE WHEN, GROUP BY" [ref=e1051]
+              - cell "Streamlit Q11. Porównanie weekend vs dzień roboczy. Streamlit robi groupby(day_type).sum() po stronie Python. Widok zawiera kolumnę is_weekend BIT i CASE WHEN → etykieta Weekend/Weekday." [ref=e1052]:
+                - strong [ref=e1054]: Streamlit Q11.
+                - text: Porównanie weekend vs dzień roboczy. Streamlit robi
+                - code [ref=e1055]: groupby(day_type).sum()
+                - text: po stronie Python. Widok zawiera kolumnę
+                - code [ref=e1056]: is_weekend BIT
+                - text: i
+                - code [ref=e1057]: CASE WHEN
+                - text: → etykieta
+                - emphasis [ref=e1058]: Weekend/Weekday
+                - text: .
+              - cell "year year_month day_type total_sales total_bottles_sold invoice_count 2023 2023-01 Weekday 14 128 344.18 316 447 68 521 2023 2023-01 Weekend 4 303 766.24 96 383 20 891 2023 2023-02 Weekday 12 981 204.76 290 183 62 394 2023 2023-02 Weekend 3 895 840.42 88 108 18 810 2023 2023-03 Weekday 15 479 813.44 346 295 75 120 Porównanie sprzedaży weekendowej vs roboczej per miesiąc." [ref=e1059]:
+                - generic [ref=e1060]:
+                  - table [ref=e1061]:
+                    - rowgroup [ref=e1062]:
+                      - row "year year_month day_type total_sales total_bottles_sold invoice_count" [ref=e1063]:
+                        - columnheader "year" [ref=e1064]
+                        - columnheader "year_month" [ref=e1065]
+                        - columnheader "day_type" [ref=e1066]
+                        - columnheader "total_sales" [ref=e1067]
+                        - columnheader "total_bottles_sold" [ref=e1068]
+                        - columnheader "invoice_count" [ref=e1069]
+                    - rowgroup [ref=e1070]:
+                      - row "2023 2023-01 Weekday 14 128 344.18 316 447 68 521" [ref=e1071]:
+                        - cell "2023" [ref=e1072]
+                        - cell "2023-01" [ref=e1073]
+                        - cell "Weekday" [ref=e1074]
+                        - cell "14 128 344.18" [ref=e1075]
+                        - cell "316 447" [ref=e1076]
+                        - cell "68 521" [ref=e1077]
+                      - row "2023 2023-01 Weekend 4 303 766.24 96 383 20 891" [ref=e1078]:
+                        - cell "2023" [ref=e1079]
+                        - cell "2023-01" [ref=e1080]
+                        - cell "Weekend" [ref=e1081]
+                        - cell "4 303 766.24" [ref=e1082]
+                        - cell "96 383" [ref=e1083]
+                        - cell "20 891" [ref=e1084]
+                      - row "2023 2023-02 Weekday 12 981 204.76 290 183 62 394" [ref=e1085]:
+                        - cell "2023" [ref=e1086]
+                        - cell "2023-02" [ref=e1087]
+                        - cell "Weekday" [ref=e1088]
+                        - cell "12 981 204.76" [ref=e1089]
+                        - cell "290 183" [ref=e1090]
+                        - cell "62 394" [ref=e1091]
+                      - row "2023 2023-02 Weekend 3 895 840.42 88 108 18 810" [ref=e1092]:
+                        - cell "2023" [ref=e1093]
+                        - cell "2023-02" [ref=e1094]
+                        - cell "Weekend" [ref=e1095]
+                        - cell "3 895 840.42" [ref=e1096]
+                        - cell "88 108" [ref=e1097]
+                        - cell "18 810" [ref=e1098]
+                      - row "2023 2023-03 Weekday 15 479 813.44 346 295 75 120" [ref=e1099]:
+                        - cell "2023" [ref=e1100]
+                        - cell "2023-03" [ref=e1101]
+                        - cell "Weekday" [ref=e1102]
+                        - cell "15 479 813.44" [ref=e1103]
+                        - cell "346 295" [ref=e1104]
+                        - cell "75 120" [ref=e1105]
+                  - paragraph [ref=e1106]: Porównanie sprzedaży weekendowej vs roboczej per miesiąc.
+            - row "vw_category_sales_over_time Rok + miesiąc + kategoria GROUP BY Streamlit Q8. Trend struktury sprzedaży Top 10 kategorii w czasie — wykres area chart z groupnorm='percent'. year year_month category_name total_sales total_bottles_sold store_count 2023 2023-01 Blended Whiskies 2 184 321.10 48 921 1 124 2023 2023-01 Vodkas 3 421 887.44 76 643 1 398 2023 2023-01 Tequilas 1 892 340.00 42 384 987 2023 2023-01 Rum 1 104 228.80 24 712 876 2023 2023-01 American Cordials & Liqueur 892 440.30 19 987 743 Trend kategorii per miesiąc. Używane do wykresów liniowych porównujących kategorie." [ref=e1107]:
+              - cell "vw_category_sales_over_time" [ref=e1108]:
+                - code [ref=e1109]: vw_category_sales_over_time
+              - cell "Rok + miesiąc + kategoria" [ref=e1110]
+              - cell "GROUP BY" [ref=e1111]
+              - cell "Streamlit Q8. Trend struktury sprzedaży Top 10 kategorii w czasie — wykres area chart z groupnorm='percent'." [ref=e1112]:
+                - strong [ref=e1114]: Streamlit Q8.
+                - text: Trend struktury sprzedaży Top 10 kategorii w czasie — wykres area chart z
+                - code [ref=e1115]: groupnorm='percent'
+                - text: .
+              - cell "year year_month category_name total_sales total_bottles_sold store_count 2023 2023-01 Blended Whiskies 2 184 321.10 48 921 1 124 2023 2023-01 Vodkas 3 421 887.44 76 643 1 398 2023 2023-01 Tequilas 1 892 340.00 42 384 987 2023 2023-01 Rum 1 104 228.80 24 712 876 2023 2023-01 American Cordials & Liqueur 892 440.30 19 987 743 Trend kategorii per miesiąc. Używane do wykresów liniowych porównujących kategorie." [ref=e1116]:
+                - generic [ref=e1117]:
+                  - table [ref=e1118]:
+                    - rowgroup [ref=e1119]:
+                      - row "year year_month category_name total_sales total_bottles_sold store_count" [ref=e1120]:
+                        - columnheader "year" [ref=e1121]
+                        - columnheader "year_month" [ref=e1122]
+                        - columnheader "category_name" [ref=e1123]
+                        - columnheader "total_sales" [ref=e1124]
+                        - columnheader "total_bottles_sold" [ref=e1125]
+                        - columnheader "store_count" [ref=e1126]
+                    - rowgroup [ref=e1127]:
+                      - row "2023 2023-01 Blended Whiskies 2 184 321.10 48 921 1 124" [ref=e1128]:
+                        - cell "2023" [ref=e1129]
+                        - cell "2023-01" [ref=e1130]
+                        - cell "Blended Whiskies" [ref=e1131]
+                        - cell "2 184 321.10" [ref=e1132]
+                        - cell "48 921" [ref=e1133]
+                        - cell "1 124" [ref=e1134]
+                      - row "2023 2023-01 Vodkas 3 421 887.44 76 643 1 398" [ref=e1135]:
+                        - cell "2023" [ref=e1136]
+                        - cell "2023-01" [ref=e1137]
+                        - cell "Vodkas" [ref=e1138]
+                        - cell "3 421 887.44" [ref=e1139]
+                        - cell "76 643" [ref=e1140]
+                        - cell "1 398" [ref=e1141]
+                      - row "2023 2023-01 Tequilas 1 892 340.00 42 384 987" [ref=e1142]:
+                        - cell "2023" [ref=e1143]
+                        - cell "2023-01" [ref=e1144]
+                        - cell "Tequilas" [ref=e1145]
+                        - cell "1 892 340.00" [ref=e1146]
+                        - cell "42 384" [ref=e1147]
+                        - cell "987" [ref=e1148]
+                      - row "2023 2023-01 Rum 1 104 228.80 24 712 876" [ref=e1149]:
+                        - cell "2023" [ref=e1150]
+                        - cell "2023-01" [ref=e1151]
+                        - cell "Rum" [ref=e1152]
+                        - cell "1 104 228.80" [ref=e1153]
+                        - cell "24 712" [ref=e1154]
+                        - cell "876" [ref=e1155]
+                      - row "2023 2023-01 American Cordials & Liqueur 892 440.30 19 987 743" [ref=e1156]:
+                        - cell "2023" [ref=e1157]
+                        - cell "2023-01" [ref=e1158]
+                        - cell "American Cordials & Liqueur" [ref=e1159]
+                        - cell "892 440.30" [ref=e1160]
+                        - cell "19 987" [ref=e1161]
+                        - cell "743" [ref=e1162]
+                  - paragraph [ref=e1163]: Trend kategorii per miesiąc. Używane do wykresów liniowych porównujących kategorie.
+            - 'row "vw_sales_by_category Kategoria (ogółem) CTE totals + CROSS JOIN + NULLIF Streamlit Q2. Ranking kategorii (Top 15 bar chart + tabela). Gotowe pole sales_share_percent użyte wprost jako kolumna z formatowaniem {:,.2f}%. category_name total_sales total_bottles_sold total_margin avg_margin_per_bottle sales_share_percent Vodkas 41 238 872.10 923 441 12 371 661.63 13.40 18.42 Blended Whiskies 38 114 204.44 853 812 11 434 261.33 13.39 17.02 Tequilas 22 761 330.18 509 884 6 828 399.05 13.39 10.16 Rum 18 004 210.33 403 194 5 401 263.10 13.40 8.04 American Cordials & Liqueur 13 224 880.90 296 104 3 967 464.27 13.40 5.90 CTE totals + CROSS JOIN. sales_share_percent = 100 × kategoria / SUM(wszystkie). NULLIF chroni przed /0." [ref=e1164]':
+              - cell "vw_sales_by_category" [ref=e1165]:
+                - code [ref=e1166]: vw_sales_by_category
+              - cell "Kategoria (ogółem)" [ref=e1167]
+              - cell "CTE totals + CROSS JOIN + NULLIF" [ref=e1168]:
+                - text: CTE
+                - code [ref=e1169]: totals
+                - text: + CROSS JOIN + NULLIF
+              - 'cell "Streamlit Q2. Ranking kategorii (Top 15 bar chart + tabela). Gotowe pole sales_share_percent użyte wprost jako kolumna z formatowaniem {:,.2f}%." [ref=e1170]':
+                - strong [ref=e1172]: Streamlit Q2.
+                - text: Ranking kategorii (Top 15 bar chart + tabela). Gotowe pole
+                - code [ref=e1173]: sales_share_percent
+                - text: użyte wprost jako kolumna z formatowaniem
+                - code [ref=e1174]: "{:,.2f}%"
+                - text: .
+              - cell "category_name total_sales total_bottles_sold total_margin avg_margin_per_bottle sales_share_percent Vodkas 41 238 872.10 923 441 12 371 661.63 13.40 18.42 Blended Whiskies 38 114 204.44 853 812 11 434 261.33 13.39 17.02 Tequilas 22 761 330.18 509 884 6 828 399.05 13.39 10.16 Rum 18 004 210.33 403 194 5 401 263.10 13.40 8.04 American Cordials & Liqueur 13 224 880.90 296 104 3 967 464.27 13.40 5.90 CTE totals + CROSS JOIN. sales_share_percent = 100 × kategoria / SUM(wszystkie). NULLIF chroni przed /0." [ref=e1175]:
+                - generic [ref=e1176]:
+                  - table [ref=e1177]:
+                    - rowgroup [ref=e1178]:
+                      - row "category_name total_sales total_bottles_sold total_margin avg_margin_per_bottle sales_share_percent" [ref=e1179]:
+                        - columnheader "category_name" [ref=e1180]
+                        - columnheader "total_sales" [ref=e1181]
+                        - columnheader "total_bottles_sold" [ref=e1182]
+                        - columnheader "total_margin" [ref=e1183]
+                        - columnheader "avg_margin_per_bottle" [ref=e1184]
+                        - columnheader "sales_share_percent" [ref=e1185]
+                    - rowgroup [ref=e1186]:
+                      - row "Vodkas 41 238 872.10 923 441 12 371 661.63 13.40 18.42" [ref=e1187]:
+                        - cell "Vodkas" [ref=e1188]
+                        - cell "41 238 872.10" [ref=e1189]
+                        - cell "923 441" [ref=e1190]
+                        - cell "12 371 661.63" [ref=e1191]
+                        - cell "13.40" [ref=e1192]
+                        - cell "18.42" [ref=e1193]
+                      - row "Blended Whiskies 38 114 204.44 853 812 11 434 261.33 13.39 17.02" [ref=e1194]:
+                        - cell "Blended Whiskies" [ref=e1195]
+                        - cell "38 114 204.44" [ref=e1196]
+                        - cell "853 812" [ref=e1197]
+                        - cell "11 434 261.33" [ref=e1198]
+                        - cell "13.39" [ref=e1199]
+                        - cell "17.02" [ref=e1200]
+                      - row "Tequilas 22 761 330.18 509 884 6 828 399.05 13.39 10.16" [ref=e1201]:
+                        - cell "Tequilas" [ref=e1202]
+                        - cell "22 761 330.18" [ref=e1203]
+                        - cell "509 884" [ref=e1204]
+                        - cell "6 828 399.05" [ref=e1205]
+                        - cell "13.39" [ref=e1206]
+                        - cell "10.16" [ref=e1207]
+                      - row "Rum 18 004 210.33 403 194 5 401 263.10 13.40 8.04" [ref=e1208]:
+                        - cell "Rum" [ref=e1209]
+                        - cell "18 004 210.33" [ref=e1210]
+                        - cell "403 194" [ref=e1211]
+                        - cell "5 401 263.10" [ref=e1212]
+                        - cell "13.40" [ref=e1213]
+                        - cell "8.04" [ref=e1214]
+                      - row "American Cordials & Liqueur 13 224 880.90 296 104 3 967 464.27 13.40 5.90" [ref=e1215]:
+                        - cell "American Cordials & Liqueur" [ref=e1216]
+                        - cell "13 224 880.90" [ref=e1217]
+                        - cell "296 104" [ref=e1218]
+                        - cell "3 967 464.27" [ref=e1219]
+                        - cell "13.40" [ref=e1220]
+                        - cell "5.90" [ref=e1221]
+                  - paragraph [ref=e1222]: CTE totals + CROSS JOIN. sales_share_percent = 100 × kategoria / SUM(wszystkie). NULLIF chroni przed /0.
+            - 'row "vw_sales_by_store Sklep GROUP BY Streamlit Q3. Top 15 sklepów po obrocie i marży (bar chart), tabela Top 50. store_number store_name city county total_sales total_bottles_sold invoice_count 2633 Hy-Vee Food Store #1 Des Moines Polk 1 842 334.10 41 274 8 941 4829 Costco #1254 West Des Moines Polk 1 703 881.44 38 143 8 271 3814 Sam’s Club #8162 Davenport Scott 1 512 204.80 33 872 7 341 2512 Hy-Vee #5 Cedar Rapids Linn 1 348 992.30 30 199 6 543 4103 Total Wine & More Clive Polk 1 287 341.80 28 831 6 230 Ranking sklepów po obrocie. Podstawa dla analizy wydajności punktów sprzedaży." [ref=e1223]':
+              - cell "vw_sales_by_store" [ref=e1224]:
+                - code [ref=e1225]: vw_sales_by_store
+              - cell "Sklep" [ref=e1226]
+              - cell "GROUP BY" [ref=e1227]
+              - cell "Streamlit Q3. Top 15 sklepów po obrocie i marży (bar chart), tabela Top 50." [ref=e1228]:
+                - strong [ref=e1230]: Streamlit Q3.
+                - text: Top 15 sklepów po obrocie i marży (bar chart), tabela Top 50.
+              - 'cell "store_number store_name city county total_sales total_bottles_sold invoice_count 2633 Hy-Vee Food Store #1 Des Moines Polk 1 842 334.10 41 274 8 941 4829 Costco #1254 West Des Moines Polk 1 703 881.44 38 143 8 271 3814 Sam’s Club #8162 Davenport Scott 1 512 204.80 33 872 7 341 2512 Hy-Vee #5 Cedar Rapids Linn 1 348 992.30 30 199 6 543 4103 Total Wine & More Clive Polk 1 287 341.80 28 831 6 230 Ranking sklepów po obrocie. Podstawa dla analizy wydajności punktów sprzedaży." [ref=e1231]':
+                - generic [ref=e1232]:
+                  - table [ref=e1233]:
+                    - rowgroup [ref=e1234]:
+                      - row "store_number store_name city county total_sales total_bottles_sold invoice_count" [ref=e1235]:
+                        - columnheader "store_number" [ref=e1236]
+                        - columnheader "store_name" [ref=e1237]
+                        - columnheader "city" [ref=e1238]
+                        - columnheader "county" [ref=e1239]
+                        - columnheader "total_sales" [ref=e1240]
+                        - columnheader "total_bottles_sold" [ref=e1241]
+                        - columnheader "invoice_count" [ref=e1242]
+                    - rowgroup [ref=e1243]:
+                      - 'row "2633 Hy-Vee Food Store #1 Des Moines Polk 1 842 334.10 41 274 8 941" [ref=e1244]':
+                        - cell "2633" [ref=e1245]
+                        - 'cell "Hy-Vee Food Store #1" [ref=e1246]'
+                        - cell "Des Moines" [ref=e1247]
+                        - cell "Polk" [ref=e1248]
+                        - cell "1 842 334.10" [ref=e1249]
+                        - cell "41 274" [ref=e1250]
+                        - cell "8 941" [ref=e1251]
+                      - 'row "4829 Costco #1254 West Des Moines Polk 1 703 881.44 38 143 8 271" [ref=e1252]':
+                        - cell "4829" [ref=e1253]
+                        - 'cell "Costco #1254" [ref=e1254]'
+                        - cell "West Des Moines" [ref=e1255]
+                        - cell "Polk" [ref=e1256]
+                        - cell "1 703 881.44" [ref=e1257]
+                        - cell "38 143" [ref=e1258]
+                        - cell "8 271" [ref=e1259]
+                      - 'row "3814 Sam’s Club #8162 Davenport Scott 1 512 204.80 33 872 7 341" [ref=e1260]':
+                        - cell "3814" [ref=e1261]
+                        - 'cell "Sam’s Club #8162" [ref=e1262]'
+                        - cell "Davenport" [ref=e1263]
+                        - cell "Scott" [ref=e1264]
+                        - cell "1 512 204.80" [ref=e1265]
+                        - cell "33 872" [ref=e1266]
+                        - cell "7 341" [ref=e1267]
+                      - 'row "2512 Hy-Vee #5 Cedar Rapids Linn 1 348 992.30 30 199 6 543" [ref=e1268]':
+                        - cell "2512" [ref=e1269]
+                        - 'cell "Hy-Vee #5" [ref=e1270]'
+                        - cell "Cedar Rapids" [ref=e1271]
+                        - cell "Linn" [ref=e1272]
+                        - cell "1 348 992.30" [ref=e1273]
+                        - cell "30 199" [ref=e1274]
+                        - cell "6 543" [ref=e1275]
+                      - row "4103 Total Wine & More Clive Polk 1 287 341.80 28 831 6 230" [ref=e1276]:
+                        - cell "4103" [ref=e1277]
+                        - cell "Total Wine & More" [ref=e1278]
+                        - cell "Clive" [ref=e1279]
+                        - cell "Polk" [ref=e1280]
+                        - cell "1 287 341.80" [ref=e1281]
+                        - cell "28 831" [ref=e1282]
+                        - cell "6 230" [ref=e1283]
+                  - paragraph [ref=e1284]: Ranking sklepów po obrocie. Podstawa dla analizy wydajności punktów sprzedaży.
+            - row "vw_sales_by_vendor Dostawca CTE + CROSS JOIN + NULLIF Streamlit Q5. Top 15 dostawców bar chart + treemap Top 20 + tabela z udziałem %. vendor_name total_sales total_bottles_sold total_margin sales_share_percent Jim Beam Brands 28 341 882.44 635 103 8 502 564.73 12.66 Diageo Americas 24 118 320.10 540 218 7 235 496.03 10.77 Pernod Ricard USA 19 887 441.33 445 512 5 966 232.40 8.88 Constellation Brands 15 332 101.80 343 431 4 599 630.54 6.85 Heaven Hill Brands 13 441 200.44 301 123 4 032 360.13 6.00 Identyczna logika jak vw_sales_by_category — CTE + CROSS JOIN + NULLIF." [ref=e1285]:
+              - cell "vw_sales_by_vendor" [ref=e1286]:
+                - code [ref=e1287]: vw_sales_by_vendor
+              - cell "Dostawca" [ref=e1288]
+              - cell "CTE + CROSS JOIN + NULLIF" [ref=e1289]
+              - cell "Streamlit Q5. Top 15 dostawców bar chart + treemap Top 20 + tabela z udziałem %." [ref=e1290]:
+                - strong [ref=e1292]: Streamlit Q5.
+                - text: Top 15 dostawców bar chart + treemap Top 20 + tabela z udziałem %.
+              - cell "vendor_name total_sales total_bottles_sold total_margin sales_share_percent Jim Beam Brands 28 341 882.44 635 103 8 502 564.73 12.66 Diageo Americas 24 118 320.10 540 218 7 235 496.03 10.77 Pernod Ricard USA 19 887 441.33 445 512 5 966 232.40 8.88 Constellation Brands 15 332 101.80 343 431 4 599 630.54 6.85 Heaven Hill Brands 13 441 200.44 301 123 4 032 360.13 6.00 Identyczna logika jak vw_sales_by_category — CTE + CROSS JOIN + NULLIF." [ref=e1293]:
+                - generic [ref=e1294]:
+                  - table [ref=e1295]:
+                    - rowgroup [ref=e1296]:
+                      - row "vendor_name total_sales total_bottles_sold total_margin sales_share_percent" [ref=e1297]:
+                        - columnheader "vendor_name" [ref=e1298]
+                        - columnheader "total_sales" [ref=e1299]
+                        - columnheader "total_bottles_sold" [ref=e1300]
+                        - columnheader "total_margin" [ref=e1301]
+                        - columnheader "sales_share_percent" [ref=e1302]
+                    - rowgroup [ref=e1303]:
+                      - row "Jim Beam Brands 28 341 882.44 635 103 8 502 564.73 12.66" [ref=e1304]:
+                        - cell "Jim Beam Brands" [ref=e1305]
+                        - cell "28 341 882.44" [ref=e1306]
+                        - cell "635 103" [ref=e1307]
+                        - cell "8 502 564.73" [ref=e1308]
+                        - cell "12.66" [ref=e1309]
+                      - row "Diageo Americas 24 118 320.10 540 218 7 235 496.03 10.77" [ref=e1310]:
+                        - cell "Diageo Americas" [ref=e1311]
+                        - cell "24 118 320.10" [ref=e1312]
+                        - cell "540 218" [ref=e1313]
+                        - cell "7 235 496.03" [ref=e1314]
+                        - cell "10.77" [ref=e1315]
+                      - row "Pernod Ricard USA 19 887 441.33 445 512 5 966 232.40 8.88" [ref=e1316]:
+                        - cell "Pernod Ricard USA" [ref=e1317]
+                        - cell "19 887 441.33" [ref=e1318]
+                        - cell "445 512" [ref=e1319]
+                        - cell "5 966 232.40" [ref=e1320]
+                        - cell "8.88" [ref=e1321]
+                      - row "Constellation Brands 15 332 101.80 343 431 4 599 630.54 6.85" [ref=e1322]:
+                        - cell "Constellation Brands" [ref=e1323]
+                        - cell "15 332 101.80" [ref=e1324]
+                        - cell "343 431" [ref=e1325]
+                        - cell "4 599 630.54" [ref=e1326]
+                        - cell "6.85" [ref=e1327]
+                      - row "Heaven Hill Brands 13 441 200.44 301 123 4 032 360.13 6.00" [ref=e1328]:
+                        - cell "Heaven Hill Brands" [ref=e1329]
+                        - cell "13 441 200.44" [ref=e1330]
+                        - cell "301 123" [ref=e1331]
+                        - cell "4 032 360.13" [ref=e1332]
+                        - cell "6.00" [ref=e1333]
+                  - paragraph [ref=e1334]: Identyczna logika jak vw_sales_by_category — CTE + CROSS JOIN + NULLIF.
+            - row "vw_sales_by_packaging Opakowanie (pack + ml + volume_group) CTE + CROSS JOIN + NULLIF Streamlit Q12. Treemap według volume_group i bottle_volume_ml. Kolumna volume_group wyliczona przy INSERT do dim_packaging — nie pochodzi ze źródła. pack bottle_volume_ml volume_group total_sales total_bottles_sold sales_share_percent 12 750 standard 89 412 330.10 2 003 422 39.93 6 1750 extra_large 51 234 881.44 1 147 874 22.88 12 1000 large 31 887 441.80 714 163 14.24 24 375 small 18 441 200.30 413 004 8.24 12 500 small 9 334 112.10 209 003 4.17 volume_group wyliczana przy INSERT do dim_packaging — nie pochodzi ze źródła." [ref=e1335]:
+              - cell "vw_sales_by_packaging" [ref=e1336]:
+                - code [ref=e1337]: vw_sales_by_packaging
+              - cell "Opakowanie (pack + ml + volume_group)" [ref=e1338]
+              - cell "CTE + CROSS JOIN + NULLIF" [ref=e1339]
+              - cell "Streamlit Q12. Treemap według volume_group i bottle_volume_ml. Kolumna volume_group wyliczona przy INSERT do dim_packaging — nie pochodzi ze źródła." [ref=e1340]:
+                - strong [ref=e1342]: Streamlit Q12.
+                - text: Treemap według
+                - code [ref=e1343]: volume_group
+                - text: i
+                - code [ref=e1344]: bottle_volume_ml
+                - text: . Kolumna
+                - code [ref=e1345]: volume_group
+                - text: wyliczona przy INSERT do
+                - code [ref=e1346]: dim_packaging
+                - text: — nie pochodzi ze źródła.
+              - cell "pack bottle_volume_ml volume_group total_sales total_bottles_sold sales_share_percent 12 750 standard 89 412 330.10 2 003 422 39.93 6 1750 extra_large 51 234 881.44 1 147 874 22.88 12 1000 large 31 887 441.80 714 163 14.24 24 375 small 18 441 200.30 413 004 8.24 12 500 small 9 334 112.10 209 003 4.17 volume_group wyliczana przy INSERT do dim_packaging — nie pochodzi ze źródła." [ref=e1347]:
+                - generic [ref=e1348]:
+                  - table [ref=e1349]:
+                    - rowgroup [ref=e1350]:
+                      - row "pack bottle_volume_ml volume_group total_sales total_bottles_sold sales_share_percent" [ref=e1351]:
+                        - columnheader "pack" [ref=e1352]
+                        - columnheader "bottle_volume_ml" [ref=e1353]
+                        - columnheader "volume_group" [ref=e1354]
+                        - columnheader "total_sales" [ref=e1355]
+                        - columnheader "total_bottles_sold" [ref=e1356]
+                        - columnheader "sales_share_percent" [ref=e1357]
+                    - rowgroup [ref=e1358]:
+                      - row "12 750 standard 89 412 330.10 2 003 422 39.93" [ref=e1359]:
+                        - cell "12" [ref=e1360]
+                        - cell "750" [ref=e1361]
+                        - cell "standard" [ref=e1362]
+                        - cell "89 412 330.10" [ref=e1363]
+                        - cell "2 003 422" [ref=e1364]
+                        - cell "39.93" [ref=e1365]
+                      - row "6 1750 extra_large 51 234 881.44 1 147 874 22.88" [ref=e1366]:
+                        - cell "6" [ref=e1367]
+                        - cell "1750" [ref=e1368]
+                        - cell "extra_large" [ref=e1369]
+                        - cell "51 234 881.44" [ref=e1370]
+                        - cell "1 147 874" [ref=e1371]
+                        - cell "22.88" [ref=e1372]
+                      - row "12 1000 large 31 887 441.80 714 163 14.24" [ref=e1373]:
+                        - cell "12" [ref=e1374]
+                        - cell "1000" [ref=e1375]
+                        - cell "large" [ref=e1376]
+                        - cell "31 887 441.80" [ref=e1377]
+                        - cell "714 163" [ref=e1378]
+                        - cell "14.24" [ref=e1379]
+                      - row "24 375 small 18 441 200.30 413 004 8.24" [ref=e1380]:
+                        - cell "24" [ref=e1381]
+                        - cell "375" [ref=e1382]
+                        - cell "small" [ref=e1383]
+                        - cell "18 441 200.30" [ref=e1384]
+                        - cell "413 004" [ref=e1385]
+                        - cell "8.24" [ref=e1386]
+                      - row "12 500 small 9 334 112.10 209 003 4.17" [ref=e1387]:
+                        - cell "12" [ref=e1388]
+                        - cell "500" [ref=e1389]
+                        - cell "small" [ref=e1390]
+                        - cell "9 334 112.10" [ref=e1391]
+                        - cell "209 003" [ref=e1392]
+                        - cell "4.17" [ref=e1393]
+                  - paragraph [ref=e1394]: volume_group wyliczana przy INSERT do dim_packaging — nie pochodzi ze źródła.
+            - row "vw_sales_by_geography Stan + hrabstwo + miasto GROUP BY Streamlit Q4. Streamlit robi groupby(county).sum() i groupby([city, county]).sum() po stronie Python — dlatego widok zawiera granulację miasto, nie jest wstępnie zagregowany do county. state_name county city total_sales total_bottles_sold store_count Iowa Polk Des Moines 38 441 220.10 860 884 187 Iowa Linn Cedar Rapids 22 118 330.44 495 311 112 Iowa Scott Davenport 17 334 120.80 388 103 89 Iowa Johnson Iowa City 14 221 440.30 318 592 71 Iowa Black Hawk Waterloo 11 884 330.10 266 220 62 Agregacja na poziomie miasto. Podstawa analizy geograficznej." [ref=e1395]:
+              - cell "vw_sales_by_geography" [ref=e1396]:
+                - code [ref=e1397]: vw_sales_by_geography
+              - cell "Stan + hrabstwo + miasto" [ref=e1398]
+              - cell "GROUP BY" [ref=e1399]
+              - cell "Streamlit Q4. Streamlit robi groupby(county).sum() i groupby([city, county]).sum() po stronie Python — dlatego widok zawiera granulację miasto, nie jest wstępnie zagregowany do county." [ref=e1400]:
+                - strong [ref=e1402]: Streamlit Q4.
+                - text: Streamlit robi
+                - code [ref=e1403]: groupby(county).sum()
+                - text: i
+                - code [ref=e1404]: groupby([city, county]).sum()
+                - text: po stronie Python — dlatego widok zawiera granulację miasto, nie jest wstępnie zagregowany do county.
+              - cell "state_name county city total_sales total_bottles_sold store_count Iowa Polk Des Moines 38 441 220.10 860 884 187 Iowa Linn Cedar Rapids 22 118 330.44 495 311 112 Iowa Scott Davenport 17 334 120.80 388 103 89 Iowa Johnson Iowa City 14 221 440.30 318 592 71 Iowa Black Hawk Waterloo 11 884 330.10 266 220 62 Agregacja na poziomie miasto. Podstawa analizy geograficznej." [ref=e1405]:
+                - generic [ref=e1406]:
+                  - table [ref=e1407]:
+                    - rowgroup [ref=e1408]:
+                      - row "state_name county city total_sales total_bottles_sold store_count" [ref=e1409]:
+                        - columnheader "state_name" [ref=e1410]
+                        - columnheader "county" [ref=e1411]
+                        - columnheader "city" [ref=e1412]
+                        - columnheader "total_sales" [ref=e1413]
+                        - columnheader "total_bottles_sold" [ref=e1414]
+                        - columnheader "store_count" [ref=e1415]
+                    - rowgroup [ref=e1416]:
+                      - row "Iowa Polk Des Moines 38 441 220.10 860 884 187" [ref=e1417]:
+                        - cell "Iowa" [ref=e1418]
+                        - cell "Polk" [ref=e1419]
+                        - cell "Des Moines" [ref=e1420]
+                        - cell "38 441 220.10" [ref=e1421]
+                        - cell "860 884" [ref=e1422]
+                        - cell "187" [ref=e1423]
+                      - row "Iowa Linn Cedar Rapids 22 118 330.44 495 311 112" [ref=e1424]:
+                        - cell "Iowa" [ref=e1425]
+                        - cell "Linn" [ref=e1426]
+                        - cell "Cedar Rapids" [ref=e1427]
+                        - cell "22 118 330.44" [ref=e1428]
+                        - cell "495 311" [ref=e1429]
+                        - cell "112" [ref=e1430]
+                      - row "Iowa Scott Davenport 17 334 120.80 388 103 89" [ref=e1431]:
+                        - cell "Iowa" [ref=e1432]
+                        - cell "Scott" [ref=e1433]
+                        - cell "Davenport" [ref=e1434]
+                        - cell "17 334 120.80" [ref=e1435]
+                        - cell "388 103" [ref=e1436]
+                        - cell "89" [ref=e1437]
+                      - row "Iowa Johnson Iowa City 14 221 440.30 318 592 71" [ref=e1438]:
+                        - cell "Iowa" [ref=e1439]
+                        - cell "Johnson" [ref=e1440]
+                        - cell "Iowa City" [ref=e1441]
+                        - cell "14 221 440.30" [ref=e1442]
+                        - cell "318 592" [ref=e1443]
+                        - cell "71" [ref=e1444]
+                      - row "Iowa Black Hawk Waterloo 11 884 330.10 266 220 62" [ref=e1445]:
+                        - cell "Iowa" [ref=e1446]
+                        - cell "Black Hawk" [ref=e1447]
+                        - cell "Waterloo" [ref=e1448]
+                        - cell "11 884 330.10" [ref=e1449]
+                        - cell "266 220" [ref=e1450]
+                        - cell "62" [ref=e1451]
+                  - paragraph [ref=e1452]: Agregacja na poziomie miasto. Podstawa analizy geograficznej.
+            - 'row "vw_sales_map_points Sklep (tylko z GPS) WHERE lat IS NOT NULL, GROUP BY Streamlit Q4 (mapa). Streamlit agreguje po stronie Python do poziomu miasta (groupby([city, county]).agg(latitude=mean, ...)), rysuje scatter_mapbox z size=log1p(total_sales). Widok filtruje WHERE lat IS NOT NULL — bez tego Plotly rzuca błąd na NULL. store_name city latitude longitude total_sales invoice_count Hy-Vee Food Store #1 Des Moines 41.5868 -93.6250 1 842 334.10 8 941 Costco #1254 West Des Moines 41.5772 -93.7116 1 703 881.44 8 271 Sam’s Club #8162 Davenport 41.5236 -90.5776 1 512 204.80 7 341 Hy-Vee #5 Cedar Rapids 41.9779 -91.6656 1 348 992.30 6 543 Total Wine & More Clive 41.6028 -93.7425 1 287 341.80 6 230 WHERE lat IS NOT NULL — tylko sklepy z GPS. Streamlit rysuje mapę z tych wierszy." [ref=e1453]':
+              - cell "vw_sales_map_points" [ref=e1454]:
+                - code [ref=e1455]: vw_sales_map_points
+              - cell "Sklep (tylko z GPS)" [ref=e1456]
+              - cell "WHERE lat IS NOT NULL, GROUP BY" [ref=e1457]
+              - cell "Streamlit Q4 (mapa). Streamlit agreguje po stronie Python do poziomu miasta (groupby([city, county]).agg(latitude=mean, ...)), rysuje scatter_mapbox z size=log1p(total_sales). Widok filtruje WHERE lat IS NOT NULL — bez tego Plotly rzuca błąd na NULL." [ref=e1458]:
+                - strong [ref=e1460]: Streamlit Q4 (mapa).
+                - text: Streamlit agreguje po stronie Python do poziomu miasta (
+                - code [ref=e1461]: groupby([city, county]).agg(latitude=mean, ...)
+                - text: ), rysuje
+                - code [ref=e1462]: scatter_mapbox
+                - text: z
+                - code [ref=e1463]: size=log1p(total_sales)
+                - text: . Widok filtruje
+                - code [ref=e1464]: WHERE lat IS NOT NULL
+                - text: — bez tego Plotly rzuca błąd na NULL.
+              - 'cell "store_name city latitude longitude total_sales invoice_count Hy-Vee Food Store #1 Des Moines 41.5868 -93.6250 1 842 334.10 8 941 Costco #1254 West Des Moines 41.5772 -93.7116 1 703 881.44 8 271 Sam’s Club #8162 Davenport 41.5236 -90.5776 1 512 204.80 7 341 Hy-Vee #5 Cedar Rapids 41.9779 -91.6656 1 348 992.30 6 543 Total Wine & More Clive 41.6028 -93.7425 1 287 341.80 6 230 WHERE lat IS NOT NULL — tylko sklepy z GPS. Streamlit rysuje mapę z tych wierszy." [ref=e1465]':
+                - generic [ref=e1466]:
+                  - table [ref=e1467]:
+                    - rowgroup [ref=e1468]:
+                      - row "store_name city latitude longitude total_sales invoice_count" [ref=e1469]:
+                        - columnheader "store_name" [ref=e1470]
+                        - columnheader "city" [ref=e1471]
+                        - columnheader "latitude" [ref=e1472]
+                        - columnheader "longitude" [ref=e1473]
+                        - columnheader "total_sales" [ref=e1474]
+                        - columnheader "invoice_count" [ref=e1475]
+                    - rowgroup [ref=e1476]:
+                      - 'row "Hy-Vee Food Store #1 Des Moines 41.5868 -93.6250 1 842 334.10 8 941" [ref=e1477]':
+                        - 'cell "Hy-Vee Food Store #1" [ref=e1478]'
+                        - cell "Des Moines" [ref=e1479]
+                        - cell "41.5868" [ref=e1480]
+                        - cell "-93.6250" [ref=e1481]
+                        - cell "1 842 334.10" [ref=e1482]
+                        - cell "8 941" [ref=e1483]
+                      - 'row "Costco #1254 West Des Moines 41.5772 -93.7116 1 703 881.44 8 271" [ref=e1484]':
+                        - 'cell "Costco #1254" [ref=e1485]'
+                        - cell "West Des Moines" [ref=e1486]
+                        - cell "41.5772" [ref=e1487]
+                        - cell "-93.7116" [ref=e1488]
+                        - cell "1 703 881.44" [ref=e1489]
+                        - cell "8 271" [ref=e1490]
+                      - 'row "Sam’s Club #8162 Davenport 41.5236 -90.5776 1 512 204.80 7 341" [ref=e1491]':
+                        - 'cell "Sam’s Club #8162" [ref=e1492]'
+                        - cell "Davenport" [ref=e1493]
+                        - cell "41.5236" [ref=e1494]
+                        - cell "-90.5776" [ref=e1495]
+                        - cell "1 512 204.80" [ref=e1496]
+                        - cell "7 341" [ref=e1497]
+                      - 'row "Hy-Vee #5 Cedar Rapids 41.9779 -91.6656 1 348 992.30 6 543" [ref=e1498]':
+                        - 'cell "Hy-Vee #5" [ref=e1499]'
+                        - cell "Cedar Rapids" [ref=e1500]
+                        - cell "41.9779" [ref=e1501]
+                        - cell "-91.6656" [ref=e1502]
+                        - cell "1 348 992.30" [ref=e1503]
+                        - cell "6 543" [ref=e1504]
+                      - row "Total Wine & More Clive 41.6028 -93.7425 1 287 341.80 6 230" [ref=e1505]:
+                        - cell "Total Wine & More" [ref=e1506]
+                        - cell "Clive" [ref=e1507]
+                        - cell "41.6028" [ref=e1508]
+                        - cell "-93.7425" [ref=e1509]
+                        - cell "1 287 341.80" [ref=e1510]
+                        - cell "6 230" [ref=e1511]
+                  - paragraph [ref=e1512]: WHERE lat IS NOT NULL — tylko sklepy z GPS. Streamlit rysuje mapę z tych wierszy.
+            - row "vw_top_products Produkt + kategoria + dostawca GROUP BY Streamlit Q6. Top 15 produktów po butelkach i obrocie (bar chart), scatter Przychód vs Wolumen (Top 50), tabela Top 50. item_number item_description category_name vendor_name total_sales total_bottles_sold total_margin 27783 Jim Beam Black 1.75L Blended Whiskies Jim Beam Brands 9 334 112.44 209 003 2 800 233.73 34627 Tito’s Handmade Vodka 1.75L Vodkas Tito’s Handmade 8 441 220.10 189 104 2 532 366.03 41200 Fireball Cinnamon 750ml American Cordials Sazerac 6 118 330.80 137 003 1 835 499.24 35412 Jack Daniel’s Old No.7 1.75L Tennessee Whiskies Brown-Forman 5 884 120.30 131 882 1 765 236.09 29820 Patron Silver 750ml Tequilas Bacardi USA 5 334 110.44 119 533 1 600 233.13 TOP 5 po total_sales. Bez ORDER BY w widoku — sortowanie po stronie aplikacji." [ref=e1513]:
+              - cell "vw_top_products" [ref=e1514]:
+                - code [ref=e1515]: vw_top_products
+              - cell "Produkt + kategoria + dostawca" [ref=e1516]
+              - cell "GROUP BY" [ref=e1517]
+              - cell "Streamlit Q6. Top 15 produktów po butelkach i obrocie (bar chart), scatter Przychód vs Wolumen (Top 50), tabela Top 50." [ref=e1518]:
+                - strong [ref=e1520]: Streamlit Q6.
+                - text: Top 15 produktów po butelkach i obrocie (bar chart), scatter Przychód vs Wolumen (Top 50), tabela Top 50.
+              - cell "item_number item_description category_name vendor_name total_sales total_bottles_sold total_margin 27783 Jim Beam Black 1.75L Blended Whiskies Jim Beam Brands 9 334 112.44 209 003 2 800 233.73 34627 Tito’s Handmade Vodka 1.75L Vodkas Tito’s Handmade 8 441 220.10 189 104 2 532 366.03 41200 Fireball Cinnamon 750ml American Cordials Sazerac 6 118 330.80 137 003 1 835 499.24 35412 Jack Daniel’s Old No.7 1.75L Tennessee Whiskies Brown-Forman 5 884 120.30 131 882 1 765 236.09 29820 Patron Silver 750ml Tequilas Bacardi USA 5 334 110.44 119 533 1 600 233.13 TOP 5 po total_sales. Bez ORDER BY w widoku — sortowanie po stronie aplikacji." [ref=e1521]:
+                - generic [ref=e1522]:
+                  - table [ref=e1523]:
+                    - rowgroup [ref=e1524]:
+                      - row "item_number item_description category_name vendor_name total_sales total_bottles_sold total_margin" [ref=e1525]:
+                        - columnheader "item_number" [ref=e1526]
+                        - columnheader "item_description" [ref=e1527]
+                        - columnheader "category_name" [ref=e1528]
+                        - columnheader "vendor_name" [ref=e1529]
+                        - columnheader "total_sales" [ref=e1530]
+                        - columnheader "total_bottles_sold" [ref=e1531]
+                        - columnheader "total_margin" [ref=e1532]
+                    - rowgroup [ref=e1533]:
+                      - row "27783 Jim Beam Black 1.75L Blended Whiskies Jim Beam Brands 9 334 112.44 209 003 2 800 233.73" [ref=e1534]:
+                        - cell "27783" [ref=e1535]
+                        - cell "Jim Beam Black 1.75L" [ref=e1536]
+                        - cell "Blended Whiskies" [ref=e1537]
+                        - cell "Jim Beam Brands" [ref=e1538]
+                        - cell "9 334 112.44" [ref=e1539]
+                        - cell "209 003" [ref=e1540]
+                        - cell "2 800 233.73" [ref=e1541]
+                      - row "34627 Tito’s Handmade Vodka 1.75L Vodkas Tito’s Handmade 8 441 220.10 189 104 2 532 366.03" [ref=e1542]:
+                        - cell "34627" [ref=e1543]
+                        - cell "Tito’s Handmade Vodka 1.75L" [ref=e1544]
+                        - cell "Vodkas" [ref=e1545]
+                        - cell "Tito’s Handmade" [ref=e1546]
+                        - cell "8 441 220.10" [ref=e1547]
+                        - cell "189 104" [ref=e1548]
+                        - cell "2 532 366.03" [ref=e1549]
+                      - row "41200 Fireball Cinnamon 750ml American Cordials Sazerac 6 118 330.80 137 003 1 835 499.24" [ref=e1550]:
+                        - cell "41200" [ref=e1551]
+                        - cell "Fireball Cinnamon 750ml" [ref=e1552]
+                        - cell "American Cordials" [ref=e1553]
+                        - cell "Sazerac" [ref=e1554]
+                        - cell "6 118 330.80" [ref=e1555]
+                        - cell "137 003" [ref=e1556]
+                        - cell "1 835 499.24" [ref=e1557]
+                      - row "35412 Jack Daniel’s Old No.7 1.75L Tennessee Whiskies Brown-Forman 5 884 120.30 131 882 1 765 236.09" [ref=e1558]:
+                        - cell "35412" [ref=e1559]
+                        - cell "Jack Daniel’s Old No.7 1.75L" [ref=e1560]
+                        - cell "Tennessee Whiskies" [ref=e1561]
+                        - cell "Brown-Forman" [ref=e1562]
+                        - cell "5 884 120.30" [ref=e1563]
+                        - cell "131 882" [ref=e1564]
+                        - cell "1 765 236.09" [ref=e1565]
+                      - row "29820 Patron Silver 750ml Tequilas Bacardi USA 5 334 110.44 119 533 1 600 233.13" [ref=e1566]:
+                        - cell "29820" [ref=e1567]
+                        - cell "Patron Silver 750ml" [ref=e1568]
+                        - cell "Tequilas" [ref=e1569]
+                        - cell "Bacardi USA" [ref=e1570]
+                        - cell "5 334 110.44" [ref=e1571]
+                        - cell "119 533" [ref=e1572]
+                        - cell "1 600 233.13" [ref=e1573]
+                  - paragraph [ref=e1574]: TOP 5 po total_sales. Bez ORDER BY w widoku — sortowanie po stronie aplikacji.
+            - 'row "vw_margin_analysis Kategoria + dostawca + produkt AVG, SUM Streamlit Q7. Top 20 produktów według średniej marży jednostkowej. Filtr: total_sales >= 5000 — eliminuje produkty-widma (jednorazowe transakcje z absurdalną marżą jednostkową). category_name item_description state_bottle_cost state_bottle_retail avg_unit_margin total_margin total_sales Vodkas Tito’s 1.75L 14.40 21.60 7.20 2 532 366.03 8 441 220.10 Blended Whiskies Jim Beam Black 1.75L 9.36 14.04 4.68 2 800 233.73 9 334 112.44 Tequilas Patron Silver 750ml 21.12 31.68 10.56 1 600 233.13 5 334 110.44 Rum Captain Morgan 1.75L 11.04 16.56 5.52 1 104 228.80 3 681 110.44 American Cordials Fireball 750ml 6.24 9.36 3.12 1 835 499.24 6 118 330.80 avg_unit_margin = AVG(retail - cost). total_margin = SUM(margin_amount) z faktów (wyliczone przy INSERT)." [ref=e1575]':
+              - cell "vw_margin_analysis" [ref=e1576]:
+                - code [ref=e1577]: vw_margin_analysis
+              - cell "Kategoria + dostawca + produkt" [ref=e1578]
+              - cell "AVG, SUM" [ref=e1579]
+              - 'cell "Streamlit Q7. Top 20 produktów według średniej marży jednostkowej. Filtr: total_sales >= 5000 — eliminuje produkty-widma (jednorazowe transakcje z absurdalną marżą jednostkową)." [ref=e1580]':
+                - strong [ref=e1582]: Streamlit Q7.
+                - text: "Top 20 produktów według średniej marży jednostkowej. Filtr:"
+                - code [ref=e1583]: total_sales >= 5000
+                - text: — eliminuje produkty-widma (jednorazowe transakcje z absurdalną marżą jednostkową).
+              - cell "category_name item_description state_bottle_cost state_bottle_retail avg_unit_margin total_margin total_sales Vodkas Tito’s 1.75L 14.40 21.60 7.20 2 532 366.03 8 441 220.10 Blended Whiskies Jim Beam Black 1.75L 9.36 14.04 4.68 2 800 233.73 9 334 112.44 Tequilas Patron Silver 750ml 21.12 31.68 10.56 1 600 233.13 5 334 110.44 Rum Captain Morgan 1.75L 11.04 16.56 5.52 1 104 228.80 3 681 110.44 American Cordials Fireball 750ml 6.24 9.36 3.12 1 835 499.24 6 118 330.80 avg_unit_margin = AVG(retail - cost). total_margin = SUM(margin_amount) z faktów (wyliczone przy INSERT)." [ref=e1584]:
+                - generic [ref=e1585]:
+                  - table [ref=e1586]:
+                    - rowgroup [ref=e1587]:
+                      - row "category_name item_description state_bottle_cost state_bottle_retail avg_unit_margin total_margin total_sales" [ref=e1588]:
+                        - columnheader "category_name" [ref=e1589]
+                        - columnheader "item_description" [ref=e1590]
+                        - columnheader "state_bottle_cost" [ref=e1591]
+                        - columnheader "state_bottle_retail" [ref=e1592]
+                        - columnheader "avg_unit_margin" [ref=e1593]
+                        - columnheader "total_margin" [ref=e1594]
+                        - columnheader "total_sales" [ref=e1595]
+                    - rowgroup [ref=e1596]:
+                      - row "Vodkas Tito’s 1.75L 14.40 21.60 7.20 2 532 366.03 8 441 220.10" [ref=e1597]:
+                        - cell "Vodkas" [ref=e1598]
+                        - cell "Tito’s 1.75L" [ref=e1599]
+                        - cell "14.40" [ref=e1600]
+                        - cell "21.60" [ref=e1601]
+                        - cell "7.20" [ref=e1602]
+                        - cell "2 532 366.03" [ref=e1603]
+                        - cell "8 441 220.10" [ref=e1604]
+                      - row "Blended Whiskies Jim Beam Black 1.75L 9.36 14.04 4.68 2 800 233.73 9 334 112.44" [ref=e1605]:
+                        - cell "Blended Whiskies" [ref=e1606]
+                        - cell "Jim Beam Black 1.75L" [ref=e1607]
+                        - cell "9.36" [ref=e1608]
+                        - cell "14.04" [ref=e1609]
+                        - cell "4.68" [ref=e1610]
+                        - cell "2 800 233.73" [ref=e1611]
+                        - cell "9 334 112.44" [ref=e1612]
+                      - row "Tequilas Patron Silver 750ml 21.12 31.68 10.56 1 600 233.13 5 334 110.44" [ref=e1613]:
+                        - cell "Tequilas" [ref=e1614]
+                        - cell "Patron Silver 750ml" [ref=e1615]
+                        - cell "21.12" [ref=e1616]
+                        - cell "31.68" [ref=e1617]
+                        - cell "10.56" [ref=e1618]
+                        - cell "1 600 233.13" [ref=e1619]
+                        - cell "5 334 110.44" [ref=e1620]
+                      - row "Rum Captain Morgan 1.75L 11.04 16.56 5.52 1 104 228.80 3 681 110.44" [ref=e1621]:
+                        - cell "Rum" [ref=e1622]
+                        - cell "Captain Morgan 1.75L" [ref=e1623]
+                        - cell "11.04" [ref=e1624]
+                        - cell "16.56" [ref=e1625]
+                        - cell "5.52" [ref=e1626]
+                        - cell "1 104 228.80" [ref=e1627]
+                        - cell "3 681 110.44" [ref=e1628]
+                      - row "American Cordials Fireball 750ml 6.24 9.36 3.12 1 835 499.24 6 118 330.80" [ref=e1629]:
+                        - cell "American Cordials" [ref=e1630]
+                        - cell "Fireball 750ml" [ref=e1631]
+                        - cell "6.24" [ref=e1632]
+                        - cell "9.36" [ref=e1633]
+                        - cell "3.12" [ref=e1634]
+                        - cell "1 835 499.24" [ref=e1635]
+                        - cell "6 118 330.80" [ref=e1636]
+                  - paragraph [ref=e1637]: avg_unit_margin = AVG(retail - cost). total_margin = SUM(margin_amount) z faktów (wyliczone przy INSERT).
+            - row "vw_volume_vs_revenue Stan + hrabstwo + miasto SUM + NULLIF (dzielenie) Streamlit Q9. Scatter wolumen vs przychód (log-log) + bar chart county z 75. percentyla wolumenu w górę. Pole sales_per_liter wyliczone przez NULLIF w widoku. county city total_volume_liters total_sales sales_per_liter store_count Polk Des Moines 288 441.30 38 441 220.10 133.27 187 Linn Cedar Rapids 166 334.80 22 118 330.44 133.00 112 Scott Davenport 130 112.44 17 334 120.80 133.22 89 Johnson Iowa City 106 884.10 14 221 440.30 133.06 71 Black Hawk Waterloo 89 334.20 11 884 330.10 133.04 62 sales_per_liter = SUM(sale_dollars) / NULLIF(SUM(volume_sold_liters), 0). Identyczna marżowość wolumenowa we wszystkich miastach Iowa." [ref=e1638]:
+              - cell "vw_volume_vs_revenue" [ref=e1639]:
+                - code [ref=e1640]: vw_volume_vs_revenue
+              - cell "Stan + hrabstwo + miasto" [ref=e1641]
+              - cell "SUM + NULLIF (dzielenie)" [ref=e1642]
+              - cell "Streamlit Q9. Scatter wolumen vs przychód (log-log) + bar chart county z 75. percentyla wolumenu w górę. Pole sales_per_liter wyliczone przez NULLIF w widoku." [ref=e1643]:
+                - strong [ref=e1645]: Streamlit Q9.
+                - text: Scatter wolumen vs przychód (log-log) + bar chart county z 75. percentyla wolumenu w górę. Pole
+                - code [ref=e1646]: sales_per_liter
+                - text: wyliczone przez
+                - code [ref=e1647]: NULLIF
+                - text: w widoku.
+              - cell "county city total_volume_liters total_sales sales_per_liter store_count Polk Des Moines 288 441.30 38 441 220.10 133.27 187 Linn Cedar Rapids 166 334.80 22 118 330.44 133.00 112 Scott Davenport 130 112.44 17 334 120.80 133.22 89 Johnson Iowa City 106 884.10 14 221 440.30 133.06 71 Black Hawk Waterloo 89 334.20 11 884 330.10 133.04 62 sales_per_liter = SUM(sale_dollars) / NULLIF(SUM(volume_sold_liters), 0). Identyczna marżowość wolumenowa we wszystkich miastach Iowa." [ref=e1648]:
+                - generic [ref=e1649]:
+                  - table [ref=e1650]:
+                    - rowgroup [ref=e1651]:
+                      - row "county city total_volume_liters total_sales sales_per_liter store_count" [ref=e1652]:
+                        - columnheader "county" [ref=e1653]
+                        - columnheader "city" [ref=e1654]
+                        - columnheader "total_volume_liters" [ref=e1655]
+                        - columnheader "total_sales" [ref=e1656]
+                        - columnheader "sales_per_liter" [ref=e1657]
+                        - columnheader "store_count" [ref=e1658]
+                    - rowgroup [ref=e1659]:
+                      - row "Polk Des Moines 288 441.30 38 441 220.10 133.27 187" [ref=e1660]:
+                        - cell "Polk" [ref=e1661]
+                        - cell "Des Moines" [ref=e1662]
+                        - cell "288 441.30" [ref=e1663]
+                        - cell "38 441 220.10" [ref=e1664]
+                        - cell "133.27" [ref=e1665]
+                        - cell "187" [ref=e1666]
+                      - row "Linn Cedar Rapids 166 334.80 22 118 330.44 133.00 112" [ref=e1667]:
+                        - cell "Linn" [ref=e1668]
+                        - cell "Cedar Rapids" [ref=e1669]
+                        - cell "166 334.80" [ref=e1670]
+                        - cell "22 118 330.44" [ref=e1671]
+                        - cell "133.00" [ref=e1672]
+                        - cell "112" [ref=e1673]
+                      - row "Scott Davenport 130 112.44 17 334 120.80 133.22 89" [ref=e1674]:
+                        - cell "Scott" [ref=e1675]
+                        - cell "Davenport" [ref=e1676]
+                        - cell "130 112.44" [ref=e1677]
+                        - cell "17 334 120.80" [ref=e1678]
+                        - cell "133.22" [ref=e1679]
+                        - cell "89" [ref=e1680]
+                      - row "Johnson Iowa City 106 884.10 14 221 440.30 133.06 71" [ref=e1681]:
+                        - cell "Johnson" [ref=e1682]
+                        - cell "Iowa City" [ref=e1683]
+                        - cell "106 884.10" [ref=e1684]
+                        - cell "14 221 440.30" [ref=e1685]
+                        - cell "133.06" [ref=e1686]
+                        - cell "71" [ref=e1687]
+                      - row "Black Hawk Waterloo 89 334.20 11 884 330.10 133.04 62" [ref=e1688]:
+                        - cell "Black Hawk" [ref=e1689]
+                        - cell "Waterloo" [ref=e1690]
+                        - cell "89 334.20" [ref=e1691]
+                        - cell "11 884 330.10" [ref=e1692]
+                        - cell "133.04" [ref=e1693]
+                        - cell "62" [ref=e1694]
+                  - paragraph [ref=e1695]: sales_per_liter = SUM(sale_dollars) / NULLIF(SUM(volume_sold_liters), 0). Identyczna marżowość wolumenowa we wszystkich miastach Iowa.
+            - row "vw_avg_sales_per_store_by_month_region Rok + miesiąc + region CTE monthly_store_sales + AVG Streamlit Q10. Trend średniej sprzedaży na sklep dla Top 8 county (line chart). CTE w widoku liczy per sklep per miesiąc → AVG — poprawna metoda uśredniania. year year_month county city store_count avg_sales_per_store avg_bottles_per_store 2023 2023-01 Polk Des Moines 187 98 614.53 2 209 2023 2023-01 Linn Cedar Rapids 112 87 312.20 1 955 2023 2023-01 Scott Davenport 89 81 443.11 1 824 2023 2023-02 Polk Des Moines 187 91 223.44 2 042 2023 2023-02 Linn Cedar Rapids 112 80 114.30 1 794 CTE liczy sprzedaż per sklep per miesiąc → zewnętrzny AVG. Poprawna metoda — nie average of averages." [ref=e1696]:
+              - cell "vw_avg_sales_per_store_by_month_region" [ref=e1697]:
+                - code [ref=e1698]: vw_avg_sales_per_store_by_month_region
+              - cell "Rok + miesiąc + region" [ref=e1699]
+              - cell "CTE monthly_store_sales + AVG" [ref=e1700]:
+                - text: CTE
+                - code [ref=e1701]: monthly_store_sales
+                - text: + AVG
+              - cell "Streamlit Q10. Trend średniej sprzedaży na sklep dla Top 8 county (line chart). CTE w widoku liczy per sklep per miesiąc → AVG — poprawna metoda uśredniania." [ref=e1702]:
+                - strong [ref=e1704]: Streamlit Q10.
+                - text: Trend średniej sprzedaży na sklep dla Top 8 county (line chart). CTE w widoku liczy per sklep per miesiąc → AVG — poprawna metoda uśredniania.
+              - cell "year year_month county city store_count avg_sales_per_store avg_bottles_per_store 2023 2023-01 Polk Des Moines 187 98 614.53 2 209 2023 2023-01 Linn Cedar Rapids 112 87 312.20 1 955 2023 2023-01 Scott Davenport 89 81 443.11 1 824 2023 2023-02 Polk Des Moines 187 91 223.44 2 042 2023 2023-02 Linn Cedar Rapids 112 80 114.30 1 794 CTE liczy sprzedaż per sklep per miesiąc → zewnętrzny AVG. Poprawna metoda — nie average of averages." [ref=e1705]:
+                - generic [ref=e1706]:
+                  - table [ref=e1707]:
+                    - rowgroup [ref=e1708]:
+                      - row "year year_month county city store_count avg_sales_per_store avg_bottles_per_store" [ref=e1709]:
+                        - columnheader "year" [ref=e1710]
+                        - columnheader "year_month" [ref=e1711]
+                        - columnheader "county" [ref=e1712]
+                        - columnheader "city" [ref=e1713]
+                        - columnheader "store_count" [ref=e1714]
+                        - columnheader "avg_sales_per_store" [ref=e1715]
+                        - columnheader "avg_bottles_per_store" [ref=e1716]
+                    - rowgroup [ref=e1717]:
+                      - row "2023 2023-01 Polk Des Moines 187 98 614.53 2 209" [ref=e1718]:
+                        - cell "2023" [ref=e1719]
+                        - cell "2023-01" [ref=e1720]
+                        - cell "Polk" [ref=e1721]
+                        - cell "Des Moines" [ref=e1722]
+                        - cell "187" [ref=e1723]
+                        - cell "98 614.53" [ref=e1724]
+                        - cell "2 209" [ref=e1725]
+                      - row "2023 2023-01 Linn Cedar Rapids 112 87 312.20 1 955" [ref=e1726]:
+                        - cell "2023" [ref=e1727]
+                        - cell "2023-01" [ref=e1728]
+                        - cell "Linn" [ref=e1729]
+                        - cell "Cedar Rapids" [ref=e1730]
+                        - cell "112" [ref=e1731]
+                        - cell "87 312.20" [ref=e1732]
+                        - cell "1 955" [ref=e1733]
+                      - row "2023 2023-01 Scott Davenport 89 81 443.11 1 824" [ref=e1734]:
+                        - cell "2023" [ref=e1735]
+                        - cell "2023-01" [ref=e1736]
+                        - cell "Scott" [ref=e1737]
+                        - cell "Davenport" [ref=e1738]
+                        - cell "89" [ref=e1739]
+                        - cell "81 443.11" [ref=e1740]
+                        - cell "1 824" [ref=e1741]
+                      - row "2023 2023-02 Polk Des Moines 187 91 223.44 2 042" [ref=e1742]:
+                        - cell "2023" [ref=e1743]
+                        - cell "2023-02" [ref=e1744]
+                        - cell "Polk" [ref=e1745]
+                        - cell "Des Moines" [ref=e1746]
+                        - cell "187" [ref=e1747]
+                        - cell "91 223.44" [ref=e1748]
+                        - cell "2 042" [ref=e1749]
+                      - row "2023 2023-02 Linn Cedar Rapids 112 80 114.30 1 794" [ref=e1750]:
+                        - cell "2023" [ref=e1751]
+                        - cell "2023-02" [ref=e1752]
+                        - cell "Linn" [ref=e1753]
+                        - cell "Cedar Rapids" [ref=e1754]
+                        - cell "112" [ref=e1755]
+                        - cell "80 114.30" [ref=e1756]
+                        - cell "1 794" [ref=e1757]
+                  - paragraph [ref=e1758]: CTE liczy sprzedaż per sklep per miesiąc → zewnętrzny AVG. Poprawna metoda — nie average of averages.
+            - 'row "vw_kpi_summary Całość (1 wiersz) SUM, COUNT DISTINCT, NULLIF Streamlit — pasek KPI nad zakładkami. 8 kafelków st.metric() wyświetlanych ponad Q1–Q12: łączna sprzedaż, marża, marża %, transakcje (sales_line_count), faktury, sklepy, produkty, śr. wartość faktury. Wyliczone kolumny wyliczone w widoku przez NULLIF: avg_margin_percent = CAST(100.0 × SUM(margin) / NULLIF(SUM(sales), 0) AS DECIMAL(9,2)). Kafelki odświeżane co 5 minut (@st.cache_data(ttl=300)). total_sales total_margin sales_line_count invoice_count store_count product_count avg_invoice_value avg_margin_percent 223 881 441.33 67 164 432.40 4 982 331 2 412 884 1 874 9 412 92.80 30.00 Jeden wiersz. Każde dzielenie chronione NULLIF. avg_margin_percent = 100 × total_margin / NULLIF(total_sales, 0)." [ref=e1759]':
+              - cell "vw_kpi_summary" [ref=e1760]:
+                - code [ref=e1761]: vw_kpi_summary
+              - cell "Całość (1 wiersz)" [ref=e1762]
+              - cell "SUM, COUNT DISTINCT, NULLIF" [ref=e1763]
+              - 'cell "Streamlit — pasek KPI nad zakładkami. 8 kafelków st.metric() wyświetlanych ponad Q1–Q12: łączna sprzedaż, marża, marża %, transakcje (sales_line_count), faktury, sklepy, produkty, śr. wartość faktury. Wyliczone kolumny wyliczone w widoku przez NULLIF: avg_margin_percent = CAST(100.0 × SUM(margin) / NULLIF(SUM(sales), 0) AS DECIMAL(9,2)). Kafelki odświeżane co 5 minut (@st.cache_data(ttl=300))." [ref=e1764]':
+                - strong [ref=e1766]: Streamlit — pasek KPI nad zakładkami.
+                - text: 8 kafelków
+                - code [ref=e1767]: st.metric()
+                - text: "wyświetlanych ponad Q1–Q12: łączna sprzedaż, marża, marża %, transakcje (sales_line_count), faktury, sklepy, produkty, śr. wartość faktury. Wyliczone kolumny wyliczone w widoku przez"
+                - code [ref=e1768]: NULLIF
+                - text: ":"
+                - code [ref=e1769]: avg_margin_percent = CAST(100.0 × SUM(margin) / NULLIF(SUM(sales), 0) AS DECIMAL(9,2))
+                - text: . Kafelki odświeżane co 5 minut (
+                - code [ref=e1770]: "@st.cache_data(ttl=300)"
+                - text: ).
+              - cell "total_sales total_margin sales_line_count invoice_count store_count product_count avg_invoice_value avg_margin_percent 223 881 441.33 67 164 432.40 4 982 331 2 412 884 1 874 9 412 92.80 30.00 Jeden wiersz. Każde dzielenie chronione NULLIF. avg_margin_percent = 100 × total_margin / NULLIF(total_sales, 0)." [ref=e1771]:
+                - generic [ref=e1772]:
+                  - table [ref=e1773]:
+                    - rowgroup [ref=e1774]:
+                      - row "total_sales total_margin sales_line_count invoice_count store_count product_count avg_invoice_value avg_margin_percent" [ref=e1775]:
+                        - columnheader "total_sales" [ref=e1776]
+                        - columnheader "total_margin" [ref=e1777]
+                        - columnheader "sales_line_count" [ref=e1778]
+                        - columnheader "invoice_count" [ref=e1779]
+                        - columnheader "store_count" [ref=e1780]
+                        - columnheader "product_count" [ref=e1781]
+                        - columnheader "avg_invoice_value" [ref=e1782]
+                        - columnheader "avg_margin_percent" [ref=e1783]
+                    - rowgroup [ref=e1784]:
+                      - row "223 881 441.33 67 164 432.40 4 982 331 2 412 884 1 874 9 412 92.80 30.00" [ref=e1785]:
+                        - cell "223 881 441.33" [ref=e1786]
+                        - cell "67 164 432.40" [ref=e1787]
+                        - cell "4 982 331" [ref=e1788]
+                        - cell "2 412 884" [ref=e1789]
+                        - cell "1 874" [ref=e1790]
+                        - cell "9 412" [ref=e1791]
+                        - cell "92.80" [ref=e1792]
+                        - cell "30.00" [ref=e1793]
+                  - paragraph [ref=e1794]: Jeden wiersz. Każde dzielenie chronione NULLIF. avg_margin_percent = 100 × total_margin / NULLIF(total_sales, 0).
+            - 'row "vw_etl_status Metadane (1 wiersz) Subquery COUNT, MIN, MAX Streamlit — pasek statusu ETL (caption). Uzupełnia manifest ekstrakcji o dane z bazy: fact_sales={n}, dim_store={n}, dim_product={n}, zakres dat, timestamp ostatniego ładowania. Parsowany w show_dataset_status() — try/except chroni przed błędem gdy baza niedostępna. status_generated_at staging_row_count fact_row_count dim_store_count dim_product_count min_date max_date last_fact_load_timestamp 2023-06-15 14:32:01 4 982 331 4 982 331 1 874 9 412 2012-01-03 2023-06-14 2023-06-15 14:31:44 Subquery COUNT/MIN/MAX. staging_row_count = fact_row_count → brak strat (kontrola Q3 potwierdza)." [ref=e1795]':
+              - cell "vw_etl_status" [ref=e1796]:
+                - code [ref=e1797]: vw_etl_status
+              - cell "Metadane (1 wiersz)" [ref=e1798]
+              - cell "Subquery COUNT, MIN, MAX" [ref=e1799]
+              - 'cell "Streamlit — pasek statusu ETL (caption). Uzupełnia manifest ekstrakcji o dane z bazy: fact_sales={n}, dim_store={n}, dim_product={n}, zakres dat, timestamp ostatniego ładowania. Parsowany w show_dataset_status() — try/except chroni przed błędem gdy baza niedostępna." [ref=e1800]':
+                - strong [ref=e1802]: Streamlit — pasek statusu ETL (caption).
+                - text: "Uzupełnia manifest ekstrakcji o dane z bazy:"
+                - code [ref=e1803]: "fact_sales={n}"
+                - text: ","
+                - code [ref=e1804]: "dim_store={n}"
+                - text: ","
+                - code [ref=e1805]: "dim_product={n}"
+                - text: ", zakres dat, timestamp ostatniego ładowania. Parsowany w"
+                - code [ref=e1806]: show_dataset_status()
+                - text: —
+                - code [ref=e1807]: try/except
+                - text: chroni przed błędem gdy baza niedostępna.
+              - cell "status_generated_at staging_row_count fact_row_count dim_store_count dim_product_count min_date max_date last_fact_load_timestamp 2023-06-15 14:32:01 4 982 331 4 982 331 1 874 9 412 2012-01-03 2023-06-14 2023-06-15 14:31:44 Subquery COUNT/MIN/MAX. staging_row_count = fact_row_count → brak strat (kontrola Q3 potwierdza)." [ref=e1808]:
+                - generic [ref=e1809]:
+                  - table [ref=e1810]:
+                    - rowgroup [ref=e1811]:
+                      - row "status_generated_at staging_row_count fact_row_count dim_store_count dim_product_count min_date max_date last_fact_load_timestamp" [ref=e1812]:
+                        - columnheader "status_generated_at" [ref=e1813]
+                        - columnheader "staging_row_count" [ref=e1814]
+                        - columnheader "fact_row_count" [ref=e1815]
+                        - columnheader "dim_store_count" [ref=e1816]
+                        - columnheader "dim_product_count" [ref=e1817]
+                        - columnheader "min_date" [ref=e1818]
+                        - columnheader "max_date" [ref=e1819]
+                        - columnheader "last_fact_load_timestamp" [ref=e1820]
+                    - rowgroup [ref=e1821]:
+                      - row "2023-06-15 14:32:01 4 982 331 4 982 331 1 874 9 412 2012-01-03 2023-06-14 2023-06-15 14:31:44" [ref=e1822]:
+                        - cell "2023-06-15 14:32:01" [ref=e1823]
+                        - cell "4 982 331" [ref=e1824]
+                        - cell "4 982 331" [ref=e1825]
+                        - cell "1 874" [ref=e1826]
+                        - cell "9 412" [ref=e1827]
+                        - cell "2012-01-03" [ref=e1828]
+                        - cell "2023-06-14" [ref=e1829]
+                        - cell "2023-06-15 14:31:44" [ref=e1830]
+                  - paragraph [ref=e1831]: Subquery COUNT/MIN/MAX. staging_row_count = fact_row_count → brak strat (kontrola Q3 potwierdza).
+        - table [ref=e1832]:
+          - rowgroup [ref=e1833]:
+            - row "Kontrola Zapytanie (uproszczone) Warunek OK Co wykrywa gdy FAIL" [ref=e1834]:
+              - columnheader "Kontrola" [ref=e1835]
+              - columnheader "Zapytanie (uproszczone)" [ref=e1836]
+              - columnheader "Warunek OK" [ref=e1837]
+              - columnheader "Co wykrywa gdy FAIL" [ref=e1838]
+          - rowgroup [ref=e1839]:
+            - row "staging_row_count COUNT_BIG(*) FROM stg > 0 Staging jest pusty - ekstrakcja lub INSERT zawiodły." [ref=e1840]:
+              - cell "staging_row_count" [ref=e1841]:
+                - code [ref=e1842]: staging_row_count
+              - cell "COUNT_BIG(*) FROM stg" [ref=e1843]:
+                - code [ref=e1844]: COUNT_BIG(*) FROM stg
+              - cell "> 0" [ref=e1845]
+              - cell "Staging jest pusty - ekstrakcja lub INSERT zawiodły." [ref=e1846]
+            - row "eligible_staging_row_count COUNT_BIG(*) FROM stg WHERE sale_dollars≥0 AND bottles_sold≥0 AND volume≥0 > 0 Brak wierszy kwalifikujących się do faktów - wszystkie dane mają ujemne miary." [ref=e1847]:
+              - cell "eligible_staging_row_count" [ref=e1848]:
+                - code [ref=e1849]: eligible_staging_row_count
+              - cell "COUNT_BIG(*) FROM stg WHERE sale_dollars≥0 AND bottles_sold≥0 AND volume≥0" [ref=e1850]:
+                - code [ref=e1851]: COUNT_BIG(*) FROM stg WHERE sale_dollars≥0 AND bottles_sold≥0 AND volume≥0
+              - cell "> 0" [ref=e1852]
+              - cell "Brak wierszy kwalifikujących się do faktów - wszystkie dane mają ujemne miary." [ref=e1853]
+            - row "fact_row_count COUNT_BIG(*) FROM fact_sales > 0 Tabela faktów jest pusta - INSERT do faktów zawiódł." [ref=e1854]:
+              - cell "fact_row_count" [ref=e1855]:
+                - code [ref=e1856]: fact_row_count
+              - cell "COUNT_BIG(*) FROM fact_sales" [ref=e1857]:
+                - code [ref=e1858]: COUNT_BIG(*) FROM fact_sales
+              - cell "> 0" [ref=e1859]
+              - cell "Tabela faktów jest pusta - INSERT do faktów zawiódł." [ref=e1860]
+            - row "eligible_staging_fact_row_count_difference ABS(eligible_stg_count - fact_count) = 0 Część kwalifikujących wierszy nie trafiła do faktów - nieudane JOINy (brak klucza w wymiarze)." [ref=e1861]:
+              - cell "eligible_staging_fact_row_count_difference" [ref=e1862]:
+                - code [ref=e1863]: eligible_staging_fact_row_count_difference
+              - cell "ABS(eligible_stg_count - fact_count)" [ref=e1864]:
+                - code [ref=e1865]: ABS(eligible_stg_count - fact_count)
+              - cell "= 0" [ref=e1866]
+              - cell "Część kwalifikujących wierszy nie trafiła do faktów - nieudane JOINy (brak klucza w wymiarze)." [ref=e1867]
+            - row "null_foreign_keys COUNT_BIG(*) FROM fact_sales WHERE date_key IS NULL OR store_key IS NULL OR … = 0 W tabeli faktów są NULL-owe klucze obce - naruszenie integralności referencyjnej." [ref=e1868]:
+              - cell "null_foreign_keys" [ref=e1869]:
+                - code [ref=e1870]: null_foreign_keys
+              - cell "COUNT_BIG(*) FROM fact_sales WHERE date_key IS NULL OR store_key IS NULL OR …" [ref=e1871]:
+                - code [ref=e1872]: COUNT_BIG(*) FROM fact_sales WHERE date_key IS NULL OR store_key IS NULL OR …
+              - cell "= 0" [ref=e1873]
+              - cell "W tabeli faktów są NULL-owe klucze obce - naruszenie integralności referencyjnej." [ref=e1874]
+            - row "negative_measures COUNT_BIG(*) FROM fact_sales WHERE sale_dollars<0 OR bottles_sold<0 OR volume<0 = 0 Ujemne miary w faktach - filtr WHERE w INSERT nie zadziałał." [ref=e1875]:
+              - cell "negative_measures" [ref=e1876]:
+                - code [ref=e1877]: negative_measures
+              - cell "COUNT_BIG(*) FROM fact_sales WHERE sale_dollars<0 OR bottles_sold<0 OR volume<0" [ref=e1878]:
+                - code [ref=e1879]: COUNT_BIG(*) FROM fact_sales WHERE sale_dollars<0 OR bottles_sold<0 OR volume<0
+              - cell "= 0" [ref=e1880]
+              - cell "Ujemne miary w faktach - filtr WHERE w INSERT nie zadziałał." [ref=e1881]
+            - row "duplicate_store_numbers SELECT store_number FROM dim_store GROUP BY ... HAVING COUNT(*)>1 = 0 Duplikaty w dim_store - deduplikacja ROW_NUMBER zawiodła." [ref=e1882]:
+              - cell "duplicate_store_numbers" [ref=e1883]:
+                - code [ref=e1884]: duplicate_store_numbers
+              - cell "SELECT store_number FROM dim_store GROUP BY ... HAVING COUNT(*)>1" [ref=e1885]:
+                - code [ref=e1886]: SELECT store_number FROM dim_store GROUP BY ... HAVING COUNT(*)>1
+              - cell "= 0" [ref=e1887]
+              - cell "Duplikaty w dim_store - deduplikacja ROW_NUMBER zawiodła." [ref=e1888]
+            - row "duplicate_product_numbers j.w. dla item_number = 0 Duplikaty w dim_product." [ref=e1889]:
+              - cell "duplicate_product_numbers" [ref=e1890]:
+                - code [ref=e1891]: duplicate_product_numbers
+              - cell "j.w. dla item_number" [ref=e1892]:
+                - text: j.w. dla
+                - code [ref=e1893]: item_number
+              - cell "= 0" [ref=e1894]
+              - cell "Duplikaty w dim_product." [ref=e1895]
+            - row "duplicate_category_numbers j.w. dla category_number = 0 Duplikaty w dim_category." [ref=e1896]:
+              - cell "duplicate_category_numbers" [ref=e1897]:
+                - code [ref=e1898]: duplicate_category_numbers
+              - cell "j.w. dla category_number" [ref=e1899]:
+                - text: j.w. dla
+                - code [ref=e1900]: category_number
+              - cell "= 0" [ref=e1901]
+              - cell "Duplikaty w dim_category." [ref=e1902]
+            - row "duplicate_vendor_numbers j.w. dla vendor_number = 0 Duplikaty w dim_vendor." [ref=e1903]:
+              - cell "duplicate_vendor_numbers" [ref=e1904]:
+                - code [ref=e1905]: duplicate_vendor_numbers
+              - cell "j.w. dla vendor_number" [ref=e1906]:
+                - text: j.w. dla
+                - code [ref=e1907]: vendor_number
+              - cell "= 0" [ref=e1908]
+              - cell "Duplikaty w dim_vendor." [ref=e1909]
+            - row "duplicate_packaging_keys j.w. dla (pack, bottle_volume_ml) = 0 Duplikaty w dim_packaging." [ref=e1910]:
+              - cell "duplicate_packaging_keys" [ref=e1911]:
+                - code [ref=e1912]: duplicate_packaging_keys
+              - cell "j.w. dla (pack, bottle_volume_ml)" [ref=e1913]:
+                - text: j.w. dla
+                - code [ref=e1914]: (pack, bottle_volume_ml)
+              - cell "= 0" [ref=e1915]
+              - cell "Duplikaty w dim_packaging." [ref=e1916]
+            - row "fact_dimension_join_failures LEFT JOIN 6 wymiarów; liczymy wiersze gdzie któryś klucz wymiaru wyszedł NULL = 0 Wiersz faktów nie ma powiązanego rekordu w wymiarze - naruszenie FK post-factum." [ref=e1917]:
+              - cell "fact_dimension_join_failures" [ref=e1918]:
+                - code [ref=e1919]: fact_dimension_join_failures
+              - cell "LEFT JOIN 6 wymiarów; liczymy wiersze gdzie któryś klucz wymiaru wyszedł NULL" [ref=e1920]
+              - cell "= 0" [ref=e1921]
+              - cell "Wiersz faktów nie ma powiązanego rekordu w wymiarze - naruszenie FK post-factum." [ref=e1922]
+            - row "raw_negative_measure_rows_excluded_from_fact COUNT_BIG(*) FROM stg WHERE sale_dollars<0 OR … informacyjna Liczba wykluczonych wierszy (zwroty). Logowana, nie powoduje błędu ETL." [ref=e1923]:
+              - cell "raw_negative_measure_rows_excluded_from_fact" [ref=e1924]:
+                - code [ref=e1925]: raw_negative_measure_rows_excluded_from_fact
+              - cell "COUNT_BIG(*) FROM stg WHERE sale_dollars<0 OR …" [ref=e1926]:
+                - code [ref=e1927]: COUNT_BIG(*) FROM stg WHERE sale_dollars<0 OR …
+              - cell "informacyjna" [ref=e1928]
+              - cell "Liczba wykluczonych wierszy (zwroty). Logowana, nie powoduje błędu ETL." [ref=e1929]
+            - row "eligible_staging_vs_fact_sales_difference ABS(SUM(sale_dollars ze stg kwalifikujące) - SUM(sale_dollars z fact_sales)) ≤ 0.01 USD Różnica sum sprzedaży powyżej 1 centa - INSERT utracił lub zmodyfikował wartości finansowe." [ref=e1930]:
+              - cell "eligible_staging_vs_fact_sales_difference" [ref=e1931]:
+                - code [ref=e1932]: eligible_staging_vs_fact_sales_difference
+              - cell "ABS(SUM(sale_dollars ze stg kwalifikujące) - SUM(sale_dollars z fact_sales))" [ref=e1933]:
+                - code [ref=e1934]: ABS(SUM(sale_dollars ze stg kwalifikujące) - SUM(sale_dollars z fact_sales))
+              - cell "≤ 0.01 USD" [ref=e1935]
+              - cell "Różnica sum sprzedaży powyżej 1 centa - INSERT utracił lub zmodyfikował wartości finansowe." [ref=e1936]
+      - generic [ref=e1937]:
+        - strong [ref=e1938]: "Wynik:"
+        - text: lista par
+        - code [ref=e1939]: (name, value)
+        - text: "- wszystkie 14 kontroli. Jeśli wszystkie przeszły: ETL zakończony sukcesem. Jeśli choć jedna zawiedzie:"
+        - code [ref=e1940]: ValueError
+        - text: z listą wszystkich błędów naraz, Airflow task FAILED.
+    - generic [ref=e1941]:
+      - generic [ref=e1942]:
+        - heading "Dashboard Streamlit" [level=2] [ref=e1943]
+        - paragraph [ref=e1944]:
+          - text: Warstwa prezentacji. Połączenie do SQL Server przez SQLAlchemy + pyodbc. Odpytuje wyłącznie widoki
+          - code [ref=e1945]: sem.*
+          - text: . Wyniki buforowane przez
+          - code [ref=e1946]: "@st.cache_data"
+          - text: .
+      - generic [ref=e1947]:
+        - article [ref=e1948]:
+          - heading "KPI i trend" [level=3] [ref=e1949]
+          - paragraph [ref=e1950]:
+            - code [ref=e1951]: vw_kpi_summary
+            - text: (1 wiersz) - łączna sprzedaż, marża, liczba transakcji, unikalne sklepy i produkty. Trend miesięczny z
+            - code [ref=e1952]: vw_sales_by_month
+            - text: . Porównanie weekend vs weekday z
+            - code [ref=e1953]: vw_sales_by_day_type
+            - text: .
+        - article [ref=e1954]:
+          - heading "Kategorie i dostawcy" [level=3] [ref=e1955]
+          - paragraph [ref=e1956]:
+            - text: Rankingi z
+            - code [ref=e1957]: vw_sales_by_category
+            - text: i
+            - code [ref=e1958]: vw_sales_by_vendor
+            - text: "- z gotowymi udziałami %. Trend kategorii z"
+            - code [ref=e1959]: vw_category_sales_over_time
+            - text: . Analiza marży z
+            - code [ref=e1960]: vw_margin_analysis
+            - text: .
+        - article [ref=e1961]:
+          - heading "Mapa i geografia" [level=3] [ref=e1962]
+          - paragraph [ref=e1963]:
+            - text: Punkty sklepów z
+            - code [ref=e1964]: vw_sales_map_points
+            - text: (tylko te z latitude/longitude). Geograficzne zestawienie hrabstw z
+            - code [ref=e1965]: vw_sales_by_geography
+            - text: . Efektywność cenowa z
+            - code [ref=e1966]: vw_volume_vs_revenue
+            - text: .
+    - generic [ref=e1967]:
+      - generic [ref=e1968]:
+        - heading "Dostęp i weryfikacja" [level=2] [ref=e1969]
+        - paragraph [ref=e1970]: Komendy do pracy z projektem i szybkiej weryfikacji stanu danych po ETL.
+      - generic [ref=e1971]:
+        - article [ref=e1972]:
+          - generic [ref=e1973]:
+            - text: Pełny ETL
+            - text: z terminala
+          - generic [ref=e1975]:
+            - generic [ref=e1976]:
+              - generic [ref=e1977]: terminal
+              - button "Kopiuj" [ref=e1978] [cursor=pointer]
+            - generic [ref=e1979]: docker compose run --rm airflow python -m src.run_initial_etl
+        - article [ref=e1980]:
+          - generic [ref=e1981]:
+            - text: Weryfikacja
+            - text: stanu danych
+          - generic [ref=e1983]:
+            - generic [ref=e1985]: SQL - szybki status
+            - generic [ref=e1986]: SELECT * FROM sem.vw_etl_status; SELECT total_sales, total_margin, sales_line_count, avg_margin_percent FROM sem.vw_kpi_summary; SELECT COUNT(*) FROM dw.fact_sales; SELECT COUNT(*) FROM stg.iowa_liquor_sales_raw;
+        - article [ref=e1987]:
+          - generic [ref=e1988]:
+            - text: Pełny raport SQL
+            - text: (06_summary)
+          - generic [ref=e1989]:
+            - paragraph [ref=e1990]:
+              - text: Skrypt
+              - code [ref=e1991]: sql/06_warehouse_summary.sql
+              - text: generuje szczegółowy raport z weryfikacją Medallion flow, próbkami 16 widoków semantycznych oraz podsumowaniem QC.
+            - generic [ref=e1992]:
+              - generic [ref=e1993]:
+                - generic [ref=e1994]: terminal - przez Docker (zalecane)
+                - button "Kopiuj" [ref=e1995] [cursor=pointer]
+              - generic [ref=e1996]: docker exec -i iowa-liquor-sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U admin -P "admin" -d IowaLiquorDW -C < sql/06_warehouse_summary.sql
+            - generic [ref=e1997]:
+              - generic [ref=e1998]:
+                - generic [ref=e1999]: terminal - lokalnie (wymaga sqlcmd)
+                - button "Kopiuj" [ref=e2000] [cursor=pointer]
+              - generic [ref=e2001]: sqlcmd -S localhost,1433 -U admin -P "admin" -d IowaLiquorDW -i sql/06_warehouse_summary.sql -C
+        - article [ref=e2002]:
+          - generic [ref=e2003]:
+            - text: SQL Server
+            - text: z Codespaces
+          - generic [ref=e2004]:
+            - generic [ref=e2005]:
+              - generic [ref=e2007]: port forward
+              - generic [ref=e2008]: gh cs ports forward 1433:1433 -c <codespace-name>
+            - generic [ref=e2009]:
+              - generic [ref=e2011]: sqlcmd
+              - generic [ref=e2012]: sqlcmd -S localhost,1433 -U sa -P "$SA_PASSWORD" -d IowaLiquorDW
