@@ -10,11 +10,16 @@ RUN apt-get update \
         > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
     && rm -f /opt/microsoft/msodbcsql18/lib64/libmsodbcsql-18.6.so.2.1 \
-    && apt-get install -y --no-install-recommends --reinstall msodbcsql18
+    && ACCEPT_EULA=Y apt-get install -y --no-install-recommends --reinstall msodbcsql18 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=airflow:0 requirements.txt /tmp/requirements.txt
 
 USER airflow
 
-RUN pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit || pip install --no-cache-dir pandas pyodbc python-dotenv requests SQLAlchemy plotly streamlit --break-system-packages
+RUN grep -viE '^\s*(apache-airflow([=<>~! ].*)?|#.*)?\s*$' /tmp/requirements.txt > /tmp/requirements-airflow-safe.txt \
+    && pip install --no-cache-dir \
+        --constraint https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.11.txt \
+        -r /tmp/requirements-airflow-safe.txt

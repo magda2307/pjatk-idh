@@ -15,7 +15,7 @@
 - [x] Added Polish and English date labels in `dim_date`
 - [x] Initial ETL runnable in Airflow and CLI
 - [x] Quality checks printed in ETL logs
-- [x] Business requirements with 10 questions
+- [x] Business requirements with 12 questions
 - [x] Mermaid architecture diagram
 - [x] Mermaid star schema diagram
 - [x] Semantic layer SQL views

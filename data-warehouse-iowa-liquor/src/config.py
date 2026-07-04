@@ -39,10 +39,12 @@ class SqlServerConfig:
     host: str = os.getenv("SQLSERVER_HOST", "localhost")
     port: int = int(os.getenv("SQLSERVER_PORT", "1433"))
     database: str = os.getenv("SQLSERVER_DATABASE", "IowaLiquorDW")
-    user: str = os.getenv("SQLSERVER_USER", "sa")
-    password: str = os.getenv("SQLSERVER_PASSWORD", "YourStrongPassword123")
+    user: str = os.getenv("SQLSERVER_USER", "admin")
+    password: str = os.getenv("SQLSERVER_PASSWORD", "admin")
     driver: str = os.getenv("SQLSERVER_DRIVER", "ODBC Driver 18 for SQL Server")
     trust_certificate: str = os.getenv("SQLSERVER_TRUST_CERTIFICATE", "yes")
+    bootstrap_user: str = os.getenv("SQLSERVER_BOOTSTRAP_USER", "sa")
+    bootstrap_password: str = os.getenv("SQLSERVER_BOOTSTRAP_PASSWORD", "YourStrongPassword123")
 
     @property
     def odbc_connection_string(self) -> str:

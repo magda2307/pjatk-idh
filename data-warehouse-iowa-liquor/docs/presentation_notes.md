@@ -2,6 +2,12 @@
 
 ## Co pokazac na zywo
 
+Pelny scenariusz obrony:
+
+- `docs/scenariusz_obrony_od_a_do_z.md`
+- `docs/pytania_i_odpowiedzi_techniczne.md`
+- `docs/live_demo_checklista.md`
+
 1. Docker containers
    - uruchomic:
      `docker compose up -d sqlserver airflow streamlit`
@@ -18,8 +24,10 @@
    - pokazac logi z ekstrakcji, ladowania i quality checks.
 
 3. Pliki raw
-   - pokazac katalog `data/raw`,
-   - wskazac pliki `iowa_liquor_sales_2023_part_000.csv` itd.
+    - pokazac katalog `data/raw`,
+    - wskazac pliki `iowa_liquor_sales_2023_part_000.csv` itd.,
+    - wyjasnic zakres: domyslna ekstrakcja raw obejmuje pelny rok 2023, ale szybki pokaz na zywo moze uzyc jednego dnia,
+    - wyjasnic, ze jesli publiczny endpoint API jest czasowo niedostepny, ETL uzywa lokalnego cache z realnych plikow raw, a nie danych generowanych.
 
 4. SQL Server
    - pokazac schematy `stg`, `dw`, `sem`,
@@ -39,13 +47,23 @@
    - uruchomic `SELECT * FROM sem.vw_kpi_summary`.
 
 7. Streamlit dashboard
-   - otworzyc `http://localhost:8501`,
-   - pokazac KPI, wykres miesieczny, kategorie, vendorow, geografie i sklepy,
-   - podkreslic, ze aplikacja czyta tylko z widokow `sem`.
+    - otworzyc `http://localhost:8501`,
+    - pokazac zakladki: `Przeglad zarzadczy`, `Produkty i kategorie`, `Geografia`, `Wyniki sklepow`,
+    - pokazac KPI, wykres miesieczny, kategorie, vendorow, geografie i sklepy,
+    - podkreslic, ze raportowanie jest oparte o widoki `sem`, a lista widokow pokazuje pokrycie warstwy semantycznej.
 
 ## Krotka narracja
 
-Projekt uzywa realnych danych publicznych. Dane sa pobierane przez API, zapisywane jako warstwa raw, ladowane do SQL Server staging, a nastepnie przeksztalcane do modelu wymiarowego. SQL views w schemacie `sem` tworza warstwe semantyczna, a dashboard Streamlit korzysta tylko z tej warstwy.
+Projekt uzywa realnych danych publicznych. Dane sa pobierane przez API albo, przy niedostepnosci endpointu, odtwarzane z lokalnego cache realnych plikow raw. Nastepnie sa ladowane do SQL Server staging i przeksztalcane do modelu wymiarowego. SQL views w schemacie `sem` tworza warstwe semantyczna, a dashboard Streamlit korzysta z tej warstwy.
+
+## Zakresy do wyjasnienia
+
+| Zakres | Co oznacza | Jak mowic na prezentacji |
+|---|---|---|
+| Full-year raw extract | Domyslny zakres API: `2023-01-01` do `2023-12-31`; dane sa zapisywane jako partycje CSV. | Projekt jest przygotowany na pelny rok danych. |
+| One-day live demo | Szybki run `2023-01-03`, dobry do pokazania ETL podczas zajec. | To zakres demonstracyjny, nie limit projektu. |
+| One-month validation | Walidacja `2023-01-01` do `2023-01-31`, opisana w `docs/validation_report.md`. | Potwierdza, ze mechanizm dziala na wiekszym zakresie niz demo. |
+| Full-year calendar dimension | `dw.dim_date` zawiera 365 dni roku 2023 niezaleznie od zakresu aktualnie zaladowanego faktu. | Wymiar czasu jest kalendarzem referencyjnym, nie dowodem liczby faktow. |
 
 ## Co powiedziec o uruchomieniu
 
@@ -54,10 +72,14 @@ Projekt uzywa realnych danych publicznych. Dane sa pobierane przez API, zapisywa
 - Status uslug sprawdzamy przez `docker compose ps`.
 - Logi sprawdzamy przez `docker logs`.
 
-## Elementy punktowane
+## Rubryka i dowody
 
-- Pytania biznesowe: [business_requirements.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/business_requirements.md)
-- Schemat gwiazdy: [dimensional_model.md](/D:/pjatk-idh/data-warehouse-iowa-liquor/docs/dimensional_model.md)
-- ETL poczatkowy: [iowa_liquor_etl_dag.py](/D:/pjatk-idh/data-warehouse-iowa-liquor/dags/iowa_liquor_etl_dag.py)
-- Warstwa semantyczna: widoki `sem.*`
-- Raporty: [streamlit_app.py](/D:/pjatk-idh/data-warehouse-iowa-liquor/app/streamlit_app.py)
+| Rubryka | Dowod w projekcie |
+|---|---|
+| Realne zrodlo danych | Iowa Liquor Sales, raw CSV w `data/raw`; awaryjny demo extract jest filtrowany z tych realnych plikow, nie generowany. |
+| Model wymiarowy | `dw.fact_sales` + 6 wymiarow: date, store, product, category, vendor, packaging. |
+| ETL / orkiestracja | DAG `iowa_liquor_etl` w `dags/iowa_liquor_etl_dag.py`. |
+| Warstwa semantyczna | Widoki `sem.*`, opisane w `docs/warstwa_semantyczna.md`. |
+| Pytania biznesowe | 12 pytan i mapowanie w `docs/business_requirements.md`. |
+| Raportowanie | Dashboard Streamlit w `app/streamlit_app.py`. |
+| Walidacja jakosci | `sql/05_quality_checks.sql` i `docs/validation_report.md`. |

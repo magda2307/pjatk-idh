@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
@@ -10,7 +11,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from src.config import EXTRACT_MANIFEST_PATH, IowaLiquorExtractConfig, RAW_DATA_DIR
+from src.config import EXTRACT_MANIFEST_PATH, IowaLiquorExtractConfig, PROCESSED_DATA_DIR, RAW_DATA_DIR
 from src.utils.logging_utils import get_logger
 
 
@@ -71,6 +72,80 @@ def count_csv_data_rows(file_path: Path) -> int:
 def delete_existing_raw_parts(output_dir: Path, file_prefix: str) -> None:
     for file_path in output_dir.glob(f"{file_prefix}_part_*.csv"):
         file_path.unlink()
+
+
+def reset_directory(path: Path) -> None:
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def row_date_is_in_range(value: str | None, config: IowaLiquorExtractConfig) -> bool:
+    if not value:
+        return False
+    date_part = value[:10]
+    return config.start_date <= date_part <= config.end_date
+
+
+def write_cached_extract_from_raw_files(
+    raw_dir: Path,
+    config: IowaLiquorExtractConfig,
+    file_prefix: str,
+) -> list[Path]:
+    source_files = sorted(raw_dir.glob(f"{file_prefix}_part_*.csv"))
+    if not source_files:
+        raise FileNotFoundError(
+            f"No cached raw files found in {raw_dir}. Cannot fall back after source API failure."
+        )
+
+    fallback_dir = PROCESSED_DATA_DIR / "fallback_raw"
+    reset_directory(fallback_dir)
+    fallback_files: list[Path] = []
+    writer = None
+    output_file = None
+    output_handle = None
+    rows_in_part = 0
+    total_rows = 0
+
+    try:
+        for source_file in source_files:
+            with source_file.open("r", encoding="utf-8-sig", newline="") as input_handle:
+                reader = csv.DictReader(input_handle)
+                if not reader.fieldnames:
+                    continue
+                for row in reader:
+                    if not row_date_is_in_range(row.get("date"), config):
+                        continue
+                    if writer is None or rows_in_part >= config.limit:
+                        if output_handle:
+                            output_handle.close()
+                        output_file = fallback_dir / f"{file_prefix}_part_{len(fallback_files):03d}.csv"
+                        output_handle = output_file.open("w", encoding="utf-8", newline="")
+                        writer = csv.DictWriter(output_handle, fieldnames=reader.fieldnames)
+                        writer.writeheader()
+                        fallback_files.append(output_file)
+                        rows_in_part = 0
+                    writer.writerow(row)
+                    rows_in_part += 1
+                    total_rows += 1
+    finally:
+        if output_handle:
+            output_handle.close()
+
+    if not fallback_files:
+        raise FileNotFoundError(
+            f"Cached raw files exist, but no rows matched {config.start_date} -> {config.end_date}."
+        )
+
+    logger.warning(
+        "Source API unavailable. Reused cached real raw files for %s -> %s: files=%s rows=%s",
+        config.start_date,
+        config.end_date,
+        len(fallback_files),
+        total_rows,
+    )
+    write_extract_manifest(fallback_files, config)
+    return fallback_files
 
 
 def write_extract_manifest(
@@ -138,17 +213,19 @@ def extract_iowa_liquor_sales(
     year_label = extract_config.start_date[:4]
     file_prefix = f"iowa_liquor_sales_{year_label}"
 
-    if clean_existing:
-        delete_existing_raw_parts(raw_dir, file_prefix)
-
     downloaded_files: list[Path] = []
+    download_dir = raw_dir
+    if clean_existing:
+        download_dir = raw_dir / "_extract_tmp"
+        reset_directory(download_dir)
+
     offset = 0
     part_number = 0
     cumulative_rows = 0
     session = build_requests_session()
     try:
         while True:
-            output_file = raw_dir / f"{file_prefix}_part_{part_number:03d}.csv"
+            output_file = download_dir / f"{file_prefix}_part_{part_number:03d}.csv"
             logger.info("Extract page %s (offset=%s)", part_number + 1, offset)
             row_count = download_page(extract_config, offset, output_file, session=session)
 
@@ -167,8 +244,23 @@ def extract_iowa_liquor_sales(
             )
             offset += extract_config.limit
             part_number += 1
+    except requests.RequestException as exc:
+        if clean_existing:
+            shutil.rmtree(download_dir, ignore_errors=True)
+        logger.warning("Source API extraction failed: %s", exc)
+        return write_cached_extract_from_raw_files(raw_dir, extract_config, file_prefix)
     finally:
         session.close()
+
+    if clean_existing:
+        delete_existing_raw_parts(raw_dir, file_prefix)
+        final_files: list[Path] = []
+        for file_path in downloaded_files:
+            final_path = raw_dir / file_path.name
+            file_path.replace(final_path)
+            final_files.append(final_path)
+        shutil.rmtree(download_dir, ignore_errors=True)
+        downloaded_files = final_files
 
     total_rows = sum(count_csv_data_rows(file_path) for file_path in downloaded_files)
     write_extract_manifest(downloaded_files, extract_config)

@@ -10,7 +10,11 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/1433'"]
+      test:
+        [
+          "CMD-SHELL",
+          "SQLCMD=/opt/mssql-tools18/bin/sqlcmd; [ -x $$SQLCMD ] || SQLCMD=/opt/mssql-tools/bin/sqlcmd; if [ -x $$SQLCMD ]; then $$SQLCMD -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\"; else timeout 1 bash -c '</dev/tcp/localhost/1433'; fi",
+        ]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -20,12 +24,15 @@ services:
       context: .
       dockerfile: Dockerfile.airflow
     container_name: iowa-liquor-airflow
+    working_dir: /opt/airflow/project
     depends_on:
       sqlserver:
         condition: service_healthy
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
       PYTHONPATH: /opt/airflow/project
       PROJECT_ROOT: /opt/airflow/project
       IOWA_START_DATE: "2023-01-01"
@@ -34,21 +41,30 @@ services:
       SQLSERVER_HOST: sqlserver
       SQLSERVER_PORT: "1433"
       SQLSERVER_DATABASE: IowaLiquorDW
-      SQLSERVER_USER: sa
-      SQLSERVER_PASSWORD: YourStrongPassword123
+      SQLSERVER_USER: admin
+      SQLSERVER_PASSWORD: admin
+      SQLSERVER_BOOTSTRAP_USER: sa
+      SQLSERVER_BOOTSTRAP_PASSWORD: YourStrongPassword123
       SQLSERVER_DRIVER: ODBC Driver 18 for SQL Server
       SQLSERVER_TRUST_CERTIFICATE: "yes"
     ports:
       - "8080:8080"
     volumes:
       - .:/opt/airflow/project
-    command: standalone
+    command:
+      - bash
+      - -lc
+      - |
+        airflow db migrate
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || airflow users reset-password --username admin --password admin
+        exec airflow standalone
 
   streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
     container_name: iowa-liquor-streamlit
+    working_dir: /opt/airflow/project
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -58,8 +74,10 @@ services:
       SQLSERVER_HOST: sqlserver
       SQLSERVER_PORT: "1433"
       SQLSERVER_DATABASE: IowaLiquorDW
-      SQLSERVER_USER: sa
-      SQLSERVER_PASSWORD: YourStrongPassword123
+      SQLSERVER_USER: admin
+      SQLSERVER_PASSWORD: admin
+      SQLSERVER_BOOTSTRAP_USER: sa
+      SQLSERVER_BOOTSTRAP_PASSWORD: YourStrongPassword123
       SQLSERVER_DRIVER: ODBC Driver 18 for SQL Server
       SQLSERVER_TRUST_CERTIFICATE: "yes"
     ports:

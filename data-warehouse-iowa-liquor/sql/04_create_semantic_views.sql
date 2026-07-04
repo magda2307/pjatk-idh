@@ -115,7 +115,9 @@ SELECT
     SUM(f.volume_sold_liters) AS total_volume_liters,
     SUM(f.margin_amount) AS total_margin,
     SUM(f.sales_line_count) AS sales_line_count,
+    -- Średnia marża na butelkę: całkowita marża / liczba butelek
     SUM(f.margin_amount) / NULLIF(SUM(f.bottles_sold), 0) AS avg_margin_per_bottle,
+    -- Udział w całkowitej sprzedaży w procentach
     CAST(100.0 * SUM(f.sale_dollars) / NULLIF(MAX(t.all_sales), 0) AS DECIMAL(9,2)) AS sales_share_percent
 FROM dw.fact_sales f
 JOIN dw.dim_category c ON c.category_key = f.category_key
@@ -247,8 +249,10 @@ SELECT
     c.category_name,
     v.vendor_name,
     p.item_description,
+    -- Średni koszt i cena na poziomie jednostkowym
     AVG(f.state_bottle_cost) AS state_bottle_cost,
     AVG(f.state_bottle_retail) AS state_bottle_retail,
+    -- Średnia marża jednostkowa (retail - cost)
     AVG(f.state_bottle_retail - f.state_bottle_cost) AS avg_unit_margin,
     SUM(f.margin_amount) AS total_margin,
     SUM(f.sale_dollars) AS total_sales
@@ -266,6 +270,7 @@ SELECT
     s.city,
     SUM(f.volume_sold_liters) AS total_volume_liters,
     SUM(f.sale_dollars) AS total_sales,
+    -- Wartość sprzedaży na jeden litr wolumenu
     SUM(f.sale_dollars) / NULLIF(SUM(f.volume_sold_liters), 0) AS sales_per_liter,
     COUNT(DISTINCT f.store_key) AS store_count
 FROM dw.fact_sales f
@@ -333,7 +338,9 @@ SELECT
     SUM(f.sale_dollars) / NULLIF(COUNT(DISTINCT f.invoice_number), 0) AS avg_invoice_value,
     SUM(f.bottles_sold) / NULLIF(COUNT(DISTINCT f.invoice_number), 0) AS avg_bottles_per_invoice,
     CAST(100.0 * SUM(f.margin_amount) / NULLIF(SUM(f.sale_dollars), 0) AS DECIMAL(9,2)) AS avg_margin_percent,
+    -- Wartość sprzedaży na sklep
     SUM(f.sale_dollars) / NULLIF(COUNT(DISTINCT f.store_key), 0) AS sales_per_store,
+    -- Wartość sprzedaży na jeden litr wolumenu
     SUM(f.sale_dollars) / NULLIF(SUM(f.volume_sold_liters), 0) AS sales_per_liter
 FROM dw.fact_sales f;
 GO

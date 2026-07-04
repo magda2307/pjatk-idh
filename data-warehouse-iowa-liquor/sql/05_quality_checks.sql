@@ -1,8 +1,28 @@
 SELECT 'staging_row_count' AS check_name, COUNT_BIG(*) AS check_value
 FROM stg.iowa_liquor_sales_raw;
 
+SELECT 'eligible_staging_row_count' AS check_name, COUNT_BIG(*) AS check_value
+FROM stg.iowa_liquor_sales_raw
+WHERE COALESCE(sale_dollars, 0) >= 0
+  AND COALESCE(bottles_sold, 0) >= 0
+  AND COALESCE(volume_sold_liters, 0) >= 0;
+
 SELECT 'fact_row_count' AS check_name, COUNT_BIG(*) AS check_value
 FROM dw.fact_sales;
+
+SELECT 'eligible_staging_fact_row_count_difference' AS check_name,
+       ABS(stg.row_count - fact.row_count) AS check_value
+FROM (
+    SELECT COUNT_BIG(*) AS row_count
+    FROM stg.iowa_liquor_sales_raw
+    WHERE COALESCE(sale_dollars, 0) >= 0
+      AND COALESCE(bottles_sold, 0) >= 0
+      AND COALESCE(volume_sold_liters, 0) >= 0
+) stg
+CROSS JOIN (
+    SELECT COUNT_BIG(*) AS row_count
+    FROM dw.fact_sales
+) fact;
 
 SELECT 'null_foreign_keys' AS check_name, COUNT_BIG(*) AS check_value
 FROM dw.fact_sales

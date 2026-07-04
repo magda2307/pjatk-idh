@@ -37,7 +37,7 @@ Projekt musi zawierac zestaw pytan biznesowych, na ktore odpowiada model i rapor
 
 Wymaganie:
 
-- projekt zawiera 10 pytan biznesowych,
+- projekt zawiera 12 pytan biznesowych,
 - pytania dotycza sprzedazy w czasie, sklepow, produktow, kategorii, vendorow, geografii, marzy i wolumenu,
 - kazde pytanie jest mapowane do raportu lub widoku semantycznego.
 

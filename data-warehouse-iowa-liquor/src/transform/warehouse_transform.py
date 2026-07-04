@@ -294,10 +294,15 @@ def validate_quality_check_results(results: list[tuple[str, str]]) -> None:
 
     if int(result_map.get("staging_row_count", "0")) <= 0:
         errors.append("staging_row_count must be greater than 0")
+    if int(result_map.get("eligible_staging_row_count", "0")) <= 0:
+        errors.append("eligible_staging_row_count must be greater than 0")
     if int(result_map.get("fact_row_count", "0")) <= 0:
         errors.append("fact_row_count must be greater than 0")
+    if result_map.get("eligible_staging_row_count") != result_map.get("fact_row_count"):
+        errors.append("eligible_staging_row_count must equal fact_row_count")
 
     zero_required_checks = [
+        "eligible_staging_fact_row_count_difference",
         "null_foreign_keys",
         "negative_measures",
         "duplicate_store_numbers",

@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hurtownia danych Iowa Liquor Sales</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root {
+      --paper: #f5f0e6;
+      --paper-2: #ebe1d0;
+      --ink: #20231f;
+      --muted: #646b5d;
+      --line: #cfc3ad;
+      --green: #245f43;
+      --green-soft: #dce8dc;
+      --brick: #994d34;
+      --blue: #426982;
+      --gold: #c19335;
+      --white: #fffdf8;
+      --dark: #1e241f;
+      --radius: 8px;
+      --shadow: 0 14px 38px rgba(31, 35, 31, .10);
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(36, 95, 67, .07) 1px, transparent 1px),
+        linear-gradient(rgba(36, 95, 67, .055) 1px, transparent 1px),
+        var(--paper);
+      background-size: 30px 30px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    code,
+    pre,
+    .mono {
+      font-family: "Cascadia Mono", Consolas, monospace;
+    }
+
+    code {
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: .92em;
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px clamp(18px, 3vw, 42px) 70px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .mark::before {
+      content: "";
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--green);
+      background:
+        linear-gradient(90deg, transparent 45%, var(--green) 45% 55%, transparent 55%),
+        linear-gradient(transparent 45%, var(--green) 45% 55%, transparent 55%),
+        var(--green-soft);
+      display: block;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font: 700 13px/1 "Segoe UI", system-ui, sans-serif;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+    }
+
+    nav a:hover {
+      color: var(--ink);
+      border-color: var(--line);
+      background: rgba(255, 253, 248, .78);
+    }
+
+    .hero {
+      min-height: 430px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(310px, .48fr);
+      gap: clamp(28px, 5vw, 62px);
+      align-items: end;
+      padding: clamp(34px, 6vw, 74px) 0 42px;
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .eyebrow {
+      margin-bottom: 16px;
+      color: var(--brick);
+      font: 800 13px/1 "Segoe UI", system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      max-width: 880px;
+      margin: 0 0 20px;
+      font-size: clamp(44px, 7.5vw, 96px);
+      line-height: .9;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 820px;
+      margin: 0;
+      font-size: clamp(18px, 2.1vw, 25px);
+      line-height: 1.35;
+    }
+
+    .status-board,
+    .panel,
+    .launch,
+    .card,
+    .table-wrap {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .status-board {
+      border: 2px solid var(--ink);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .status-board h2,
+    .panel h3,
+    .card h3 {
+      margin: 0 0 12px;
+      font: 800 20px/1.15 "Segoe UI", system-ui, sans-serif;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .status-list li {
+      display: grid;
+      grid-template-columns: 13px 1fr;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.38;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      margin-top: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px var(--green-soft);
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 28px 0 56px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .launch {
+      min-height: 154px;
+      padding: 18px;
+      border-top: 5px solid var(--green);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .launch:nth-child(2) {
+      border-top-color: var(--brick);
+    }
+
+    .launch:nth-child(3) {
+      border-top-color: var(--blue);
+    }
+
+    .launch strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .launch span,
+    .panel p,
+    .panel li,
+    .card p,
+    .card li,
+    td {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .button,
+    button {
+      min-height: 39px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: fit-content;
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      background: var(--green);
+      color: var(--white);
+      padding: 10px 13px;
+      font: 800 13px/1 "Segoe UI", system-ui, sans-serif;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      background: var(--white);
+      color: var(--green);
+    }
+
+    section {
+      margin: 58px 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(230px, .34fr) minmax(0, 1fr);
+      gap: 30px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(30px, 4.4vw, 54px);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      max-width: 830px;
+      margin: 7px 0 0;
+      color: var(--muted);
+      font: 17px/1.55 "Segoe UI", system-ui, sans-serif;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .panel,
+    .card {
+      padding: 22px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .panel ul,
+    .panel ol,
+    .card ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    .command {
+      margin-top: 14px;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+      border-radius: 6px;
+      background: var(--dark);
+      color: #f4efe4;
+      font-family: "Cascadia Mono", Consolas, monospace;
+    }
+
+    .command-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(244, 239, 228, .18);
+      color: #cad5c7;
+      font: 800 12px/1 "Segoe UI", system-ui, sans-serif;
+    }
+
+    .copy {
+      min-height: 0;
+      padding: 7px 9px;
+      border-color: rgba(244, 239, 228, .30);
+      background: transparent;
+      color: #f4efe4;
+      font-size: 12px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .demo-sequence {
+      display: grid;
+      gap: 10px;
+      counter-reset: demo;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .demo-step {
+      display: grid;
+      grid-template-columns: 52px minmax(160px, .28fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .demo-step::before {
+      counter-increment: demo;
+      content: counter(demo, decimal-leading-zero);
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--white);
+      font-weight: 900;
+    }
+
+    .demo-step b {
+      display: block;
+      margin-top: 8px;
+      font-size: 17px;
+    }
+
+    .demo-step p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      line-height: 1.48;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding: clamp(18px, 3vw, 26px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--white);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 126px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: color-mix(in oklch, var(--white), var(--green-soft) 24%);
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: ">";
+      position: absolute;
+      top: 42%;
+      right: -13px;
+      z-index: 2;
+      color: var(--brick);
+      font-weight: 900;
+    }
+
+    .flow-step b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .flow-step small {
+      display: block;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .airflow-map {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(130px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--white);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .airflow-task {
+      min-height: 128px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--green);
+      border-radius: 6px;
+      background: #fffaf0;
+    }
+
+    .airflow-task:nth-child(2),
+    .airflow-task:nth-child(5) {
+      border-top-color: var(--brick);
+    }
+
+    .airflow-task:nth-child(3),
+    .airflow-task:nth-child(6) {
+      border-top-color: var(--blue);
+    }
+
+    .airflow-task b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .airflow-task span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .layer-stack {
+      display: grid;
+      gap: 14px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .layer-card {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) minmax(250px, .58fr);
+      gap: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-left: 10px solid var(--green);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .layer-card:nth-child(2) {
+      border-left-color: var(--blue);
+    }
+
+    .layer-card:nth-child(3) {
+      border-left-color: var(--gold);
+    }
+
+    .layer-label {
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .layer-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .schema-canvas {
+      position: relative;
+      min-height: 735px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fffefa;
+      box-shadow: var(--shadow);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .schema-title {
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      z-index: 4;
+      margin: 0;
+      color: var(--muted);
+      font: 800 13px/1 "Segoe UI", system-ui, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .schema-lines {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .schema-lines polygon {
+      fill: #f4d46d;
+      opacity: .62;
+    }
+
+    .schema-lines path {
+      fill: none;
+      stroke: #2c2f2a;
+      stroke-width: 2;
+      stroke-linecap: square;
+      stroke-linejoin: miter;
+    }
+
+    .sql-table {
+      position: absolute;
+      z-index: 3;
+      width: 252px;
+      overflow: hidden;
+      border: 1px solid #c7c7c7;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .sql-table.fact {
+      width: 292px;
+      border-color: #aeb9a9;
+      box-shadow: 0 8px 24px rgba(36, 95, 67, .18);
+    }
+
+    .sql-table.product {
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sql-table.date {
+      top: 220px;
+      left: 28px;
+    }
+
+    .sql-table.store {
+      top: 190px;
+      right: 28px;
+      width: 276px;
+    }
+
+    .sql-table.vendor {
+      left: 88px;
+      bottom: 58px;
+    }
+
+    .sql-table.category {
+      right: 72px;
+      bottom: 112px;
+      width: 270px;
+    }
+
+    .sql-table.packaging {
+      left: 50%;
+      bottom: 28px;
+      width: 278px;
+      transform: translateX(-50%);
+    }
+
+    .sql-table.fact {
+      top: 292px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sql-head {
+      padding: 7px 10px;
+      border-bottom: 1px solid #cfcfcf;
+      background: #dedede;
+      color: #1f241f;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .sql-body {
+      padding: 7px 0;
+      background: #fff;
+    }
+
+    .sql-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 7px;
+      align-items: baseline;
+      min-height: 20px;
+      padding: 1px 10px;
+      color: #252925;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .sql-row span {
+      color: #111;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+
+    .sql-row code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 12px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .field-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .field-card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .field-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.48;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 14px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--ink);
+      background: var(--paper-2);
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .callout {
+      padding: 18px 20px;
+      border-left: 8px solid var(--brick);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      background: var(--white);
+      font: 18px/1.45 "Segoe UI", system-ui, sans-serif;
+    }
+
+    .rubric {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .rubric div {
+      min-height: 126px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-bottom: 4px solid var(--gold);
+      border-radius: var(--radius);
+      background: var(--white);
+    }
+
+    .rubric b {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .rubric span {
+      color: var(--muted);
+      line-height: 1.38;
+      display: block;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .section-head,
+      .two-col,
+      .quick-links,
+      .layer-card {
+        grid-template-columns: 1fr;
+      }
+
+      .three-col,
+      .field-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero {
+        min-height: 0;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      .rubric {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .schema-canvas {
+        min-height: 0;
+        display: grid;
+        gap: 12px;
+        padding: 58px 14px 14px;
+      }
+
+      .schema-title {
+        top: 20px;
+        left: 18px;
+      }
+
+      .schema-lines {
+        display: none;
+      }
+
+      .sql-table,
+      .sql-table.fact,
+      .sql-table.product,
+      .sql-table.date,
+      .sql-table.store,
+      .sql-table.vendor,
+      .sql-table.category,
+      .sql-table.packaging {
+        position: static;
+        width: 100%;
+        transform: none;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .three-col,
+      .field-grid,
+      .rubric,
+      .demo-step {
+        grid-template-columns: 1fr;
+      }
+
+      .demo-step::before {
+        width: 34px;
+        height: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="mark">Iowa Liquor DW</div>
+      <nav aria-label="Nawigacja">
+        <a href="#start">Start</a>
+        <a href="#data">Dane w bazie</a>
+        <a href="#business">Pytania</a>
+        <a href="#demo">Demo live</a>
+        <a href="#source">Dane</a>
+        <a href="#airflow">Airflow</a>
+        <a href="#etl">ETL</a>
+        <a href="#layers">Warstwy</a>
+        <a href="#model">Model</a>
+        <a href="#semantic">Semantyka</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#sql">SQL</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="start">
+        <div>
+          <div class="eyebrow">Projekt hurtowni danych</div>
+          <h1>Hurtownia danych Iowa Liquor Sales</h1>
+          <p class="lead">Projekt obejmuje przepływ danych: publiczny zbiór Iowa Liquor Sales, ekstrakcję do plików CSV, staging w SQL Server, model gwiazdy, widoki semantyczne oraz raporty analityczne w Streamlit.</p>
+        </div>
+
+        <aside class="status-board" aria-label="Zakres projektu">
+          <h2>Zakres techniczny</h2>
+          <ul class="status-list">
+            <li><span class="dot"></span><span>Źródło danych: publiczny, niegenerowany zbiór Iowa Liquor Sales.</span></li>
+            <li><span class="dot"></span><span>Orkiestracja: Apache Airflow, DAG <code>iowa_liquor_etl</code>.</span></li>
+            <li><span class="dot"></span><span>Hurtownia: SQL Server, schematy <code>stg</code>, <code>dw</code>, <code>sem</code>.</span></li>
+            <li><span class="dot"></span><span>Raportowanie: Streamlit oparty o widoki semantyczne.</span></li>
+          </ul>
+        </aside>
+      </section>
+
+      <div class="quick-links">
+        <article class="launch">
+          <div>
+            <strong>Airflow</strong>
+            <span>Panel DAG-ów, statusy zadań i logi ETL.</span>
+          </div>
+          <a class="button" href="http://localhost:8080" target="_blank" rel="noreferrer">localhost:8080</a>
+        </article>
+
+        <article class="launch">
+          <div>
+            <strong>Streamlit</strong>
+            <span>Raporty biznesowe po załadowaniu danych do hurtowni.</span>
+          </div>
+          <a class="button" href="http://localhost:8501" target="_blank" rel="noreferrer">localhost:8501</a>
+        </article>
+
+        <article class="launch">
+          <div>
+            <strong>SQL Server</strong>
+            <span>SSMS lub Azure Data Studio: <code>localhost,1433</code>.</span>
+          </div>
+          <a class="button secondary" href="#sql">Zapytania SQL</a>
+        </article>
+      </div>
+
+      <section id="data">
+        <div class="section-head">
+          <h2>Dane w projekcie</h2>
+          <p>Źródłem jest publiczny zbiór Iowa Liquor Sales. Jeden wiersz źródłowy opisuje jedną linię sprzedaży produktu: kiedy sprzedano produkt, w którym sklepie, jaki produkt i kategorię, od jakiego vendora, w jakim opakowaniu oraz za jaką wartość.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Obszar danych</th>
+                <th>Przykładowe pola źródłowe</th>
+                <th>Jak projekt ich używa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Identyfikacja sprzedaży</td>
+                <td><code>invoice_line_no</code>, <code>date</code></td>
+                <td>Tworzy numer faktury/linii i klucz daty. To podstawa ziarna tabeli faktów.</td>
+              </tr>
+              <tr>
+                <td>Sklep i lokalizacja</td>
+                <td><code>store</code>, <code>name</code>, <code>address</code>, <code>city</code>, <code>county</code>, <code>zipcode</code>, <code>store_location</code></td>
+                <td>Zasila <code>dw.dim_store</code>. Miasto, county i współrzędne są używane w raportach geograficznych i mapie.</td>
+              </tr>
+              <tr>
+                <td>Produkt i kategoria</td>
+                <td><code>itemno</code>, <code>im_desc</code>, <code>category</code>, <code>category_name</code></td>
+                <td>Zasila <code>dw.dim_product</code> i <code>dw.dim_category</code>. Te pola odpowiadają za rankingi produktów i kategorii.</td>
+              </tr>
+              <tr>
+                <td>Vendor</td>
+                <td><code>vendor_no</code>, <code>vendor_name</code></td>
+                <td>Zasila <code>dw.dim_vendor</code>. Raport pokazuje udział vendorów w sprzedaży i marży.</td>
+              </tr>
+              <tr>
+                <td>Opakowanie</td>
+                <td><code>pack</code>, <code>bottle_volume_ml</code></td>
+                <td>Zasila <code>dw.dim_packaging</code>. Projekt grupuje pojemności jako <code>small</code>, <code>standard</code>, <code>large</code> i <code>extra_large</code>.</td>
+              </tr>
+              <tr>
+                <td>Miary sprzedaży</td>
+                <td><code>state_bottle_cost</code>, <code>state_bottle_retail</code>, <code>sale_bottles</code>, <code>sale_dollars</code>, <code>sale_liters</code>, <code>sale_gallons</code></td>
+                <td>Zasila <code>dw.fact_sales</code>. Projekt liczy sprzedaż, wolumen, liczbę butelek i marżę.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="three-col" style="margin-top:18px">
+          <article class="card">
+            <h3>Co trafia do stagingu</h3>
+            <p>Tabela <code>stg.iowa_liquor_sales_raw</code> przechowuje pola po normalizacji nazw, dat, liczb, kwot i lokalizacji. Zostaje też zapisany <code>source_file</code>, <code>load_timestamp</code> i <code>source_row_hash</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Co trafia do hurtowni</h3>
+            <p>Do schematu <code>dw</code> trafia model gwiazdy: <code>fact_sales</code> oraz wymiary daty, sklepu, produktu, kategorii, vendora i opakowania.</p>
+          </article>
+          <article class="card">
+            <h3>Co trafia do raportów</h3>
+            <p>Dashboard nie czyta plików CSV. Korzysta z widoków <code>sem.*</code>, które agregują sprzedaż, marżę, wolumen, faktury, sklepy, produkty i udziały procentowe.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="business">
+        <div class="section-head">
+          <h2>Pytania biznesowe</h2>
+          <p>Projekt ma 12 pytań biznesowych. Każde pytanie jest powiązane z wymiarem modelu, widokiem semantycznym i zakładką raportową. To pokazuje, że model nie jest przypadkowy.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nr</th>
+                <th>Pytanie</th>
+                <th>Widok / raport</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code>, Przegląd zarządczy</td></tr>
+              <tr><td>2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code>, Produkty i kategorie</td></tr>
+              <tr><td>3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code>, Wyniki sklepów</td></tr>
+              <tr><td>4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, Geografia</td></tr>
+              <tr><td>5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code>, Produkty i kategorie</td></tr>
+              <tr><td>6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code>, Produkty i kategorie</td></tr>
+              <tr><td>7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code>, Produkty i kategorie</td></tr>
+              <tr><td>8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code>, Produkty i kategorie</td></tr>
+              <tr><td>9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code>, Geografia</td></tr>
+              <tr><td>10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code>, Wyniki sklepów</td></tr>
+              <tr><td>11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code>, Przegląd zarządczy</td></tr>
+              <tr><td>12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code>, Produkty i kategorie</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="demo">
+        <div class="section-head">
+          <h2>Kolejność demonstracji</h2>
+          <p>Prezentacja zaczyna się od uruchomienia infrastruktury i Airflow, ponieważ ETL jest najwyżej punktowanym elementem projektu. Dashboard pojawia się dopiero po pokazaniu przepływu danych i obiektów w SQL Server.</p>
+        </div>
+
+        <div class="demo-sequence">
+          <div class="demo-step">
+            <b>Start usług</b>
+            <p>Uruchomienie kontenerów Docker: SQL Server, Airflow i Streamlit. Komenda projektu: <code>docker compose up -d sqlserver airflow streamlit</code>.</p>
+          </div>
+          <div class="demo-step">
+            <b>Airflow</b>
+            <p>Wejście na <code>http://localhost:8080</code>. Logowanie: <code>admin</code> / <code>admin</code>. Główny obiekt demonstracji: DAG <code>iowa_liquor_etl</code>.</p>
+          </div>
+          <div class="demo-step">
+            <b>Uruchomienie ETL</b>
+            <p>W Airflow: wybór DAG-a, widok Graph lub Grid, uruchomienie ręczne i obserwacja zadań: ekstrakcja, staging, wymiary, fakt, semantyka, kontrola jakości.</p>
+          </div>
+          <div class="demo-step">
+            <b>SQL Server</b>
+            <p>Sprawdzenie schematów <code>stg</code>, <code>dw</code>, <code>sem</code>, liczby rekordów oraz przykładowych widoków semantycznych.</p>
+          </div>
+          <div class="demo-step">
+            <b>Dashboard</b>
+            <p>Przejście do Streamlit na <code>http://localhost:8501</code>. Raporty pokazują KPI, sprzedaż w czasie, produkty, kategorie, geografię i wyniki sklepów.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="source">
+        <div class="section-head">
+          <h2>Źródło danych</h2>
+          <p>Dane pochodzą z publicznego zbioru Iowa Liquor Sales udostępnianego przez Socrata. Projekt nie generuje danych syntetycznych. Lokalny cache służy tylko do powtarzalnego uruchomienia prezentacji, gdy publiczny endpoint jest niedostępny.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Konfiguracja ekstrakcji</h3>
+            <ul>
+              <li>Endpoint CSV: <code>https://data.iowa.gov/resource/m3tr-qhgy.csv</code></li>
+              <li>Domyślny zakres: <code>2023-01-01</code> do <code>2023-12-31</code></li>
+              <li>Domyślny limit strony: <code>SOCRATA_LIMIT=50000</code></li>
+              <li>Filtr API: <code>date between ...</code>, paginacja przez <code>$limit</code> i <code>$offset</code></li>
+              <li>Sortowanie pobrania: <code>date, invoice_line_no</code></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Zakres dostępny w API</h3>
+            <ul>
+              <li>Format dat w Airflow i API: <code>YYYY-MM-DD</code>, np. <code>2023-01-01</code>.</li>
+              <li>Opis katalogowy Iowa Liquor Sales podaje zakres od <code>2012-01-01</code> do danych bieżących.</li>
+              <li>W katalogu Data.gov metadane zbioru były aktualizowane <code>2026-04-04</code>, a dane ostatnio modyfikowane <code>2026-04-01</code>.</li>
+              <li>API Socrata filtruje dane po polu <code>date</code>, więc zakres podaje się jako <code>start_date</code> i <code>end_date</code>.</li>
+              <li>Projekt domyślnie analizuje pełny rok <code>2023</code>: <code>2023-01-01</code> do <code>2023-12-31</code>. To świadomie wybrany wycinek z większego zbioru API.</li>
+              <li>Do krótkiego testu można zawęzić zakres, np. <code>2023-01-01</code> do <code>2023-01-31</code>.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section id="airflow">
+        <div class="section-head">
+          <h2>Airflow</h2>
+          <p>Airflow pełni rolę narzędzia integracyjnego i orkiestracyjnego. Nie przechowuje danych biznesowych. Uruchamia kod ETL, zapisuje statusy zadań i udostępnia logi potrzebne do demonstracji live.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Dane logowania</h3>
+            <ul>
+              <li>Adres: <code>http://localhost:8080</code></li>
+              <li>Login: <code>admin</code></li>
+              <li>Hasło: <code>admin</code></li>
+              <li>DAG: <code>iowa_liquor_etl</code></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Konfiguracja DAG-a</h3>
+            <ul>
+              <li><code>dag_id="iowa_liquor_etl"</code></li>
+              <li><code>schedule=None</code> - uruchomienie ręczne na potrzeby demo.</li>
+              <li><code>catchup=False</code> - brak automatycznego nadrabiania historycznych uruchomień.</li>
+              <li><code>retries=2</code> i <code>retry_delay=2 min</code> - ponowienie po błędzie technicznym.</li>
+              <li><code>execution_timeout=30 min</code> - ograniczenie czasu jednego zadania.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>Obsługa w panelu</h3>
+            <ol>
+              <li>Lista DAG-ów: wyszukanie <code>iowa_liquor_etl</code>.</li>
+              <li>Włączenie DAG-a, jeśli jest oznaczony jako paused.</li>
+              <li>Ręczne uruchomienie przez przycisk trigger/play.</li>
+              <li>W konfiguracji uruchomienia można podać zakres dat jako JSON.</li>
+              <li>Widok Graph: pokazanie kolejności tasków.</li>
+              <li>Widok Grid lub Logs: pokazanie wyniku ostatniego uruchomienia.</li>
+            </ol>
+          </article>
+
+          <article class="panel">
+            <h3>Alternatywny entrypoint ETL</h3>
+            <p>Ten sam łańcuch kroków uruchamia funkcja <code>run_initial_etl()</code> w <code>src/run_initial_etl.py</code>. Airflow używa zadań DAG-a, a tryb CLI jest przydatny do szybkiego testu poza panelem webowym.</p>
+            <div class="command">
+              <div class="command-head"><span>PowerShell</span><button class="copy" data-copy="docker compose run --rm airflow python -m src.run_initial_etl">Kopiuj</button></div>
+              <pre>docker compose run --rm airflow python -m src.run_initial_etl</pre>
+            </div>
+          </article>
+        </div>
+
+        <div class="airflow-map" aria-label="Taski DAG-a Airflow">
+          <article class="airflow-task"><b>extract_iowa_liquor_sales</b><span>Pobranie danych z API Socrata albo z lokalnego cache realnych plików raw.</span></article>
+          <article class="airflow-task"><b>create_sql_objects</b><span>Utworzenie bazy, schematów oraz tabel stagingu i hurtowni.</span></article>
+          <article class="airflow-task"><b>load_staging</b><span>Wczytanie CSV do <code>stg.iowa_liquor_sales_raw</code>.</span></article>
+          <article class="airflow-task"><b>load_dimensions</b><span>Odświeżenie wymiarów daty, sklepu, produktu, kategorii, vendora i opakowania.</span></article>
+          <article class="airflow-task"><b>load_fact_sales</b><span>Załadowanie <code>dw.fact_sales</code> i przeliczenie marży.</span></article>
+          <article class="airflow-task"><b>create_semantic_views</b><span>Utworzenie widoków raportowych w schemacie <code>sem</code>.</span></article>
+          <article class="airflow-task"><b>run_quality_checks</b><span>Walidacja rekordów, kluczy, duplikatów, joinów i zgodności sprzedaży.</span></article>
+        </div>
+
+        <div class="command">
+          <div class="command-head"><span>Awaryjne ustawienie hasła Airflow</span><button class="copy" data-copy="docker compose exec airflow airflow users reset-password --username admin --password admin">Kopiuj</button></div>
+          <pre>docker compose exec airflow airflow users reset-password --username admin --password admin</pre>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>Zakres dat w Airflow UI</h3>
+            <p>DAG ma parametry <code>start_date</code>, <code>end_date</code> i <code>limit</code>. Daty wpisuje się w formacie <code>YYYY-MM-DD</code>, na przykład <code>2023-01-01</code>. Domyślnie formularz Airflow jest ustawiony na pełny rok 2023. Przy ręcznym uruchomieniu można zmienić pola w formularzu albo wpisać konfigurację JSON.</p>
+            <div class="command">
+              <div class="command-head"><span>Trigger DAG config</span><button class="copy" data-copy="{&#10;  &quot;start_date&quot;: &quot;2023-01-01&quot;,&#10;  &quot;end_date&quot;: &quot;2023-12-31&quot;,&#10;  &quot;limit&quot;: 50000&#10;}">Kopiuj</button></div>
+              <pre>{
+  "start_date": "2023-01-01",
+  "end_date": "2023-12-31",
+  "limit": 50000
+}</pre>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h3>UI czy Docker</h3>
+            <p>Do prezentacji lepszy jest Airflow UI, bo widać DAG, graf, statusy i logi. Komenda Docker jest zapasem, gdy UI się zawiesi albo trzeba szybko odtworzyć ETL bez klikania.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="etl">
+        <div class="section-head">
+          <h2>ETL</h2>
+          <p>ETL znajduje się w kodzie Pythona i skryptach SQL. Każdy etap ma osobną odpowiedzialność: ekstrakcja, przygotowanie plików, staging, transformacja do modelu gwiazdy, widoki semantyczne i testy jakości.</p>
+        </div>
+
+        <div class="flow" aria-label="Przepływ ETL">
+          <div class="flow-step"><b>Extract</b><small><code>src.extract.socrata_extract</code>, zakres dat z <code>IOWA_START_DATE</code> i <code>IOWA_END_DATE</code>.</small></div>
+          <div class="flow-step"><b>Raw CSV</b><small>Pliki <code>data/raw/iowa_liquor_sales_2023_part_*.csv</code> oraz manifest ekstrakcji.</small></div>
+          <div class="flow-step"><b>Prepare</b><small>Normalizacja nazw kolumn, dat, kwot, liczb, lokalizacji i identyfikatorów.</small></div>
+          <div class="flow-step"><b>Staging</b><small>Tabela <code>stg.iowa_liquor_sales_raw</code> jako techniczna kopia po przygotowaniu.</small></div>
+          <div class="flow-step"><b>Dimensions</b><small>Budowa sześciu wymiarów w schemacie <code>dw</code>.</small></div>
+          <div class="flow-step"><b>Fact</b><small>Ładowanie <code>dw.fact_sales</code>; filtrowanie ujemnych miar.</small></div>
+          <div class="flow-step"><b>Quality</b><small>Skrypt <code>sql/05_quality_checks.sql</code> i walidacja wyników w Pythonie.</small></div>
+        </div>
+
+        <div class="three-col" style="margin-top:18px">
+          <article class="card">
+            <h3>Ekstrakcja</h3>
+            <p>Funkcja <code>extract_iowa_liquor_sales()</code> pobiera strony danych z Socrata z parametrami <code>$where</code>, <code>$limit</code>, <code>$offset</code> i <code>$order</code>. Dla stabilności demo kod ma fallback do lokalnych plików raw.</p>
+          </article>
+          <article class="card">
+            <h3>Staging</h3>
+            <p><code>read_and_prepare_csv()</code> mapuje aliasy kolumn, czyści kwoty z symboli walut i przecinków, parsuje daty, wyciąga współrzędne z pola lokalizacji oraz tworzy <code>source_row_hash</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Transformacja</h3>
+            <p><code>load_dimensions()</code> buduje wymiary z danych stagingowych. <code>load_fact_sales()</code> łączy staging z wymiarami i wylicza <code>margin_amount</code> jako różnicę ceny detalicznej i kosztu pomnożoną przez liczbę butelek.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="layers">
+        <div class="section-head">
+          <h2>Warstwy danych</h2>
+          <p>Projekt używa prostego wariantu podejścia Bronze, Silver, Gold. Warstwy rozdzielają dane źródłowe, staging techniczny i model raportowy.</p>
+        </div>
+
+        <div class="layer-stack">
+          <article class="layer-card">
+            <div class="layer-label">Bronze</div>
+            <p>Realne pliki CSV z Iowa Liquor Sales w <code>data/raw</code>. Dane są najbliżej źródła. Projekt nie generuje rekordów syntetycznych.</p>
+            <p>Przykład: <code>iowa_liquor_sales_2023_part_000.csv</code>. Manifest ekstrakcji zapisuje zakres dat, limit, liczbę plików i liczbę wierszy.</p>
+          </article>
+
+          <article class="layer-card">
+            <div class="layer-label">Silver</div>
+            <p>Staging w SQL Server: <code>stg.iowa_liquor_sales_raw</code>. Ta warstwa ma dane już oczyszczone technicznie, ale nadal blisko struktury źródłowej.</p>
+            <p>Pola obejmują m.in. <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>category</code>, <code>vendor_number</code>, <code>sale_dollars</code>, <code>latitude</code>, <code>longitude</code>.</p>
+          </article>
+
+          <article class="layer-card">
+            <div class="layer-label">Gold</div>
+            <p>Model gwiazdy w <code>dw</code>, widoki <code>sem.*</code> i dashboard. To warstwa używana do odpowiedzi na pytania biznesowe.</p>
+            <p>Przykłady: <code>dw.fact_sales</code>, <code>sem.vw_kpi_summary</code>, <code>sem.vw_sales_by_category</code>, <code>sem.vw_sales_map_points</code>.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="model">
+        <div class="section-head">
+          <h2>Model gwiazdy</h2>
+          <p>Ziarno faktu to jedna linia sprzedaży produktu w konkretnym sklepie, dniu i fakturze. Centralna tabela faktów przechowuje miary, a wymiary opisują kontekst analizy.</p>
+        </div>
+
+        <div class="schema-canvas" aria-label="Diagram schematu gwiazdy w stylu SQL">
+          <p class="schema-title">Diagram relacji tabel: schemat dw</p>
+          <svg class="schema-lines" viewBox="0 0 1000 735" preserveAspectRatio="none" aria-hidden="true">
+            <polygon points="500,78 588,270 792,292 642,428 686,640 500,535 314,640 358,428 208,292 412,270"></polygon>
+            <path d="M500 250 L500 184"></path>
+            <path d="M354 390 L240 390 L240 338"></path>
+            <path d="M646 386 L760 386 L760 312"></path>
+            <path d="M377 492 L270 492 L270 570"></path>
+            <path d="M623 492 L760 492 L760 555"></path>
+            <path d="M500 542 L500 610"></path>
+          </svg>
+
+          <article class="sql-table product">
+            <div class="sql-head">dw.dim_product</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>product_key</code></div>
+              <div class="sql-row"><span></span><code>item_number</code></div>
+              <div class="sql-row"><span></span><code>item_description</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table date">
+            <div class="sql-head">dw.dim_date</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>date_key</code></div>
+              <div class="sql-row"><span></span><code>date</code></div>
+              <div class="sql-row"><span></span><code>month</code></div>
+              <div class="sql-row"><span></span><code>quarter</code></div>
+              <div class="sql-row"><span></span><code>year</code></div>
+              <div class="sql-row"><span></span><code>is_weekend</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table store">
+            <div class="sql-head">dw.dim_store</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>store_key</code></div>
+              <div class="sql-row"><span></span><code>store_number</code></div>
+              <div class="sql-row"><span></span><code>store_name</code></div>
+              <div class="sql-row"><span></span><code>city</code></div>
+              <div class="sql-row"><span></span><code>county</code></div>
+              <div class="sql-row"><span></span><code>latitude, longitude</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table fact">
+            <div class="sql-head">dw.fact_sales</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>sales_key</code></div>
+              <div class="sql-row"><span>FK</span><code>date_key</code></div>
+              <div class="sql-row"><span>FK</span><code>store_key</code></div>
+              <div class="sql-row"><span>FK</span><code>product_key</code></div>
+              <div class="sql-row"><span>FK</span><code>category_key</code></div>
+              <div class="sql-row"><span>FK</span><code>vendor_key</code></div>
+              <div class="sql-row"><span>FK</span><code>packaging_key</code></div>
+              <div class="sql-row"><span></span><code>invoice_number</code></div>
+              <div class="sql-row"><span></span><code>sales_line_count</code></div>
+              <div class="sql-row"><span></span><code>bottles_sold</code></div>
+              <div class="sql-row"><span></span><code>sale_dollars</code></div>
+              <div class="sql-row"><span></span><code>volume_sold_liters</code></div>
+              <div class="sql-row"><span></span><code>margin_amount</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table vendor">
+            <div class="sql-head">dw.dim_vendor</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>vendor_key</code></div>
+              <div class="sql-row"><span></span><code>vendor_number</code></div>
+              <div class="sql-row"><span></span><code>vendor_name</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table category">
+            <div class="sql-head">dw.dim_category</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>category_key</code></div>
+              <div class="sql-row"><span></span><code>category_number</code></div>
+              <div class="sql-row"><span></span><code>category_name</code></div>
+            </div>
+          </article>
+
+          <article class="sql-table packaging">
+            <div class="sql-head">dw.dim_packaging</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>packaging_key</code></div>
+              <div class="sql-row"><span></span><code>pack</code></div>
+              <div class="sql-row"><span></span><code>bottle_volume_ml</code></div>
+              <div class="sql-row"><span></span><code>volume_group</code></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="field-grid" style="margin-top:18px">
+          <article class="field-card">
+            <h3>Miary addytywne</h3>
+            <p><code>sale_dollars</code>, <code>bottles_sold</code>, <code>volume_sold_liters</code>, <code>volume_sold_gallons</code>, <code>margin_amount</code>, <code>sales_line_count</code>.</p>
+          </article>
+          <article class="field-card">
+            <h3>Miary nieaddytywne</h3>
+            <p><code>state_bottle_cost</code> i <code>state_bottle_retail</code> nie są sumowane jako KPI. W raportach służą do średnich i kalkulacji marży.</p>
+          </article>
+          <article class="field-card">
+            <h3>Klucze i integralność</h3>
+            <p><code>fact_sales</code> ma klucze obce do wszystkich wymiarów. Kontrole jakości sprawdzają brak pustych kluczy i brak nieudanych joinów.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="semantic">
+        <div class="section-head">
+          <h2>Warstwa semantyczna</h2>
+          <p>Warstwa semantyczna znajduje się w schemacie <code>sem</code>. Skrypt SQL tworzy 16 widoków raportowych. Dashboard czyta z tych widoków, dzięki czemu definicje KPI, agregacje i joiny są utrzymane po stronie SQL Server.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Widok</th>
+                <th>Rola w raporcie</th>
+                <th>Przykładowe pola</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>sem.vw_sales_overview</code></td>
+                <td>Pełny widok bazowy z połączonym faktem i wymiarami.</td>
+                <td><code>date</code>, <code>store_name</code>, <code>item_description</code>, <code>sale_dollars</code>, <code>margin_amount</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_kpi_summary</code></td>
+                <td>Podsumowanie KPI dla strony głównej dashboardu.</td>
+                <td><code>total_sales</code>, <code>invoice_count</code>, <code>avg_margin_percent</code>, <code>sales_per_liter</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_sales_by_month</code></td>
+                <td>Sprzedaż w czasie, miesiąc, kwartał i rok.</td>
+                <td><code>year_month</code>, <code>total_sales</code>, <code>total_margin</code>, <code>store_count</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_sales_by_category</code></td>
+                <td>Ranking kategorii i udział w sprzedaży.</td>
+                <td><code>category_name</code>, <code>sales_share_percent</code>, <code>avg_margin_per_bottle</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_sales_by_geography</code></td>
+                <td>Analiza według miasta i county.</td>
+                <td><code>county</code>, <code>city</code>, <code>total_volume_liters</code>, <code>store_count</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_sales_map_points</code></td>
+                <td>Punkty mapy sklepów z koordynatami.</td>
+                <td><code>latitude</code>, <code>longitude</code>, <code>total_sales</code>, <code>invoice_count</code>.</td>
+              </tr>
+              <tr>
+                <td><code>sem.vw_etl_status</code></td>
+                <td>Status techniczny załadowania hurtowni.</td>
+                <td><code>staging_row_count</code>, <code>fact_row_count</code>, <code>min_date</code>, <code>max_date</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dashboard">
+        <div class="section-head">
+          <h2>Dashboard Streamlit</h2>
+          <p>Streamlit jest warstwą raportową. Nie zastępuje hurtowni i nie wykonuje głównego ETL. Aplikacja pokazuje dane pobrane z SQL Server, przede wszystkim z widoków semantycznych.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Zakładki raportowe</h3>
+            <ul>
+              <li><strong>Przegląd zarządczy:</strong> KPI, sprzedaż w czasie, status ETL.</li>
+              <li><strong>Produkty i kategorie:</strong> kategorie, produkty, vendorzy, opakowania, marża.</li>
+              <li><strong>Geografia:</strong> miasta, county, mapa punktów sklepów.</li>
+              <li><strong>Wyniki sklepów:</strong> ranking sklepów i średnia sprzedaż na sklep.</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Filtry</h3>
+            <p>Panel boczny zawiera filtry: <code>Rok</code>, <code>Miesiąc</code>, <code>Kategoria</code>, <code>Dostawca</code>, <code>County</code>, <code>Miasto</code>, <code>Grupa opakowania</code>, <code>Typ dnia</code> oraz suwak <code>Liczba pozycji Top N</code>.</p>
+          </article>
+        </div>
+
+        <div class="two-col" style="margin-top:18px">
+          <article class="panel">
+            <h3>Dlaczego dashboard może pokazać jeden miesiąc</h3>
+            <p>Dashboard pokazuje aktualny zakres danych w hurtowni. Szybkie demo ETL często ładuje jeden dzień ze stycznia 2023, więc zakres raportu zawiera tylko styczeń. Nie jest to błąd dashboardu, tylko wynik zakresu użytego przy ostatnim ładowaniu.</p>
+          </article>
+
+          <article class="panel">
+            <h3>Główne KPI</h3>
+            <p>Raport liczy między innymi: <code>Sprzedaż łącznie</code>, <code>Marża łącznie</code>, <code>Sprzedane butelki</code>, <code>Wolumen (litry)</code>, <code>Śr. wartość faktury</code>, <code>Marża %</code>, <code>Sprzedaż / sklep</code> i <code>Sprzedaż / litr</code>.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="sql">
+        <div class="section-head">
+          <h2>Zapytania kontrolne SQL</h2>
+          <p>Zapytania weryfikują, że dane przeszły przez staging, model gwiazdy i widoki semantyczne. Najważniejsze kontrole obejmują schematy, liczby rekordów, tabele, widoki i status ostatniego ładowania.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Połączenie</h3>
+            <ul>
+              <li>Server: <code>localhost,1433</code></li>
+              <li>User: <code>admin</code></li>
+              <li>Password: <code>admin</code></li>
+              <li>Database: <code>IowaLiquorDW</code></li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Obiekty w bazie</h3>
+            <ul>
+              <li><code>stg.iowa_liquor_sales_raw</code> - staging po wczytaniu CSV.</li>
+              <li><code>dw.fact_sales</code> - centralna tabela faktów.</li>
+              <li><code>dw.dim_date</code>, <code>dw.dim_store</code>, <code>dw.dim_product</code>, <code>dw.dim_category</code>, <code>dw.dim_vendor</code>, <code>dw.dim_packaging</code> - wymiary.</li>
+              <li><code>sem.*</code> - widoki semantyczne dla raportów.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="command">
+          <div class="command-head"><span>SQL Server</span><button class="copy" data-copy="SELECT name FROM sys.schemas WHERE name IN ('stg', 'dw', 'sem');&#10;&#10;SELECT COUNT(*) AS staging_rows FROM stg.iowa_liquor_sales_raw;&#10;SELECT COUNT(*) AS fact_rows FROM dw.fact_sales;&#10;&#10;SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA IN ('stg', 'dw') ORDER BY TABLE_SCHEMA, TABLE_NAME;&#10;&#10;SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'sem' ORDER BY TABLE_NAME;&#10;&#10;SELECT * FROM sem.vw_etl_status;">Kopiuj</button></div>
+          <pre>SELECT name
+FROM sys.schemas
+WHERE name IN ('stg', 'dw', 'sem');
+
+SELECT COUNT(*) AS staging_rows
+FROM stg.iowa_liquor_sales_raw;
+
+SELECT COUNT(*) AS fact_rows
+FROM dw.fact_sales;
+
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA IN ('stg', 'dw')
+ORDER BY TABLE_SCHEMA, TABLE_NAME;
+
+SELECT TABLE_SCHEMA, TABLE_NAME
+FROM INFORMATION_SCHEMA.VIEWS
+WHERE TABLE_SCHEMA = 'sem'
+ORDER BY TABLE_NAME;
+
+SELECT *
+FROM sem.vw_etl_status;</pre>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Kontrole jakości</h2>
+          <p>Ostatni task w DAG-u uruchamia <code>run_quality_checks()</code>. Funkcja wykonuje zapytania z <code>sql/05_quality_checks.sql</code> i przerywa proces, jeśli kontrola nie przejdzie.</p>
+        </div>
+
+        <div class="field-grid">
+          <article class="field-card">
+            <h3>Liczność danych</h3>
+            <p><code>staging_row_count</code>, <code>eligible_staging_row_count</code>, <code>fact_row_count</code> oraz różnica między stagingiem kwalifikowanym i faktem.</p>
+          </article>
+          <article class="field-card">
+            <h3>Integralność modelu</h3>
+            <p>Brak pustych kluczy obcych, brak nieudanych joinów faktu z wymiarami oraz brak duplikatów w wymiarach.</p>
+          </article>
+          <article class="field-card">
+            <h3>Miary sprzedażowe</h3>
+            <p>Brak ujemnych miar w fakcie i zgodność sumy <code>sale_dollars</code> między stagingiem kwalifikowanym a tabelą faktów.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="rubryka">
+        <div class="section-head">
+          <h2>Spełnienie wymagań</h2>
+          <p>Projekt odpowiada wymaganiom zaliczeniowym: pytania biznesowe, model wielowymiarowy, hurtownia, ETL, warstwa semantyczna i raporty z wykresami.</p>
+        </div>
+
+        <div class="rubric">
+          <div><b>Pytania biznesowe</b><span>12 pytań w <code>docs/business_requirements.md</code>, powiązanych z wymiarami i widokami.</span></div>
+          <div><b>Schemat gwiazdy</b><span><code>dw.fact_sales</code> oraz sześć tabel wymiarów w SQL Server.</span></div>
+          <div><b>ETL live</b><span>DAG <code>iowa_liquor_etl</code> w Airflow i pipeline <code>src.run_initial_etl</code>.</span></div>
+          <div><b>Semantyka</b><span>Widoki SQL w schemacie <code>sem</code>, wykorzystywane przez dashboard.</span></div>
+          <div><b>Raporty</b><span>Streamlit: KPI, wykresy, mapa, tabele, filtry i eksport CSV.</span></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="callout">
+          <strong>Podsumowanie techniczne:</strong> SQL Server przechowuje hurtownię, Airflow uruchamia ETL, schemat <code>dw</code> zawiera model gwiazdy, schemat <code>sem</code> udostępnia warstwę semantyczną, a Streamlit pełni rolę raportową.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll("[data-copy]");
+    buttons.forEach((button) => {
+      button.addEventListener("click", async () => {
+        const text = button.getAttribute("data-copy");
+        const previous = button.textContent;
+        try {
+          await navigator.clipboard.writeText(text);
+          button.textContent = "Skopiowano";
+        } catch {
+          button.textContent = "Zaznacz tekst";
+        }
+        setTimeout(() => {
+          button.textContent = previous;
+        }, 1200);
+      });
+    });
+  </script>
+</body>
+</html>

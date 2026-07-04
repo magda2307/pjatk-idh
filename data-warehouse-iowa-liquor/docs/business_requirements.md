@@ -12,18 +12,18 @@ Ten zestaw pytan zostal ulozony tak, aby kazdy wymiar modelu mial jasne zastosow
 
 | Nr | Pytanie biznesowe | Wykorzystywany wymiar / atrybut | Widok semantyczny / raport |
 |---:|---|---|---|
-| 1 | Jak zmienialy sie calkowita sprzedaz, marza i liczba faktur wedlug miesiaca, kwartalu i roku? | `dim_date` | `sem.vw_sales_by_month`, Executive overview |
-| 2 | Ktore kategorie generowaly najwyzszy przychod i marze? | `dim_category` | `sem.vw_sales_by_category`, Product and category analysis |
-| 3 | Ktore sklepy generowaly najwyzsza sprzedaz i marze? | `dim_store` | `sem.vw_sales_by_store`, Store performance |
-| 4 | Ktore miasta i county generowaly najwyzszy przychod i wolumen? | geografia w `dim_store` | `sem.vw_sales_by_geography`, Geography analysis |
-| 5 | Ktorzy vendorzy mieli najwyzszy udzial w sprzedazy i wklad w marze? | `dim_vendor` | `sem.vw_sales_by_vendor`, Product and category analysis |
-| 6 | Ktore produkty sprzedawaly sie najlepiej wedlug liczby butelek i wartosci sprzedazy? | `dim_product` | `sem.vw_top_products`, Product and category analysis |
-| 7 | Ktore kategorie i produkty mialy najwyzsza marze jednostkowa i calkowita? | `dim_product`, `dim_category`, ceny jednostkowe | `sem.vw_margin_analysis`, Product and category analysis |
-| 8 | Jak zmieniala sie struktura sprzedazy kategorii w czasie? | `dim_date`, `dim_category` | `sem.vw_category_sales_over_time`, Product and category analysis |
-| 9 | Ktore regiony mialy wysoki wolumen, ale nizsza wartosc sprzedazy na litr? | geografia w `dim_store`, miary wolumenu | `sem.vw_volume_vs_revenue`, Geography analysis |
-| 10 | Jak zmieniala sie srednia sprzedaz na sklep wedlug miesiaca i county? | `dim_date`, `dim_store` | `sem.vw_avg_sales_per_store_by_month_region`, Store performance |
-| 11 | Jak roznia sie sprzedaz, wolumen i liczba faktur w weekendy oraz dni robocze? | `dim_date.is_weekend` | `sem.vw_sales_by_day_type`, Executive overview |
-| 12 | Ktore grupy opakowan i pojemnosci butelek generowaly najwyzsza sprzedaz, wolumen i marze? | `dim_packaging` | `sem.vw_sales_by_packaging`, Product and category analysis |
+| 1 | Jak zmienialy sie calkowita sprzedaz, marza i liczba faktur wedlug miesiaca, kwartalu i roku? | `dim_date` | `sem.vw_sales_by_month`, Przeglad zarzadczy |
+| 2 | Ktore kategorie generowaly najwyzszy przychod i marze? | `dim_category` | `sem.vw_sales_by_category`, Produkty i kategorie |
+| 3 | Ktore sklepy generowaly najwyzsza sprzedaz i marze? | `dim_store` | `sem.vw_sales_by_store`, Wyniki sklepow |
+| 4 | Ktore miasta i county generowaly najwyzszy przychod i wolumen? | geografia w `dim_store` | `sem.vw_sales_by_geography`, Geografia |
+| 5 | Ktorzy vendorzy mieli najwyzszy udzial w sprzedazy i wklad w marze? | `dim_vendor` | `sem.vw_sales_by_vendor`, Produkty i kategorie |
+| 6 | Ktore produkty sprzedawaly sie najlepiej wedlug liczby butelek i wartosci sprzedazy? | `dim_product` | `sem.vw_top_products`, Produkty i kategorie |
+| 7 | Ktore kategorie i produkty mialy najwyzsza marze jednostkowa i calkowita? | `dim_product`, `dim_category`, ceny jednostkowe | `sem.vw_margin_analysis`, Produkty i kategorie |
+| 8 | Jak zmieniala sie struktura sprzedazy kategorii w czasie? | `dim_date`, `dim_category` | `sem.vw_category_sales_over_time`, Produkty i kategorie |
+| 9 | Ktore regiony mialy wysoki wolumen, ale nizsza wartosc sprzedazy na litr? | geografia w `dim_store`, miary wolumenu | `sem.vw_volume_vs_revenue`, Geografia |
+| 10 | Jak zmieniala sie srednia sprzedaz na sklep wedlug miesiaca i county? | `dim_date`, `dim_store` | `sem.vw_avg_sales_per_store_by_month_region`, Wyniki sklepow |
+| 11 | Jak roznia sie sprzedaz, wolumen i liczba faktur w weekendy oraz dni robocze? | `dim_date.is_weekend` | `sem.vw_sales_by_day_type`, Przeglad zarzadczy |
+| 12 | Ktore grupy opakowan i pojemnosci butelek generowaly najwyzsza sprzedaz, wolumen i marze? | `dim_packaging` | `sem.vw_sales_by_packaging`, Produkty i kategorie |
 
 ## Miary biznesowe
 

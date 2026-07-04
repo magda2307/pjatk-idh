@@ -447,10 +447,10 @@ Zawiera:
 
 | Strona dashboardu | Pytania biznesowe | Widoki semantyczne |
 |---|---|---|
-| Executive overview | 1, 11 | `sem.vw_sales_overview`, `sem.vw_sales_by_month`, `sem.vw_sales_by_day_type`, `sem.vw_kpi_summary`, `sem.vw_etl_status` |
-| Product and category analysis | 2, 5, 6, 7, 8, 12 | `sem.vw_sales_by_category`, `sem.vw_sales_by_vendor`, `sem.vw_top_products`, `sem.vw_margin_analysis`, `sem.vw_category_sales_over_time`, `sem.vw_sales_by_packaging` |
-| Geography analysis | 4, 9 | `sem.vw_sales_by_geography`, `sem.vw_sales_map_points`, `sem.vw_volume_vs_revenue` |
-| Store performance | 3, 10 | `sem.vw_sales_by_store`, `sem.vw_avg_sales_per_store_by_month_region` |
+| Przeglad zarzadczy | 1, 11 | `sem.vw_sales_overview`, `sem.vw_sales_by_month`, `sem.vw_sales_by_day_type`, `sem.vw_kpi_summary`, `sem.vw_etl_status` |
+| Produkty i kategorie | 2, 5, 6, 7, 8, 12 | `sem.vw_sales_by_category`, `sem.vw_sales_by_vendor`, `sem.vw_top_products`, `sem.vw_margin_analysis`, `sem.vw_category_sales_over_time`, `sem.vw_sales_by_packaging` |
+| Geografia | 4, 9 | `sem.vw_sales_by_geography`, `sem.vw_sales_map_points`, `sem.vw_volume_vs_revenue` |
+| Wyniki sklepow | 3, 10 | `sem.vw_sales_by_store`, `sem.vw_avg_sales_per_store_by_month_region` |
 
 Ta macierz pokazuje, ze warstwa semantyczna jest centralnym elementem raportowania, a nie tylko dodatkiem technicznym.
 
@@ -596,4 +596,4 @@ Jej funkcja polega na tym, ze:
 - warstwa `sem` nadaje im znaczenie raportowe,
 - dashboard Streamlit korzysta juz z gotowych struktur biznesowych.
 
-W praktyce oznacza to, ze wymagania dotyczace wymiarow, atrybutow, hierarchii, pol wyliczanych, kalkulacji i KPI zostaly zrealizowane w sposob spójny i zgodny z architektura calego projektu.
+W praktyce oznacza to, ze wymagania dotyczace wymiarow, atrybutow, hierarchii, pol wyliczanych, kalkulacji i KPI zostaly zrealizowane w sposob spojny i zgodny z architektura calego projektu.
