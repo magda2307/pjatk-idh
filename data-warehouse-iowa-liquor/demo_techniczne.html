@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hurtownia danych Iowa Liquor Sales</title>
+  <title>Hurtownia danych Iowa Liquor Sales - s32924</title>
   <link rel="icon" href="data:,">
   <style>
     :root {
@@ -869,29 +869,21 @@
       color: #646b5d;
       font-style: italic;
     }
+
+    body {
+      overflow-x: hidden;
+    }
+    #krok6 {
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding-left: clamp(18px, 3vw, 42px);
+      padding-right: clamp(18px, 3vw, 42px);
+    }
 </style>
 </head>
 <body>
   <div class="shell">
-    <header class="topbar">
-      <div class="mark">Iowa Liquor DW</div>
-      <nav aria-label="Nawigacja">
-        <a href="#start">Start</a>
-        <a href="#zrodlo">Źródło</a>
-        <a href="#pipeline">Pipeline</a>
-        <a href="#krok1">1&nbsp;Ekstrakcja</a>
-        <a href="#krok2">2&nbsp;SQL&nbsp;init</a>
-        <a href="#krok3">3&nbsp;Staging</a>
-        <a href="#model">Model</a>
-        <a href="#krok4">4&nbsp;Wymiary</a>
-        <a href="#krok5">5&nbsp;Fakty</a>
-        <a href="#krok6">6&nbsp;Widoki</a>
-        <a href="#krok7">7&nbsp;QC</a>
-        <a href="#dashboard">Dashboard</a>
-        <a href="#dostep">Dostęp</a>
-      </nav>
-    </header>
-
     <main>
       <!-- START -->
       <section class="hero" id="start">
