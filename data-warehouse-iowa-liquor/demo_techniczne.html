@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hurtownia danych Iowa Liquor Sales - s32924</title>
+  <title>s32924, magdalena sokolowska, projekt idh na zaliczenie w rooku akademickim 25/.26 - Hurtownia danych Iowa Liquor Sales</title>
   <link rel="icon" href="data:,">
   <style>
     :root {
@@ -888,8 +888,8 @@
       <!-- START -->
       <section class="hero" id="start">
         <div>
-          <div class="eyebrow">Projekt hurtowni danych - PJATK IDH</div>
-          <h1>Iowa Liquor Sales&nbsp;DW</h1>
+          <div class="eyebrow">s32924, magdalena sokolowska, projekt idh na zaliczenie w rooku akademickim 25/.26 - Projekt hurtowni danych - PJATK IDH</div>
+          <h1>Iowa Liquor Sales - Magdalena Sokolowska</h1>
           <p class="lead">Pełny przepływ: publiczne API stanu Iowa → pliki CSV → SQL&nbsp;Server → model gwiazdy → widoki semantyczne → Streamlit. Poniżej opisano każdy krok w kolejności wykonania pipeline'u.</p>
         </div>
         <aside class="status-board" aria-label="Stack techniczny">
@@ -1114,7 +1114,7 @@
               <li><strong>Aliasy kolumn API</strong> - przemapowanie 10 nazw: <code>invoice_line_no→invoice_and_item_number</code>, <code>store→store_number</code>, <code>name→store_name</code>, <code>zipcode→zip_code</code>, <code>vendor_no→vendor_number</code>, <code>itemno→item_number</code>, <code>im_desc→item_description</code>, <code>sale_bottles→bottles_sold</code>, <code>sale_liters→volume_sold_liters</code>, <code>sale_gallons→volume_sold_gallons</code>.</li>
               <li><strong>Parsowanie GPS</strong> - jeśli brak osobnych kolumn <code>latitude</code>/<code>longitude</code>, regex wyciąga je z <code>POINT (lon lat)</code>. Wynik: dwie kolumny DECIMAL.</li>
               <li><strong>Uzupełnienie brakujących kolumn</strong> - każda kolumna z listy <code>STAGING_COLUMNS</code> której nie ma w CSV → dodawana jako <code>None</code>.</li>
-              <li><strong>Row hash SHA-256</strong> - <code>hashlib.sha256("|".join(values).encode()).hexdigest()</code> z 7 pól: <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>item_number</code>, <code>sale_dollars</code>, <code>bottles_sold</code>, <code>source_file</code>. Identyfikator wiersza do Change Data Capture.</li>
+              <li><strong>Row hash SHA-256</strong> - <code>hashlib.sha256("|".join(values).encode()).hexdigest()</code> z 7 pól: <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>item_number</code>, <code>sale_dollars</code>, <code>bottles_sold</code>, <code>source_file</code>. Identyfikator wiersza do Change Data Capture (CDC). Służy on do detekcji zmian przy ładowaniu przyrostowym danych. Porównanie tego hasha z wartością zapisaną w bazie pozwala błyskawicznie wykryć i pominąć duplikaty (wiersze już wczytane) oraz zidentyfikować zmodyfikowane rekordy, bez konieczności kosztownego porównywania każdej kolumny z osobna.</li>
               <li><strong>UPPERCASE</strong> dla kluczy biznesowych: <code>invoice_and_item_number</code>, <code>store_number</code>, <code>county_number</code>, <code>category</code>, <code>vendor_number</code>, <code>item_number</code>.</li>
               <li><strong>Title Case</strong> dla nazw geograficznych: <code>city</code>, <code>county</code>.</li>
               <li><strong>Normalizacja ogólnego tekstu</strong> - strip whitespace, wielokrotne spacje → jedna spacja, puste stringi → <code>None</code> dla: <code>store_name</code>, <code>address</code>, <code>store_location</code>, <code>category_name</code>, <code>vendor_name</code>, <code>item_description</code>, <code>source_file</code>.</li>
@@ -1279,6 +1279,63 @@ pd.to_numeric(cleaned, errors="coerce")</pre>
             <h3>UNKNOWN - fallback key</h3>
             <p>Wymiary tekstowe mogą zawierać wiersz z kluczem biznesowym <code>'UNKNOWN'</code>. Trafiają tam wiersze ze stagingu z NULL-owym lub pustym kluczem. Dzięki temu INNER JOIN w kroku 5 zachowuje takie rekordy po mapowaniu na znany klucz zastępczy.</p>
           </article>
+        </div>
+      </section>
+
+
+      <!-- MIARY I KALKULACJE -->
+      <section id="miary">
+        <div class="section-head">
+          <h2>Charakterystyka miar i kalkulacje KPI</h2>
+          <p>Podział miar w modelu gwiazdy na addytywne i nieaddytywne oraz szczegóły wyliczeń wskaźników analitycznych na potrzeby dashboardu.</p>
+        </div>
+
+        <div class="two-col">
+          <article class="panel">
+            <h3>Miary addytywne (Additive)</h3>
+            <p>Można je swobodnie sumować na każdym poziomie agregacji (np. po czasie, regionie, produkcie).</p>
+            <ul>
+              <li><code>sale_dollars</code> (Wartość sprzedaży)</li>
+              <li><code>bottles_sold</code> (Sprzedane butelki)</li>
+              <li><code>volume_sold_liters</code> (Wolumen w litrach)</li>
+              <li><code>volume_sold_gallons</code> (Wolumen w galonach)</li>
+              <li><code>margin_amount</code> (Kwota marży)</li>
+              <li><code>sales_line_count</code> (Liczba linii)</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h3>Miary nieaddytywne (Non-additive)</h3>
+            <p>Nie należy ich sumować wzdłuż żadnego wymiaru. Służą do wyciągania średnich i minimum/maksimum.</p>
+            <ul>
+              <li><code>state_bottle_cost</code> (Koszt butelki)</li>
+              <li><code>state_bottle_retail</code> (Cena detaliczna)</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="callout" style="margin-top:24px">
+          <strong>Wyliczenia zliczeń unikalnych (Counts):</strong> W modelu pojawiają się również kalkulacje typu <code>COUNT(DISTINCT x)</code> wykorzystywane do pomiaru liczebności zjawisk – np. <code>invoice_count</code> (liczba unikalnych faktur) czy <code>store_count</code> (liczba aktywnych sklepów). Pełnią one rolę pomocniczą dla wskaźników średnich.
+        </div>
+
+        <div class="table-wrap" style="margin-top:24px">
+          <table>
+            <thead>
+              <tr><th>Wskaźnik (KPI)</th><th>Nazwa kolumny</th><th>Wzór wyliczenia (SQL)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Kwota marży na transakcji</strong></td><td><code>margin_amount</code></td><td><code>(state_bottle_retail - state_bottle_cost) * bottles_sold</code></td></tr>
+              <tr><td><strong>Średnia jednostkowa marża produktu</strong></td><td><code>avg_unit_margin</code></td><td><code>AVG(state_bottle_retail - state_bottle_cost)</code></td></tr>
+              <tr><td><strong>Procentowa marża całkowita</strong></td><td><code>avg_margin_percent</code></td><td><code>(SUM(margin_amount) / SUM(sale_dollars)) * 100</code></td></tr>
+              <tr><td><strong>Udział w całości sprzedaży</strong></td><td><code>sales_share_percent</code></td><td><code>(SUM(sale_dollars) / SUM(all_sales)) * 100</code></td></tr>
+              <tr><td><strong>Średnia marża na butelkę</strong></td><td><code>avg_margin_per_bottle</code></td><td><code>SUM(margin_amount) / SUM(bottles_sold)</code></td></tr>
+              <tr><td><strong>Sprzedaż na litr</strong></td><td><code>sales_per_liter</code></td><td><code>SUM(sale_dollars) / SUM(volume_sold_liters)</code></td></tr>
+              <tr><td><strong>Średnia wartość pojedynczej faktury</strong></td><td><code>avg_invoice_value</code></td><td><code>SUM(sale_dollars) / COUNT(DISTINCT invoice_number)</code></td></tr>
+              <tr><td><strong>Średnia liczba butelek na fakturze</strong></td><td><code>avg_bottles_per_invoice</code></td><td><code>SUM(bottles_sold) / COUNT(DISTINCT invoice_number)</code></td></tr>
+              <tr><td><strong>Średni dochód na jeden sklep</strong></td><td><code>sales_per_store</code></td><td><code>SUM(sale_dollars) / COUNT(DISTINCT store_key)</code></td></tr>
+              <tr><td><strong>Miesięczne średnie na sklep</strong></td><td><code>avg_sales_per_store</code> (itp.)</td><td><code>AVG(store_month_sales)</code> (wewnętrzny CTE po sklepie i miesiącu)</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -1459,6 +1516,7 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
           <strong>Wynik:</strong> <code>dw.fact_sales</code> z pełnym zestawem miar i 6 kluczami obcymi. Zwracany <code>COUNT(*)</code> z tabeli faktów.
         </div>
       </section>
+
 
       <!-- KROK 6 -->
       <section id="krok6">
