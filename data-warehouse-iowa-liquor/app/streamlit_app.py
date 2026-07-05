@@ -183,33 +183,135 @@ def localize_figure(fig):
     return fig
 
 
+def _compact_chart_value(value: object) -> str:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return ""
+
+    sign = "-" if number < 0 else ""
+    number = abs(number)
+
+    if number >= 1_000_000:
+        label = f"{number / 1_000_000:.1f}".rstrip("0").rstrip(".")
+        return f"{sign}{label}M"
+    if number >= 1_000:
+        label = f"{number / 1_000:.1f}".rstrip("0").rstrip(".")
+        return f"{sign}{label}K"
+    if number >= 100:
+        return f"{sign}{number:,.0f}"
+    if number >= 10:
+        return f"{sign}{number:,.1f}"
+    return f"{sign}{number:,.2f}"
+
+
 def add_bar_value_labels(fig):
-    """Add visible value labels to every Plotly bar chart."""
+    """Add readable value labels to every Plotly bar chart."""
+    has_bar = False
+    horizontal_max = None
+    vertical_max = None
+
     for trace in fig.data:
         if getattr(trace, "type", None) != "bar":
             continue
 
+        has_bar = True
         orientation = getattr(trace, "orientation", None)
-        value_field = "x" if orientation == "h" else "y"
+        values = list(trace.x if orientation == "h" else trace.y)
+        numeric_values = pd.to_numeric(pd.Series(values), errors="coerce").dropna()
+
+        if numeric_values.empty:
+            continue
+
+        if orientation == "h":
+            horizontal_max = max(float(numeric_values.max()), horizontal_max or 0)
+        else:
+            vertical_max = max(float(numeric_values.max()), vertical_max or 0)
 
         trace.update(
-            texttemplate=f"%{{{value_field}:,.2s}}",
+            text=[_compact_chart_value(value) for value in values],
+            texttemplate="%{text}",
             textposition="outside",
             cliponaxis=False,
+            constraintext="none",
         )
 
+    if not has_bar:
+        return fig
+
+    if horizontal_max and getattr(fig.layout.xaxis, "type", None) != "log":
+        fig.update_xaxes(range=[0, horizontal_max * 1.20])
+    if vertical_max and getattr(fig.layout.yaxis, "type", None) != "log":
+        fig.update_yaxes(range=[0, vertical_max * 1.20])
+
+    current_margin = fig.layout.margin
     fig.update_layout(
         uniformtext_minsize=9,
         uniformtext_mode="show",
-        margin=dict(r=90),
+        margin=dict(
+            l=max(current_margin.l or 0, 180),
+            r=max(current_margin.r or 0, 120),
+            t=max(current_margin.t or 0, 70),
+            b=max(current_margin.b or 0, 70),
+        ),
+    )
+    return fig
+
+
+def add_line_point_value_labels(fig):
+    """Add visible values above dots on line charts with markers."""
+    has_line_with_markers = False
+    y_max = None
+
+    for trace in fig.data:
+        if getattr(trace, "type", None) != "scatter":
+            continue
+
+        mode = getattr(trace, "mode", "") or ""
+
+        # Tylko wykresy liniowe z kropkami, nie zwykłe scatter ploty.
+        if "lines" not in mode or "markers" not in mode:
+            continue
+
+        y_values = list(trace.y)
+        numeric_values = pd.to_numeric(pd.Series(y_values), errors="coerce").dropna()
+
+        if numeric_values.empty:
+            continue
+
+        has_line_with_markers = True
+        y_max = max(float(numeric_values.max()), y_max or 0)
+
+        trace.update(
+            text=[_compact_chart_value(value) for value in y_values],
+            texttemplate="%{text}",
+            textposition="top center",
+            textfont=dict(size=10),
+            cliponaxis=False,
+        )
+
+    if not has_line_with_markers:
+        return fig
+
+    if y_max and getattr(fig.layout.yaxis, "type", None) != "log":
+        fig.update_yaxes(range=[0, y_max * 1.18])
+
+    current_margin = fig.layout.margin
+    fig.update_layout(
+        margin=dict(
+            l=max(current_margin.l or 0, 80),
+            r=max(current_margin.r or 0, 80),
+            t=max(current_margin.t or 0, 80),
+            b=max(current_margin.b or 0, 70),
+        ),
     )
     return fig
 
 
 def show_chart(fig, key: str) -> None:
     fig = add_bar_value_labels(fig)
+    fig = add_line_point_value_labels(fig)
     st.plotly_chart(localize_figure(fig), width="stretch", key=key)
-
 
 def build_csv_download(df: pd.DataFrame) -> bytes:
     buffer = BytesIO()
@@ -605,33 +707,61 @@ def render_q7():
     top_unit_margin = df.sort_values("avg_unit_margin", ascending=False).head(20)
     top_total_margin = df.sort_values("total_margin", ascending=False).head(20)
 
-    c1, c2 = st.columns(2)
-
-    with c1:
-        fig = px.bar(
-            top_unit_margin.sort_values("avg_unit_margin"),
-            x="avg_unit_margin",
-            y="item_description",
-            color="category_name",
-            orientation="h",
-            title="Top 20 produktów według średniej marży jednostkowej",
-            hover_data={"vendor_name": True, "total_margin": ":$,.2f", "total_sales": ":$,.2f"}
+    st.markdown("### Top 20 produktów według średniej marży jednostkowej")
+    unit_chart_df = top_unit_margin.sort_values("avg_unit_margin")
+    fig = px.bar(
+        unit_chart_df,
+        x="avg_unit_margin",
+        y="item_description",
+        orientation="h",
+        title="Top 20 produktów według średniej marży jednostkowej",
+        custom_data=["category_name", "vendor_name", "total_margin", "total_sales"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Kategoria: %{customdata[0]}<br>"
+            "Dostawca: %{customdata[1]}<br>"
+            "Śr. marża jednostkowa: $%{x:,.2f}<br>"
+            "Marża całkowita: $%{customdata[2]:,.2f}<br>"
+            "Sprzedaż: $%{customdata[3]:,.2f}<extra></extra>"
         )
-        fig.update_layout(yaxis={"categoryorder": "total ascending"})
-        show_chart(fig, key="q7_unit_margin")
+    )
+    fig.update_layout(
+        yaxis={"categoryorder": "total ascending"},
+        height=680,
+        showlegend=False,
+        margin=dict(l=320, r=140, t=70, b=70),
+    )
+    show_chart(fig, key="q7_unit_margin")
 
-    with c2:
-        fig = px.bar(
-            top_total_margin.sort_values("total_margin"),
-            x="total_margin",
-            y="item_description",
-            color="category_name",
-            orientation="h",
-            title="Top 20 produktów według marży całkowitej",
-            hover_data={"vendor_name": True, "avg_unit_margin": ":$,.2f", "total_sales": ":$,.2f"}
+    st.markdown("### Top 20 produktów według marży całkowitej")
+    total_chart_df = top_total_margin.sort_values("total_margin")
+    fig = px.bar(
+        total_chart_df,
+        x="total_margin",
+        y="item_description",
+        orientation="h",
+        title="Top 20 produktów według marży całkowitej",
+        custom_data=["category_name", "vendor_name", "avg_unit_margin", "total_sales"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Kategoria: %{customdata[0]}<br>"
+            "Dostawca: %{customdata[1]}<br>"
+            "Marża całkowita: $%{x:,.2f}<br>"
+            "Śr. marża jednostkowa: $%{customdata[2]:,.2f}<br>"
+            "Sprzedaż: $%{customdata[3]:,.2f}<extra></extra>"
         )
-        fig.update_layout(yaxis={"categoryorder": "total ascending"})
-        show_chart(fig, key="q7_total_margin")
+    )
+    fig.update_layout(
+        yaxis={"categoryorder": "total ascending"},
+        height=680,
+        showlegend=False,
+        margin=dict(l=320, r=140, t=70, b=70),
+    )
+    show_chart(fig, key="q7_total_margin")
 
     show_report_table(
         "Top 20 według marży jednostkowej",
