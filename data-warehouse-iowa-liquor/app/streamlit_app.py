@@ -149,6 +149,7 @@ COLUMN_LABELS = {
     "rank": "Ranking",
     "total_sales": "Sprzedaż",
     "total_margin": "Marża",
+    "margin_percent": "Marża (%)",
     "total_bottles_sold": "Sprzedane butelki",
     "total_volume_liters": "Wolumen (litry)",
     "invoice_count": "Liczba faktur",
@@ -182,7 +183,31 @@ def localize_figure(fig):
     return fig
 
 
+def add_bar_value_labels(fig):
+    """Add visible value labels to every Plotly bar chart."""
+    for trace in fig.data:
+        if getattr(trace, "type", None) != "bar":
+            continue
+
+        orientation = getattr(trace, "orientation", None)
+        value_field = "x" if orientation == "h" else "y"
+
+        trace.update(
+            texttemplate=f"%{{{value_field}:,.2s}}",
+            textposition="outside",
+            cliponaxis=False,
+        )
+
+    fig.update_layout(
+        uniformtext_minsize=9,
+        uniformtext_mode="show",
+        margin=dict(r=90),
+    )
+    return fig
+
+
 def show_chart(fig, key: str) -> None:
+    fig = add_bar_value_labels(fig)
     st.plotly_chart(localize_figure(fig), width="stretch", key=key)
 
 
@@ -345,6 +370,8 @@ def render_q2():
     if df.empty:
         st.warning("Brak danych.")
         return
+
+    df["margin_percent"] = 100 * df["total_margin"] / df["total_sales"].replace(0, np.nan)
     
     df = df.sort_values("total_sales", ascending=False)
     
@@ -358,10 +385,23 @@ def render_q2():
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q2_margin")
 
+    st.info("Marża całkowita często wygląda podobnie do sprzedaży, bo duża kategoria sprzedaje dużo i dlatego generuje dużą sumę marży. Marża procentowa pokazuje rentowność, czyli jaka część sprzedaży zostaje jako marża.")
+    margin_rate_categories = df.sort_values("margin_percent", ascending=False).head(15)
+    fig = px.bar(
+        margin_rate_categories,
+        x="margin_percent",
+        y="category_name",
+        orientation="h",
+        hover_data=["total_sales", "total_margin", "total_volume_liters"],
+        title="Top 15 kategorii według marży procentowej"
+    )
+    fig.update_layout(yaxis={"categoryorder": "total ascending"})
+    show_chart(fig, key="q2_margin_percent")
+
     show_report_table(
         "Podsumowanie kategorii",
         df,
-        ["category_name", "total_sales", "total_margin", "total_bottles_sold", "total_volume_liters", "sales_share_percent"],
+        ["category_name", "total_sales", "total_margin", "margin_percent", "total_bottles_sold", "total_volume_liters", "sales_share_percent"],
         file_stem="q2_categories",
         money_cols=["total_sales", "total_margin"],
         pct_cols=["sales_share_percent"],
@@ -375,6 +415,8 @@ def render_q3():
         st.warning("Brak danych.")
         return
 
+    df["margin_percent"] = 100 * df["total_margin"] / df["total_sales"].replace(0, np.nan)
+
     df = df.sort_values("total_sales", ascending=False)
     
     c1, c2 = st.columns(2)
@@ -387,10 +429,23 @@ def render_q3():
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q3_margin")
 
+    st.info("Marża całkowita sklepów zwykle jest podobna do sprzedaży, bo największe sklepy mają największy obrót. Marża procentowa pokazuje, które sklepy są relatywnie najbardziej rentowne.")
+    margin_rate_stores = df[df["total_sales"] >= 50000].sort_values("margin_percent", ascending=False).head(15)
+    fig = px.bar(
+        margin_rate_stores,
+        x="margin_percent",
+        y="store_name",
+        orientation="h",
+        hover_data=["city", "county", "total_sales", "total_margin"],
+        title="Top 15 sklepów według marży procentowej"
+    )
+    fig.update_layout(yaxis={"categoryorder": "total ascending"})
+    show_chart(fig, key="q3_margin_percent")
+
     show_report_table(
         "Top Sklepy",
         df.head(50),
-        ["store_number", "store_name", "city", "county", "total_sales", "total_margin", "invoice_count"],
+        ["store_number", "store_name", "city", "county", "total_sales", "total_margin", "margin_percent", "invoice_count"],
         file_stem="q3_stores",
         money_cols=["total_sales", "total_margin"],
     )
@@ -404,7 +459,20 @@ def render_q4():
         return
 
     county_sales = df.groupby("county", dropna=False).sum(numeric_only=True).reset_index().sort_values("total_sales", ascending=False)
-    city_sales = df.groupby(["city", "county"], dropna=False).sum(numeric_only=True).reset_index().sort_values("total_sales", ascending=False)
+    city_sales = (
+        df.groupby("city", dropna=False)
+        .agg(
+            total_sales=("total_sales", "sum"),
+            total_bottles_sold=("total_bottles_sold", "sum"),
+            total_volume_liters=("total_volume_liters", "sum"),
+            total_margin=("total_margin", "sum"),
+            sales_line_count=("sales_line_count", "sum"),
+            store_count=("store_count", "sum"),
+            county=("county", lambda x: ", ".join(sorted(set(str(v) for v in x.dropna()))))
+        )
+        .reset_index()
+        .sort_values("total_sales", ascending=False)
+    )
 
     c1, c2 = st.columns(2)
     with c1:
@@ -412,7 +480,7 @@ def render_q4():
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q4_county")
     with c2:
-        fig = px.bar(city_sales.head(15), x="total_sales", y="city", color="county", orientation="h", title="Top 15 Miast według sprzedaży")
+        fig = px.bar(city_sales.head(15), x="total_sales", y="city", hover_data=["county", "total_volume_liters"], orientation="h", title="Top 15 miast według sprzedaży")
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q4_city")
 
@@ -476,30 +544,32 @@ def render_q6():
         st.warning("Brak danych.")
         return
 
+    df["product_label"] = df["item_description"].astype(str) + " (" + df["item_number"].astype(str) + ")"
+
     c1, c2 = st.columns(2)
     with c1:
         top_bottles = df.sort_values("total_bottles_sold", ascending=False).head(15)
-        fig = px.bar(top_bottles, x="total_bottles_sold", y="item_description", orientation="h", title="Top 15 produktów (liczba butelek)")
+        fig = px.bar(top_bottles, x="total_bottles_sold", y="product_label", orientation="h", title="Top 15 produktów (liczba butelek)")
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q6_bottles")
     with c2:
         top_sales = df.sort_values("total_sales", ascending=False).head(15)
-        fig = px.bar(top_sales, x="total_sales", y="item_description", orientation="h", title="Top 15 produktów (wartość sprzedaży)")
+        fig = px.bar(top_sales, x="total_sales", y="product_label", orientation="h", title="Top 15 produktów (wartość sprzedaży)")
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
         show_chart(fig, key="q6_sales")
 
-    st.markdown("### Porównanie: Przychód vs Wolumen dla Top 50 produktów")
+    st.markdown("### Porównanie: Przychód vs liczba butelek dla Top 50 produktów według sprzedaży")
     top_50 = df.sort_values("total_sales", ascending=False).head(50)
     fig_scatter = px.scatter(
         top_50, x="total_bottles_sold", y="total_sales", color="category_name", size="total_margin",
-        hover_name="item_description", log_x=True, log_y=True,
+        hover_name="product_label", log_x=True, log_y=True,
         title="Sprzedaż vs Liczba Butelek (skala logarytmiczna)"
     )
     show_chart(fig_scatter, key="q6_scatter")
 
     show_report_table(
-        "Top Produkty",
-        top_sales.head(50),
+        "Top 50 produktów według sprzedaży",
+        top_50,
         ["item_number", "item_description", "category_name", "vendor_name", "total_sales", "total_bottles_sold", "total_margin"],
         file_stem="q6_products",
         money_cols=["total_sales", "total_margin"],
@@ -513,28 +583,69 @@ def render_q7():
         st.warning("Brak danych.")
         return
 
-    df["avg_unit_margin"] = pd.to_numeric(df["avg_unit_margin"], errors="coerce")
-    
-    # KRYTYCZNE: Odfiltrowanie produktów-widm (sprzedaż < $5000), żeby absurdalne pojedyczne butelki nie psuły wizualizacji
+    for column in ["avg_unit_margin", "total_margin", "total_sales"]:
+        df[column] = pd.to_numeric(df[column], errors="coerce")
+
+    df = df.dropna(subset=["avg_unit_margin", "total_margin", "total_sales"])
+
+    # Odfiltrowanie produktów-widm: bardzo niska sprzedaż może sztucznie zawyżać ranking marży jednostkowej.
     df = df[df["total_sales"] >= 5000]
-    
-    df = df.dropna(subset=["avg_unit_margin"]).sort_values("avg_unit_margin", ascending=False)
-    
-    top_margin = df.head(20)
-    fig = px.bar(
-        top_margin.sort_values("avg_unit_margin"),
-        x="avg_unit_margin", y="item_description", color="category_name", orientation="h",
-        title="Top 20 produktów według średniej marży jednostkowej",
-        hover_data={"vendor_name": True, "total_margin": ":$,.2f", "total_sales": ":$,.2f"}
+
+    if df.empty:
+        st.warning("Brak produktów spełniających próg minimalnej sprzedaży.")
+        return
+
+    st.info(
+        "**Jak czytać Q7?**\n\n"
+        "Marża jednostkowa to średnia różnica między ceną detaliczną butelki a kosztem butelki. "
+        "Marża całkowita to suma marży wygenerowana przez produkt w całym analizowanym okresie. "
+        "Dlatego produkt z wysoką marżą jednostkową nie musi być produktem z najwyższą marżą całkowitą."
     )
-    fig.update_layout(yaxis={"categoryorder": "total ascending"})
-    show_chart(fig, key="q7_unit_margin")
+
+    top_unit_margin = df.sort_values("avg_unit_margin", ascending=False).head(20)
+    top_total_margin = df.sort_values("total_margin", ascending=False).head(20)
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        fig = px.bar(
+            top_unit_margin.sort_values("avg_unit_margin"),
+            x="avg_unit_margin",
+            y="item_description",
+            color="category_name",
+            orientation="h",
+            title="Top 20 produktów według średniej marży jednostkowej",
+            hover_data={"vendor_name": True, "total_margin": ":$,.2f", "total_sales": ":$,.2f"}
+        )
+        fig.update_layout(yaxis={"categoryorder": "total ascending"})
+        show_chart(fig, key="q7_unit_margin")
+
+    with c2:
+        fig = px.bar(
+            top_total_margin.sort_values("total_margin"),
+            x="total_margin",
+            y="item_description",
+            color="category_name",
+            orientation="h",
+            title="Top 20 produktów według marży całkowitej",
+            hover_data={"vendor_name": True, "avg_unit_margin": ":$,.2f", "total_sales": ":$,.2f"}
+        )
+        fig.update_layout(yaxis={"categoryorder": "total ascending"})
+        show_chart(fig, key="q7_total_margin")
 
     show_report_table(
-        "Analiza marży",
-        top_margin,
+        "Top 20 według marży jednostkowej",
+        top_unit_margin,
         ["category_name", "item_description", "vendor_name", "avg_unit_margin", "total_margin", "total_sales"],
-        file_stem="q7_margin",
+        file_stem="q7_unit_margin",
+        money_cols=["avg_unit_margin", "total_margin", "total_sales"],
+    )
+
+    show_report_table(
+        "Top 20 według marży całkowitej",
+        top_total_margin,
+        ["category_name", "item_description", "vendor_name", "avg_unit_margin", "total_margin", "total_sales"],
+        file_stem="q7_total_margin",
         money_cols=["avg_unit_margin", "total_margin", "total_sales"],
     )
 
