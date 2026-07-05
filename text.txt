@@ -20,3 +20,8 @@ PY
 docker compose stop airflow
 docker compose rm -f airflow
 docker compose up -d airflow
+
+
+
+
+docker compose run --rm -p 8888:8888 airflow bash -lc "cd /opt/airflow/project/notebooks && jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser"
