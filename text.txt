@@ -1,0 +1,22 @@
+python - <<'PY'
+from pathlib import Path
+
+p = Path("docker-compose.yml")
+text = p.read_text()
+
+old = '''      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+'''
+new = '''      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      AIRFLOW__WEBSERVER__BASE_URL: "https://ubiquitous-palm-tree-vx6gxgqj453vg5-8080.app.github.dev"
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
+'''
+
+if "AIRFLOW__WEBSERVER__BASE_URL" not in text:
+    text = text.replace(old, new)
+
+p.write_text(text)
+PY
+
+docker compose stop airflow
+docker compose rm -f airflow
+docker compose up -d airflow

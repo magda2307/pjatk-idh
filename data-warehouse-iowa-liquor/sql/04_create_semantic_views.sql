@@ -267,15 +267,14 @@ CREATE OR ALTER VIEW sem.vw_volume_vs_revenue AS
 SELECT
     s.state_name,
     s.county,
-    s.city,
     SUM(f.volume_sold_liters) AS total_volume_liters,
     SUM(f.sale_dollars) AS total_sales,
-    -- Wartość sprzedaży na jeden litr wolumenu
+    -- Wartość sprzedaży na jeden litr wolumenu liczona po agregacji county
     SUM(f.sale_dollars) / NULLIF(SUM(f.volume_sold_liters), 0) AS sales_per_liter,
     COUNT(DISTINCT f.store_key) AS store_count
 FROM dw.fact_sales f
 JOIN dw.dim_store s ON s.store_key = f.store_key
-GROUP BY s.state_name, s.county, s.city;
+GROUP BY s.state_name, s.county;
 GO
 
 CREATE OR ALTER VIEW sem.vw_avg_sales_per_store_by_month_region AS
@@ -287,7 +286,6 @@ WITH monthly_store_sales AS (
         d.year_month,
         s.state_name,
         s.county,
-        s.city,
         s.store_key,
         SUM(f.sale_dollars) AS store_month_sales,
         SUM(f.bottles_sold) AS store_month_bottles,
@@ -303,7 +301,6 @@ WITH monthly_store_sales AS (
         d.year_month,
         s.state_name,
         s.county,
-        s.city,
         s.store_key
 )
 SELECT
@@ -313,14 +310,17 @@ SELECT
     year_month,
     state_name,
     county,
-    city,
-    COUNT(*) AS store_count,
-    AVG(store_month_sales) AS avg_sales_per_store,
-    AVG(store_month_bottles) AS avg_bottles_per_store,
-    AVG(store_month_volume_liters) AS avg_volume_liters_per_store,
-    AVG(store_month_margin) AS avg_margin_per_store
+    COUNT(DISTINCT store_key) AS store_count,
+    SUM(store_month_sales) AS total_sales,
+    SUM(store_month_bottles) AS total_bottles_sold,
+    SUM(store_month_volume_liters) AS total_volume_liters,
+    SUM(store_month_margin) AS total_margin,
+    SUM(store_month_sales) / NULLIF(COUNT(DISTINCT store_key), 0) AS avg_sales_per_store,
+    SUM(store_month_bottles) / NULLIF(COUNT(DISTINCT store_key), 0) AS avg_bottles_per_store,
+    SUM(store_month_volume_liters) / NULLIF(COUNT(DISTINCT store_key), 0) AS avg_volume_liters_per_store,
+    SUM(store_month_margin) / NULLIF(COUNT(DISTINCT store_key), 0) AS avg_margin_per_store
 FROM monthly_store_sales
-GROUP BY year, quarter, month, year_month, state_name, county, city;
+GROUP BY year, quarter, month, year_month, state_name, county;
 GO
 
 CREATE OR ALTER VIEW sem.vw_kpi_summary AS

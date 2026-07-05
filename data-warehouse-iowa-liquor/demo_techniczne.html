@@ -896,25 +896,25 @@
           <h2>Stack techniczny</h2>
           <ul class="status-list">
             <li><span class="dot"></span><span>Python 3.12 + Pandas - ekstrakcja i czyszczenie danych</span></li>
-            <li><span class="dot"></span><span>SQL Server 2022 - schematy: <code>stg</code>, <code>dw</code>, <code>sem</code></span></li>
-            <li><span class="dot"></span><span>Apache Airflow 2 - DAG <code>iowa_liquor_etl</code>, 7 tasków</span></li>
-            <li><span class="dot"></span><span>Streamlit - raporty na widokach <code>sem.*</code></span></li>
-            <li><span class="dot"></span><span>Docker Compose - konteneryzacja całości</span></li>
+            <li><span class="dot"></span><span>SQL Server 2022</span></li>
+            <li><span class="dot"></span><span>Apache Airflow</span></li>
+            <li><span class="dot"></span><span>Streamlit</span></li>
+            <li><span class="dot"></span><span>Docker Compose - konteneryzacja</span></li>
           </ul>
         </aside>
       </section>
 
       <div class="quick-links">
         <article class="launch">
-          <div><strong>Airflow UI</strong><span>Panel DAG-ów, logi tasków, status uruchomień.</span></div>
+          <div><strong>Airflow UI</strong><span>Panel DAG-ów.</span></div>
           <a class="button" href="http://localhost:8080" target="_blank" rel="noreferrer">localhost:8080</a>
         </article>
         <article class="launch">
-          <div><strong>Streamlit</strong><span>Raporty analityczne po załadowaniu danych.</span></div>
+          <div><strong>Streamlit</strong><span>Raporty analityczne.</span></div>
           <a class="button" href="http://localhost:8501" target="_blank" rel="noreferrer">localhost:8501</a>
         </article>
         <article class="launch">
-          <div><strong>ETL - uruchomienie ręczne</strong><span>Pełny pipeline z terminala, bez Airflow.</span></div>
+          <div><strong>ETL - uruchomienie ręczne</strong><span>Pełny pipeline z terminala.</span></div>
           <div class="command" style="margin-top:0">
             <div class="command-head"><span>terminal</span><button class="copy" data-copy="docker compose run --rm airflow python -m src.run_initial_etl">Kopiuj</button></div>
             <pre>docker compose run --rm airflow python -m src.run_initial_etl</pre>
@@ -967,12 +967,43 @@
           </table>
         </div>
       </section>
+      <section id="business">
+        <div class="section-head">
+          <h2>Pytania biznesowe</h2>
+          <p>Model wielowymiarowy i widoki semantyczne realizują zestaw poniższych 12 pytań biznesowych.</p>
+        </div>
 
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nr</th>
+                <th>Pytanie</th>
+                <th>Widok / raport</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Q1</td><td>Jak zmieniały się sprzedaż, marża i liczba faktur według miesiąca, kwartału i roku?</td><td><code>sem.vw_sales_by_month</code>, Przegląd zarządczy</td></tr>
+              <tr><td>Q2</td><td>Które kategorie generowały najwyższy przychód i marżę?</td><td><code>sem.vw_sales_by_category</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q3</td><td>Które sklepy generowały najwyższą sprzedaż i marżę?</td><td><code>sem.vw_sales_by_store</code>, Wyniki sklepów</td></tr>
+              <tr><td>Q4</td><td>Które miasta i county generowały najwyższy przychód i wolumen?</td><td><code>sem.vw_sales_by_geography</code>, Geografia</td></tr>
+              <tr><td>Q5</td><td>Którzy vendorzy mieli najwyższy udział w sprzedaży i wkład w marżę?</td><td><code>sem.vw_sales_by_vendor</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q6</td><td>Które produkty sprzedawały się najlepiej według liczby butelek i wartości sprzedaży?</td><td><code>sem.vw_top_products</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q7</td><td>Które kategorie i produkty miały najwyższą marżę jednostkową i całkowitą?</td><td><code>sem.vw_margin_analysis</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q8</td><td>Jak zmieniała się struktura sprzedaży kategorii w czasie?</td><td><code>sem.vw_category_sales_over_time</code>, Produkty i kategorie</td></tr>
+              <tr><td>Q9</td><td>Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?</td><td><code>sem.vw_volume_vs_revenue</code>, Geografia</td></tr>
+              <tr><td>Q10</td><td>Jak zmieniała się średnia sprzedaż na sklep według miesiąca i county?</td><td><code>sem.vw_avg_sales_per_store_by_month_region</code>, Wyniki sklepów</td></tr>
+              <tr><td>Q11</td><td>Jak różnią się sprzedaż, wolumen i liczba faktur w weekendy oraz dni robocze?</td><td><code>sem.vw_sales_by_day_type</code>, Przegląd zarządczy</td></tr>
+              <tr><td>Q12</td><td>Które grupy opakowań i pojemności butelek generowały najwyższą sprzedaż, wolumen i marżę?</td><td><code>sem.vw_sales_by_packaging</code>, Produkty i kategorie</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       <!-- PIPELINE OVERVIEW -->
       <section id="pipeline">
         <div class="section-head">
           <h2>Pipeline - 7 kroków</h2>
-          <p>Kolejność wywołań w funkcji <code>run_initial_etl()</code> (<code>src/run_initial_etl.py</code>). Każdy krok to osobny task w Airflow. Przy błędzie konkretnego taska można go ponowić bez restartu całego DAG-u.</p>
+          <p>Kolejność wywołań w funkcji <code>run_initial_etl()</code> (<code>src/run_initial_etl.py</code>). Każdy krok to task w Airflow. Przy błędzie taska można go ponowić bez restartu DAG-u.</p>
         </div>
 
         <div class="flow">
@@ -1114,7 +1145,7 @@
               <li><strong>Aliasy kolumn API</strong> - przemapowanie 10 nazw: <code>invoice_line_no→invoice_and_item_number</code>, <code>store→store_number</code>, <code>name→store_name</code>, <code>zipcode→zip_code</code>, <code>vendor_no→vendor_number</code>, <code>itemno→item_number</code>, <code>im_desc→item_description</code>, <code>sale_bottles→bottles_sold</code>, <code>sale_liters→volume_sold_liters</code>, <code>sale_gallons→volume_sold_gallons</code>.</li>
               <li><strong>Parsowanie GPS</strong> - jeśli brak osobnych kolumn <code>latitude</code>/<code>longitude</code>, regex wyciąga je z <code>POINT (lon lat)</code>. Wynik: dwie kolumny DECIMAL.</li>
               <li><strong>Uzupełnienie brakujących kolumn</strong> - każda kolumna z listy <code>STAGING_COLUMNS</code> której nie ma w CSV → dodawana jako <code>None</code>.</li>
-              <li><strong>Row hash SHA-256</strong> - <code>hashlib.sha256("|".join(values).encode()).hexdigest()</code> z 7 pól: <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>item_number</code>, <code>sale_dollars</code>, <code>bottles_sold</code>, <code>source_file</code>. Identyfikator wiersza do Change Data Capture (CDC). Służy on do detekcji zmian przy ładowaniu przyrostowym danych. Porównanie tego hasha z wartością zapisaną w bazie pozwala błyskawicznie wykryć i pominąć duplikaty (wiersze już wczytane) oraz zidentyfikować zmodyfikowane rekordy, bez konieczności kosztownego porównywania każdej kolumny z osobna.</li>
+              <li><strong>Row hash SHA-256</strong> - <code>hashlib.sha256("|".join(values).encode()).hexdigest()</code> z 7 pól: <code>invoice_and_item_number</code>, <code>date</code>, <code>store_number</code>, <code>item_number</code>, <code>sale_dollars</code>, <code>bottles_sold</code>, <code>source_file</code>. Identyfikator wiersza do Change Data Capture (CDC). Służy on do detekcji zmian przy ładowaniu przyrostowym danych. Porównanie tego hasha z wartością zapisaną w bazie pozwala wykryć i pominąć duplikaty (wiersze już wczytane) oraz zidentyfikować zmodyfikowane rekordy, nie trzeba uzywac porównywania każdej kolumny z osobna.</li>
               <li><strong>UPPERCASE</strong> dla kluczy biznesowych: <code>invoice_and_item_number</code>, <code>store_number</code>, <code>county_number</code>, <code>category</code>, <code>vendor_number</code>, <code>item_number</code>.</li>
               <li><strong>Title Case</strong> dla nazw geograficznych: <code>city</code>, <code>county</code>.</li>
               <li><strong>Normalizacja ogólnego tekstu</strong> - strip whitespace, wielokrotne spacje → jedna spacja, puste stringi → <code>None</code> dla: <code>store_name</code>, <code>address</code>, <code>store_location</code>, <code>category_name</code>, <code>vendor_name</code>, <code>item_description</code>, <code>source_file</code>.</li>
@@ -1282,63 +1313,155 @@ pd.to_numeric(cleaned, errors="coerce")</pre>
         </div>
       </section>
 
+<section id="miary">
+  <div class="section-head">
+    <h2>Miary, wymiary i KPI</h2>
+    <p>
+      Model analityczny ma postać schematu gwiazdy: centralna tabela faktów
+      <code>dw.fact_sales</code> przechowuje pojedyncze linie sprzedaży, a kontekst analityczny
+      dostarczają tabele wymiarów.
+    </p>
+  </div>
 
-      <!-- MIARY I KALKULACJE -->
-      <section id="miary">
-        <div class="section-head">
-          <h2>Charakterystyka miar i kalkulacje KPI</h2>
-          <p>Podział miar w modelu gwiazdy na addytywne i nieaddytywne oraz szczegóły wyliczeń wskaźników analitycznych na potrzeby dashboardu.</p>
-        </div>
+  <div class="two-col">
+    <article class="panel">
+      <h3>Wymiary analityczne</h3>
+      <ul>
+        <li><code>dw.dim_date</code> - data, dzień, miesiąc, kwartał, rok, weekend</li>
+        <li><code>dw.dim_store</code> - sklep, miasto, county, kod pocztowy, współrzędne</li>
+        <li><code>dw.dim_product</code> - produkt i opis produktu</li>
+        <li><code>dw.dim_category</code> - kategoria produktu</li>
+        <li><code>dw.dim_vendor</code> - dostawca / producent</li>
+        <li><code>dw.dim_packaging</code> - liczba butelek w opakowaniu, pojemność i grupa pojemności</li>
+      </ul>
+      <p style="margin-top:10px">
+        Dodatkowo <code>invoice_number</code> jest wymiarem zdegenerowanym, ponieważ pozostaje
+        w tabeli faktów i identyfikuje fakturę bez osobnej tabeli wymiaru.
+      </p>
+    </article>
 
-        <div class="two-col">
-          <article class="panel">
-            <h3>Miary addytywne (Additive)</h3>
-            <p>Można je swobodnie sumować na każdym poziomie agregacji (np. po czasie, regionie, produkcie).</p>
-            <ul>
-              <li><code>sale_dollars</code> (Wartość sprzedaży)</li>
-              <li><code>bottles_sold</code> (Sprzedane butelki)</li>
-              <li><code>volume_sold_liters</code> (Wolumen w litrach)</li>
-              <li><code>volume_sold_gallons</code> (Wolumen w galonach)</li>
-              <li><code>margin_amount</code> (Kwota marży)</li>
-              <li><code>sales_line_count</code> (Liczba linii)</li>
-            </ul>
-          </article>
+    <article class="panel">
+      <h3>Miary w tabeli faktów</h3>
+      <p><strong>Miary addytywne</strong> można sumować po czasie, sklepie, regionie, produkcie lub kategorii:</p>
+      <ul>
+        <li><code>sales_line_count</code> - liczba linii sprzedaży</li>
+        <li><code>bottles_sold</code> - liczba sprzedanych butelek</li>
+        <li><code>sale_dollars</code> - wartość sprzedaży</li>
+        <li><code>volume_sold_liters</code> - wolumen w litrach</li>
+        <li><code>volume_sold_gallons</code> - wolumen w galonach</li>
+        <li><code>margin_amount</code> - kwota marży</li>
+      </ul>
+      <p style="margin-top:10px">
+        <strong>Miary nieaddytywne</strong> to <code>state_bottle_cost</code> i
+        <code>state_bottle_retail</code>. Są to ceny jednostkowe, więc nie powinny być sumowane;
+        w analizach należy używać średniej, minimum, maksimum lub średniej ważonej.
+      </p>
+    </article>
+  </div>
 
-          <article class="panel">
-            <h3>Miary nieaddytywne (Non-additive)</h3>
-            <p>Nie należy ich sumować wzdłuż żadnego wymiaru. Służą do wyciągania średnich i minimum/maksimum.</p>
-            <ul>
-              <li><code>state_bottle_cost</code> (Koszt butelki)</li>
-              <li><code>state_bottle_retail</code> (Cena detaliczna)</li>
-            </ul>
-          </article>
-        </div>
+  <div class="callout" style="margin-top:18px; border-left-color:var(--blue)">
+    <strong>Przykład KPI:</strong>
+    marża całkowita = <code>SUM(margin_amount)</code>,
+    wartość sprzedaży = <code>SUM(sale_dollars)</code>,
+    średnia cena jednostkowa = <code>AVG(state_bottle_retail)</code> albo średnia ważona,
+    a liczba transakcji / linii = <code>SUM(sales_line_count)</code>.
+  </div>
+</section>
+<section id="atrybuty-hierarchie">
+  <div class="section-head">
+    <h2>Atrybuty i hierarchie wymiarów</h2>
+    <p>Każdy wymiar zawiera atrybuty opisowe wykorzystywane do filtrowania, grupowania i agregacji danych w raportach. Hierarchie pokazują naturalną ścieżkę przechodzenia od poziomu szczegółowego do bardziej zagregowanego.</p>
+  </div>
 
-        <div class="callout" style="margin-top:24px">
-          <strong>Wyliczenia zliczeń unikalnych (Counts):</strong> W modelu pojawiają się również kalkulacje typu <code>COUNT(DISTINCT x)</code> wykorzystywane do pomiaru liczebności zjawisk - np. <code>invoice_count</code> (liczba unikalnych faktur) czy <code>store_count</code> (liczba aktywnych sklepów). Pełnią one rolę pomocniczą dla wskaźników średnich.
-        </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Wymiar</th>
+          <th>Główne atrybuty</th>
+          <th>Hierarchia / sposób analizy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>dw.dim_date</code></td>
+          <td>
+            <code>date_key</code>, <code>date</code>, <code>day</code>, <code>month</code>,
+            <code>month_name_pl</code>, <code>month_name_en</code>, <code>quarter</code>,
+            <code>year</code>, <code>day_of_week</code>, <code>day_name_pl</code>,
+            <code>day_name_en</code>, <code>is_weekend</code>, <code>year_month</code>
+          </td>
+          <td>
+            <code>dzień → miesiąc → kwartał → rok</code><br>
+            Dodatkowo analiza typu dnia: dzień roboczy vs weekend.
+          </td>
+        </tr>
 
-        <div class="table-wrap" style="margin-top:24px">
-          <table>
-            <thead>
-              <tr><th>Wskaźnik (KPI)</th><th>Nazwa kolumny</th><th>Wzór wyliczenia (SQL)</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>Kwota marży na transakcji</strong></td><td><code>margin_amount</code></td><td><code>(state_bottle_retail - state_bottle_cost) * bottles_sold</code></td></tr>
-              <tr><td><strong>Średnia jednostkowa marża produktu</strong></td><td><code>avg_unit_margin</code></td><td><code>AVG(state_bottle_retail - state_bottle_cost)</code></td></tr>
-              <tr><td><strong>Procentowa marża całkowita</strong></td><td><code>avg_margin_percent</code></td><td><code>(SUM(margin_amount) / SUM(sale_dollars)) * 100</code></td></tr>
-              <tr><td><strong>Udział w całości sprzedaży</strong></td><td><code>sales_share_percent</code></td><td><code>(SUM(sale_dollars) / SUM(all_sales)) * 100</code></td></tr>
-              <tr><td><strong>Średnia marża na butelkę</strong></td><td><code>avg_margin_per_bottle</code></td><td><code>SUM(margin_amount) / SUM(bottles_sold)</code></td></tr>
-              <tr><td><strong>Sprzedaż na litr</strong></td><td><code>sales_per_liter</code></td><td><code>SUM(sale_dollars) / SUM(volume_sold_liters)</code></td></tr>
-              <tr><td><strong>Średnia wartość pojedynczej faktury</strong></td><td><code>avg_invoice_value</code></td><td><code>SUM(sale_dollars) / COUNT(DISTINCT invoice_number)</code></td></tr>
-              <tr><td><strong>Średnia liczba butelek na fakturze</strong></td><td><code>avg_bottles_per_invoice</code></td><td><code>SUM(bottles_sold) / COUNT(DISTINCT invoice_number)</code></td></tr>
-              <tr><td><strong>Średni dochód na jeden sklep</strong></td><td><code>sales_per_store</code></td><td><code>SUM(sale_dollars) / COUNT(DISTINCT store_key)</code></td></tr>
-              <tr><td><strong>Miesięczne średnie na sklep</strong></td><td><code>avg_sales_per_store</code> (itp.)</td><td><code>AVG(store_month_sales)</code> (wewnętrzny CTE po sklepie i miesiącu)</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        <tr>
+          <td><code>dw.dim_store</code></td>
+          <td>
+            <code>store_key</code>, <code>store_number</code>, <code>store_name</code>,
+            <code>address</code>, <code>city</code>, <code>zip_code</code>,
+            <code>county</code>, <code>state_name</code>, <code>latitude</code>,
+            <code>longitude</code>
+          </td>
+          <td>
+            <code>sklep → miasto → county → stan</code><br>
+            Wymiar umożliwia analizę geograficzną sprzedaży oraz porównywanie sklepów.
+          </td>
+        </tr>
 
+        <tr>
+          <td><code>dw.dim_product</code></td>
+          <td>
+            <code>product_key</code>, <code>item_number</code>, <code>item_description</code>
+          </td>
+          <td>
+            <code>produkt → kategoria</code><br>
+            Produkt jest analizowany razem z kategorią przez powiązanie z <code>dim_category</code>.
+          </td>
+        </tr>
+
+        <tr>
+          <td><code>dw.dim_category</code></td>
+          <td>
+            <code>category_key</code>, <code>category_number</code>, <code>category_name</code>
+          </td>
+          <td>
+            Poziom agregacji produktowej. Pozwala porównywać sprzedaż, wolumen i marżę między kategoriami produktów.
+          </td>
+        </tr>
+
+        <tr>
+          <td><code>dw.dim_vendor</code></td>
+          <td>
+            <code>vendor_key</code>, <code>vendor_number</code>, <code>vendor_name</code>
+          </td>
+          <td>
+            <code>produkt → vendor</code><br>
+            Umożliwia analizę sprzedaży według dostawcy lub producenta.
+          </td>
+        </tr>
+
+        <tr>
+          <td><code>dw.dim_packaging</code></td>
+          <td>
+            <code>packaging_key</code>, <code>pack</code>, <code>bottle_volume_ml</code>,
+            <code>volume_group</code>
+          </td>
+          <td>
+            <code>produkt → opakowanie</code><br>
+            Pozwala analizować sprzedaż według liczby butelek w opakowaniu, pojemności i grupy pojemności.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top:24px; border-left-color:var(--blue)">
+    <strong>Interpretacja:</strong> atrybuty wymiarów służą do opisu kontekstu sprzedaży, natomiast miary znajdują się w tabeli faktów <code>dw.fact_sales</code>. Dzięki temu raporty mogą agregować sprzedaż po czasie, geografii, produkcie, kategorii, vendorze i opakowaniu.
+  </div>
+</section>
       <!-- KROK 4 -->
       <section id="krok4">
         <div class="section-head">

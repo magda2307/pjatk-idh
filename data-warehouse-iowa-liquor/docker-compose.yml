@@ -31,6 +31,8 @@ services:
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      AIRFLOW__WEBSERVER__BASE_URL: "https://ubiquitous-palm-tree-vx6gxgqj453vg5-8080.app.github.dev"
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
       _AIRFLOW_WWW_USER_USERNAME: admin
       _AIRFLOW_WWW_USER_PASSWORD: admin
       PYTHONPATH: /opt/airflow/project
