@@ -563,6 +563,13 @@ def render_q8():
 def render_q9():
     st.header("Q9: Które regiony miały wysoki wolumen, ale niższą wartość sprzedaży na litr?")
     show_semantic_sources(["vw_volume_vs_revenue"])
+    st.info(
+        "**Jak interpretować tę analizę?**\n\n"
+        "Wartość sprzedaży na litr to stosunek `SUM(sale_dollars) / SUM(volume_sold_liters)` liczony dla każdego county. "
+        "Wysoki wolumen oznacza regiony znajdujące się w górnym kwartylu wolumenu, czyli od 75. percentyla wzwyż. "
+        "Tabela pokazuje więc county, które sprzedają dużo litrów, ale mają relatywnie niższą sprzedaż na 1 litr. "
+        "Może to oznaczać bardziej wolumenowy, tańszy lub mniej premium miks sprzedaży."
+    )
     df = read_view("vw_volume_vs_revenue")
     if df.empty:
         st.warning("Brak danych.")
