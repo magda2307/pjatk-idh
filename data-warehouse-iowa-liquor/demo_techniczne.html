@@ -882,11 +882,11 @@
         <a href="#krok1">1&nbsp;Ekstrakcja</a>
         <a href="#krok2">2&nbsp;SQL&nbsp;init</a>
         <a href="#krok3">3&nbsp;Staging</a>
+        <a href="#model">Model</a>
         <a href="#krok4">4&nbsp;Wymiary</a>
         <a href="#krok5">5&nbsp;Fakty</a>
         <a href="#krok6">6&nbsp;Widoki</a>
         <a href="#krok7">7&nbsp;QC</a>
-        <a href="#model">Model</a>
         <a href="#dashboard">Dashboard</a>
         <a href="#dostep">Dostęp</a>
       </nav>
@@ -1006,11 +1006,11 @@
           </div>
           <div class="flow-step">
             <b>6. semantic_views</b>
-            <small>CREATE OR ALTER 13 widoków sem.*</small>
+            <small>CREATE OR ALTER 16 widoków sem.*</small>
           </div>
           <div class="flow-step">
             <b>7. quality_checks</b>
-            <small>13 zapytań SQL → Python → ValueError lub OK</small>
+            <small>14 zapytań SQL → Python → ValueError lub OK</small>
           </div>
         </div>
 
@@ -1020,8 +1020,8 @@
           <article class="airflow-task"><b>load_staging</b><span>Czyszczenie danych + bulk INSERT</span></article>
           <article class="airflow-task"><b>load_dimensions</b><span>SCD Type 1 → 6 wymiarów</span></article>
           <article class="airflow-task"><b>load_fact_sales</b><span>JOIN 6 wymiarów + INSERT + marża</span></article>
-          <article class="airflow-task"><b>create_semantic_views</b><span>13 widoków sem.*</span></article>
-          <article class="airflow-task"><b>run_quality_checks</b><span>13 zapytań → walidacja Python</span></article>
+          <article class="airflow-task"><b>create_semantic_views</b><span>16 widoków sem.*</span></article>
+          <article class="airflow-task"><b>run_quality_checks</b><span>14 zapytań → walidacja Python</span></article>
         </div>
       </section>
 
@@ -1085,19 +1085,19 @@
           <article class="layer-card" style="grid-template-columns:160px 1fr">
             <div class="layer-label" style="color:var(--green)">Skrypt 01</div>
             <div>
-              <p><strong>01_create_schemas.sql</strong> - tworzy 3 schematy przez <code>IF NOT EXISTS</code>: <code>stg</code> (Bronze/Silver - strefa przejściowa), <code>dw</code> (Gold - model gwiazdy), <code>sem</code> (widoki semantyczne dla raportów).</p>
+              <p><strong>01_create_schemas.sql</strong> - tworzy 3 schematy przez <code>IF NOT EXISTS</code>: <code>stg</code> (Silver - oczyszczony staging po plikach Bronze na dysku), <code>dw</code> (Gold - model gwiazdy), <code>sem</code> (widoki semantyczne dla raportów).</p>
             </div>
           </article>
           <article class="layer-card" style="grid-template-columns:160px 1fr">
             <div class="layer-label" style="color:var(--blue)">Skrypt 02</div>
             <div>
-              <p><strong>02_create_staging_tables.sql</strong> - tworzy <code>stg.iowa_liquor_sales_raw</code>. Kolumny: <code>staging_key IDENTITY(1,1) PK</code>, <code>source_file NVARCHAR</code>, <code>load_timestamp DATETIME2 DEFAULT GETDATE()</code>, <code>source_row_hash NVARCHAR(64)</code>, oraz wszystkie pola z CSV (klucze jako NVARCHAR, miary jako DECIMAL).</p>
+              <p><strong>02_create_staging_tables.sql</strong> - tworzy <code>stg.iowa_liquor_sales_raw</code>. Kolumny techniczne: <code>staging_key BIGINT IDENTITY(1,1) PK</code>, <code>source_file NVARCHAR(260)</code>, <code>load_timestamp DATETIME2 DEFAULT SYSUTCDATETIME()</code>, <code>source_row_hash CHAR(64)</code>, oraz wszystkie pola z CSV (klucze jako NVARCHAR, miary jako DECIMAL/INT).</p>
             </div>
           </article>
           <article class="layer-card" style="grid-template-columns:160px 1fr">
             <div class="layer-label" style="color:var(--gold)">Skrypt 03</div>
             <div>
-              <p><strong>03_create_dw_tables.sql</strong> - tworzy 7 tabel przez <code>IF OBJECT_ID(...) IS NULL</code>: <code>dim_date</code> (klucz INT YYYYMMDD, nie IDENTITY), <code>dim_store</code>, <code>dim_product</code>, <code>dim_category</code>, <code>dim_vendor</code>, <code>dim_packaging</code> (klucze IDENTITY), <code>fact_sales</code> (klucze IDENTITY + 6 FK). FK definiowane na końcu skryptu przez <code>ALTER TABLE ... ADD CONSTRAINT FOREIGN KEY</code>.</p>
+              <p><strong>03_create_dw_tables.sql</strong> - tworzy 7 tabel przez <code>IF OBJECT_ID(...) IS NULL</code>: <code>dim_date</code> (klucz INT YYYYMMDD, nie IDENTITY), <code>dim_store</code>, <code>dim_product</code>, <code>dim_category</code>, <code>dim_vendor</code>, <code>dim_packaging</code> (klucze IDENTITY), <code>fact_sales</code> (<code>sales_key</code> IDENTITY + 6 FK). FK definiowane na końcu skryptu przez <code>ALTER TABLE ... ADD CONSTRAINT FOREIGN KEY</code>.</p>
             </div>
           </article>
         </div>
@@ -1175,6 +1175,118 @@ pd.to_numeric(cleaned, errors="coerce")</pre>
         </div>
         <div class="callout" style="margin-top:18px; border-left-color:var(--blue)">
           <strong>Wynik:</strong> <code>stg.iowa_liquor_sales_raw</code> z wszystkimi wierszami po czyszczeniu. Poprawne typy, spójne klucze (UPPER), ujednolicone teksty, NULL zamiast pustych stringów, hash każdego wiersza i timestamp załadowania. Zwracana liczba wierszy.
+        </div>
+      </section>
+
+      <!-- MODEL -->
+      <section id="model">
+        <div class="section-head">
+          <h2>Model gwiazdy</h2>
+          <p>Schemat <code>dw</code>. 1 tabela faktów + 6 wymiarów. Klucze zastępcze: IDENTITY(1,1) dla 5 wymiarów i fact_sales. Wyjątek: <code>dim_date</code> używa klucza INT <code>YYYYMMDD</code>.</p>
+        </div>
+
+        <div class="schema-canvas" aria-label="Diagram modelu gwiazdy">
+          <p class="schema-title">SCHEMAT dw - MODEL GWIAZDY</p>
+          <svg class="schema-lines" viewBox="0 0 1200 920" preserveAspectRatio="none">
+            <path d="M600,292 L600,230"/>
+            <path d="M600,292 L226,292"/>
+            <path d="M600,292 L974,292"/>
+            <path d="M600,430 L286,735"/>
+            <path d="M600,430 L600,805"/>
+            <path d="M600,430 L914,705"/>
+          </svg>
+          <article class="sql-table product">
+            <div class="sql-head">dw.dim_product</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>product_key IDENTITY</code></div>
+              <div class="sql-row"><span>BK</span><code>item_number</code></div>
+              <div class="sql-row"><span></span><code>item_description</code></div>
+            </div>
+          </article>
+          <article class="sql-table date">
+            <div class="sql-head">dw.dim_date</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>date_key INT YYYYMMDD</code></div>
+              <div class="sql-row"><span></span><code>date, day, month, quarter, year</code></div>
+              <div class="sql-row"><span></span><code>day_name_en / day_name_pl</code></div>
+              <div class="sql-row"><span></span><code>month_name_en / month_name_pl</code></div>
+              <div class="sql-row"><span></span><code>is_weekend BIT, year_month</code></div>
+            </div>
+          </article>
+          <article class="sql-table store">
+            <div class="sql-head">dw.dim_store</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>store_key IDENTITY</code></div>
+              <div class="sql-row"><span>BK</span><code>store_number</code></div>
+              <div class="sql-row"><span></span><code>store_name, address</code></div>
+              <div class="sql-row"><span></span><code>city, zip_code, county</code></div>
+              <div class="sql-row"><span></span><code>state_name = 'Iowa'</code></div>
+              <div class="sql-row"><span></span><code>latitude, longitude</code></div>
+            </div>
+          </article>
+          <article class="sql-table fact">
+            <div class="sql-head">dw.fact_sales ★</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>sales_key BIGINT IDENTITY</code></div>
+              <div class="sql-row"><span>FK</span><code>date_key → dim_date</code></div>
+              <div class="sql-row"><span>FK</span><code>store_key → dim_store</code></div>
+              <div class="sql-row"><span>FK</span><code>product_key → dim_product</code></div>
+              <div class="sql-row"><span>FK</span><code>category_key → dim_category</code></div>
+              <div class="sql-row"><span>FK</span><code>vendor_key → dim_vendor</code></div>
+              <div class="sql-row"><span>FK</span><code>packaging_key → dim_packaging</code></div>
+              <div class="sql-row"><span></span><code>invoice_number</code></div>
+              <div class="sql-row"><span></span><code>source_row_hash SHA-256</code></div>
+              <div class="sql-row"><span>M</span><code>sales_line_count = 1</code></div>
+              <div class="sql-row"><span>M</span><code>bottles_sold</code></div>
+              <div class="sql-row"><span>M</span><code>sale_dollars</code></div>
+              <div class="sql-row"><span>M</span><code>volume_sold_liters</code></div>
+              <div class="sql-row"><span>M</span><code>volume_sold_gallons</code></div>
+              <div class="sql-row"><span>M</span><code>state_bottle_cost</code></div>
+              <div class="sql-row"><span>M</span><code>state_bottle_retail</code></div>
+              <div class="sql-row"><span>M</span><code>margin_amount (wyliczona)</code></div>
+              <div class="sql-row"><span></span><code>load_timestamp</code></div>
+            </div>
+          </article>
+          <article class="sql-table vendor">
+            <div class="sql-head">dw.dim_vendor</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>vendor_key IDENTITY</code></div>
+              <div class="sql-row"><span>BK</span><code>vendor_number</code></div>
+              <div class="sql-row"><span></span><code>vendor_name</code></div>
+            </div>
+          </article>
+          <article class="sql-table packaging">
+            <div class="sql-head">dw.dim_packaging</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>packaging_key IDENTITY</code></div>
+              <div class="sql-row"><span></span><code>pack</code></div>
+              <div class="sql-row"><span></span><code>bottle_volume_ml</code></div>
+              <div class="sql-row"><span>W</span><code>volume_group (wyliczona)</code></div>
+            </div>
+          </article>
+          <article class="sql-table category">
+            <div class="sql-head">dw.dim_category</div>
+            <div class="sql-body">
+              <div class="sql-row"><span>PK</span><code>category_key IDENTITY</code></div>
+              <div class="sql-row"><span>BK</span><code>category_number</code></div>
+              <div class="sql-row"><span></span><code>category_name</code></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="three-col" style="margin-top:28px">
+          <article class="card">
+            <h3>BK - klucz biznesowy</h3>
+            <p>Klucz z danych źródłowych (<code>store_number</code>, <code>item_number</code>, itp.). Używany do JOIN-ów przy ładowaniu i do identyfikacji w raportach. Nie jest FK - to zastępczy IDENTITY pełni rolę FK w fact_sales.</p>
+          </article>
+          <article class="card">
+            <h3>M - miara / W - wyliczona</h3>
+            <p>M: wartość liczbowa z transakcji (bottles_sold, sale_dollars, itp.). W: kolumna wyliczona przy INSERT - nie pochodzi bezpośrednio ze źródła (<code>margin_amount</code>, <code>volume_group</code>, <code>sales_line_count</code>).</p>
+          </article>
+          <article class="card">
+            <h3>UNKNOWN - fallback key</h3>
+            <p>Wymiary tekstowe mogą zawierać wiersz z kluczem biznesowym <code>'UNKNOWN'</code>. Trafiają tam wiersze ze stagingu z NULL-owym lub pustym kluczem. Dzięki temu INNER JOIN w kroku 5 zachowuje takie rekordy po mapowaniu na znany klucz zastępczy.</p>
+          </article>
         </div>
       </section>
 
@@ -1339,10 +1451,10 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
             <code>margin_amount = (retail - cost) × bottles_sold</code> na poziomie wiersza. Gdyby liczyć marżę na zagregowanych danych (np. średnią cost × suma bottles), wynik byłby błędny matematycznie. Wyliczenie na ziarnku faktów i późniejszy SUM jest jedyną poprawną metodą.</p>
 
             <p style="margin-top:14px"><strong>sales_line_count = 1:</strong><br>
-            Stała wartość 1 w każdym wierszu. Raporty liczą transakcje przez <code>SUM(sales_line_count)</code> zamiast <code>COUNT(*)</code>. Na kolumnie DECIMAL z jedynkami SUM jest szybszy niż COUNT przy dużych wolumenach (COUNT skanuje pod kątem NULL, SUM agreguje numerycznie).</p>
+            Stała wartość 1 w każdym wierszu faktów. Raporty mogą liczyć linie sprzedaży przez <code>SUM(sales_line_count)</code>, a faktury osobno przez <code>COUNT(DISTINCT invoice_number)</code>. Dzięki temu nie mieszają się dwie definicje: liczba linii faktury i liczba faktur.</p>
 
             <p style="margin-top:14px"><strong>INNER JOIN zamiast LEFT JOIN:</strong><br>
-            Wiersz bez kompletnego zestawu kluczy nie trafia do faktów. To jest celowe - gwarantuje integralność referencyjną. Wiersze z NULL-owymi kluczami biznesowymi trafiają przez <code>COALESCE(NULLIF(...),'UNKNOWN')</code> na klucz UNKNOWN który istnieje w każdym wymiarze.</p>
+            Do faktów trafiają tylko wiersze, które da się połączyć z kompletem wymiarów. To jest celowe - gwarantuje integralność referencyjną. NULL-owe albo puste klucze biznesowe są wcześniej mapowane przez <code>COALESCE(NULLIF(...),'UNKNOWN')</code>, więc nie są tracone tylko dlatego, że w źródle brakuje tekstowego identyfikatora.</p>
 
             <p style="margin-top:14px"><strong>Filtr ujemnych miar (WHERE ≥ 0):</strong><br>
             Wiersze z ujemną sprzedażą (zwroty, korekty) są wykluczane z faktów. Liczba wykluczonych wierszy raportowana przez kontrolę jakości <code>raw_negative_measure_rows_excluded_from_fact</code> - widoczna w logach, nie powoduje błędu.</p>
@@ -1360,7 +1472,7 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
       <section id="krok6">
         <div class="section-head">
           <h2>Krok 6<br>Widoki semantyczne</h2>
-          <p><code>create_semantic_views()</code> - skrypt <code>sql/04_create_semantic_views.sql</code>. Tworzy 13 widoków przez <code>CREATE OR ALTER VIEW</code> - jeśli istnieją, nadpisywane bez DROP. Streamlit odpytuje tylko <code>sem.*</code>, nie <code>dw.*</code>.</p>
+          <p><code>create_semantic_views()</code> - skrypt <code>sql/04_create_semantic_views.sql</code>. Tworzy 16 widoków przez <code>CREATE OR ALTER VIEW</code> - jeśli istnieją, nadpisywane bez DROP. Streamlit odpytuje tylko <code>sem.*</code>, nie <code>dw.*</code>.</p>
         </div>
 
         <div class="callout" style="margin-bottom:24px; border-left-color:var(--green)">
@@ -1390,6 +1502,7 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
               <tr><td><code>vw_kpi_summary</code></td><td>Całość (1 wiersz)</td><td>SUM, COUNT DISTINCT, NULLIF</td><td><span style="color:var(--green)"><strong>Streamlit — pasek KPI nad zakładkami.</strong></span> 8 kafelków <code>st.metric()</code> wyświetlanych ponad Q1–Q12: łączna sprzedaż, marża, marża&nbsp;%, transakcje (sales_line_count), faktury, sklepy, produkty, śr. wartość faktury. Wyliczone kolumny wyliczone w widoku przez <code>NULLIF</code>: <code>avg_margin_percent = CAST(100.0 × SUM(margin) / NULLIF(SUM(sales), 0) AS DECIMAL(9,2))</code>. Kafelki odświeżane co 5 minut (<code>@st.cache_data(ttl=300)</code>).</td><td><div class="eg-wrap"><table class="eg"><thead><tr><th>total_sales</th><th>total_margin</th><th>sales_line_count</th><th>invoice_count</th><th>store_count</th><th>product_count</th><th>avg_invoice_value</th><th>avg_margin_percent</th></tr></thead><tbody><tr><td>223 881 441.33</td><td>67 164 432.40</td><td>4 982 331</td><td>2 412 884</td><td>1 874</td><td>9 412</td><td>92.80</td><td>30.00</td></tr></tbody></table><p class="eg-note">Jeden wiersz. Każde dzielenie chronione NULLIF. avg_margin_percent = 100 × total_margin / NULLIF(total_sales, 0).</p></div></td></tr>
               <tr><td><code>vw_etl_status</code></td><td>Metadane (1 wiersz)</td><td>Subquery COUNT, MIN, MAX</td><td><span style="color:var(--green)"><strong>Streamlit — pasek statusu ETL (caption).</strong></span> Uzupełnia manifest ekstrakcji o dane z bazy: <code>fact_sales={n}</code>, <code>dim_store={n}</code>, <code>dim_product={n}</code>, zakres dat, timestamp ostatniego ładowania. Parsowany w <code>show_dataset_status()</code> — <code>try/except</code> chroni przed błędem gdy baza niedostępna.</td><td><div class="eg-wrap"><table class="eg"><thead><tr><th>status_generated_at</th><th>staging_row_count</th><th>fact_row_count</th><th>dim_store_count</th><th>dim_product_count</th><th>min_date</th><th>max_date</th><th>last_fact_load_timestamp</th></tr></thead><tbody><tr><td>2023-06-15 14:32:01</td><td>4 982 331</td><td>4 982 331</td><td>1 874</td><td>9 412</td><td>2012-01-03</td><td>2023-06-14</td><td>2023-06-15 14:31:44</td></tr></tbody></table><p class="eg-note">Subquery COUNT/MIN/MAX. staging_row_count = fact_row_count → brak strat (kontrola Q3 potwierdza).</p></div></td></tr>
             </tbody>
+          </table>
         </div>
         <div class="callout" style="margin-top:18px; border-left-color:var(--blue)">
           <strong>Wynik:</strong> 16 widoków dostępnych w schemacie <code>sem</code>. <code>CREATE OR ALTER</code> - istniejące widoki nadpisywane bez DROP, uprawnienia zachowane.
@@ -1400,7 +1513,7 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
       <section id="krok7">
         <div class="section-head">
           <h2>Krok 7<br>Kontrole jakości</h2>
-          <p><code>run_quality_checks()</code> + <code>validate_quality_check_results()</code>. Skrypt <code>sql/05_quality_checks.sql</code> - 13 zapytań SELECT, każde zwraca parę <code>(check_name, check_value)</code>. Python waliduje wszystkie wyniki naraz i zbiera błędy. Jeden <code>ValueError</code> z listą wszystkich nieudanych kontroli = Airflow task FAILED.</p>
+          <p><code>run_quality_checks()</code> + <code>validate_quality_check_results()</code>. Skrypt <code>sql/05_quality_checks.sql</code> - 14 zapytań SELECT, każde zwraca parę <code>(check_name, check_value)</code>. Python waliduje wszystkie wyniki naraz i zbiera błędy. Jeden <code>ValueError</code> z listą wszystkich nieudanych kontroli = Airflow task FAILED.</p>
         </div>
 
         <div class="table-wrap">
@@ -1427,119 +1540,7 @@ WHERE COALESCE(raw.sale_dollars, 0) >= 0
           </table>
         </div>
         <div class="callout" style="margin-top:18px; border-left-color:var(--green)">
-          <strong>Wynik:</strong> lista par <code>(name, value)</code> - wszystkie 13 kontroli. Jeśli wszystkie przeszły: ETL zakończony sukcesem. Jeśli choć jedna zawiedzie: <code>ValueError</code> z listą wszystkich błędów naraz, Airflow task FAILED.
-        </div>
-      </section>
-
-      <!-- MODEL -->
-      <section id="model">
-        <div class="section-head">
-          <h2>Model gwiazdy</h2>
-          <p>Schemat <code>dw</code>. 1 tabela faktów + 6 wymiarów. Klucze zastępcze: IDENTITY(1,1) dla 5 wymiarów i fact_sales. Wyjątek: <code>dim_date</code> używa klucza INT <code>YYYYMMDD</code>.</p>
-        </div>
-
-        <div class="schema-canvas" aria-label="Diagram modelu gwiazdy">
-          <p class="schema-title">SCHEMAT dw - MODEL GWIAZDY</p>
-          <svg class="schema-lines" viewBox="0 0 1200 920" preserveAspectRatio="none">
-            <path d="M600,292 L600,230"/>
-            <path d="M600,292 L226,292"/>
-            <path d="M600,292 L974,292"/>
-            <path d="M600,430 L286,735"/>
-            <path d="M600,430 L600,805"/>
-            <path d="M600,430 L914,705"/>
-          </svg>
-          <article class="sql-table product">
-            <div class="sql-head">dw.dim_product</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>product_key IDENTITY</code></div>
-              <div class="sql-row"><span>BK</span><code>item_number</code></div>
-              <div class="sql-row"><span></span><code>item_description</code></div>
-            </div>
-          </article>
-          <article class="sql-table date">
-            <div class="sql-head">dw.dim_date</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>date_key INT YYYYMMDD</code></div>
-              <div class="sql-row"><span></span><code>date, day, month, quarter, year</code></div>
-              <div class="sql-row"><span></span><code>day_name_en / day_name_pl</code></div>
-              <div class="sql-row"><span></span><code>month_name_en / month_name_pl</code></div>
-              <div class="sql-row"><span></span><code>is_weekend BIT, year_month</code></div>
-            </div>
-          </article>
-          <article class="sql-table store">
-            <div class="sql-head">dw.dim_store</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>store_key IDENTITY</code></div>
-              <div class="sql-row"><span>BK</span><code>store_number</code></div>
-              <div class="sql-row"><span></span><code>store_name, address</code></div>
-              <div class="sql-row"><span></span><code>city, zip_code, county</code></div>
-              <div class="sql-row"><span></span><code>state_name = 'Iowa'</code></div>
-              <div class="sql-row"><span></span><code>latitude, longitude</code></div>
-            </div>
-          </article>
-          <article class="sql-table fact">
-            <div class="sql-head">dw.fact_sales ★</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>fact_key IDENTITY</code></div>
-              <div class="sql-row"><span>FK</span><code>date_key → dim_date</code></div>
-              <div class="sql-row"><span>FK</span><code>store_key → dim_store</code></div>
-              <div class="sql-row"><span>FK</span><code>product_key → dim_product</code></div>
-              <div class="sql-row"><span>FK</span><code>category_key → dim_category</code></div>
-              <div class="sql-row"><span>FK</span><code>vendor_key → dim_vendor</code></div>
-              <div class="sql-row"><span>FK</span><code>packaging_key → dim_packaging</code></div>
-              <div class="sql-row"><span></span><code>invoice_number</code></div>
-              <div class="sql-row"><span></span><code>source_row_hash SHA-256</code></div>
-              <div class="sql-row"><span>M</span><code>sales_line_count = 1</code></div>
-              <div class="sql-row"><span>M</span><code>bottles_sold</code></div>
-              <div class="sql-row"><span>M</span><code>sale_dollars</code></div>
-              <div class="sql-row"><span>M</span><code>volume_sold_liters</code></div>
-              <div class="sql-row"><span>M</span><code>volume_sold_gallons</code></div>
-              <div class="sql-row"><span>M</span><code>state_bottle_cost</code></div>
-              <div class="sql-row"><span>M</span><code>state_bottle_retail</code></div>
-              <div class="sql-row"><span>M</span><code>margin_amount (wyliczona)</code></div>
-              <div class="sql-row"><span></span><code>load_timestamp</code></div>
-            </div>
-          </article>
-          <article class="sql-table vendor">
-            <div class="sql-head">dw.dim_vendor</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>vendor_key IDENTITY</code></div>
-              <div class="sql-row"><span>BK</span><code>vendor_number</code></div>
-              <div class="sql-row"><span></span><code>vendor_name</code></div>
-            </div>
-          </article>
-          <article class="sql-table packaging">
-            <div class="sql-head">dw.dim_packaging</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>packaging_key IDENTITY</code></div>
-              <div class="sql-row"><span></span><code>pack</code></div>
-              <div class="sql-row"><span></span><code>bottle_volume_ml</code></div>
-              <div class="sql-row"><span>W</span><code>volume_group (wyliczona)</code></div>
-            </div>
-          </article>
-          <article class="sql-table category">
-            <div class="sql-head">dw.dim_category</div>
-            <div class="sql-body">
-              <div class="sql-row"><span>PK</span><code>category_key IDENTITY</code></div>
-              <div class="sql-row"><span>BK</span><code>category_number</code></div>
-              <div class="sql-row"><span></span><code>category_name</code></div>
-            </div>
-          </article>
-        </div>
-
-        <div class="three-col" style="margin-top:28px">
-          <article class="card">
-            <h3>BK - klucz biznesowy</h3>
-            <p>Klucz z danych źródłowych (<code>store_number</code>, <code>item_number</code>, itp.). Używany do JOIN-ów przy ładowaniu i do identyfikacji w raportach. Nie jest FK - to zastępczy IDENTITY pełni rolę FK w fact_sales.</p>
-          </article>
-          <article class="card">
-            <h3>M - miara / W - wyliczona</h3>
-            <p>M: wartość liczbowa z transakcji (bottles_sold, sale_dollars, itp.). W: kolumna wyliczona przy INSERT - nie pochodzi bezpośrednio ze źródła (<code>margin_amount</code>, <code>volume_group</code>, <code>sales_line_count</code>).</p>
-          </article>
-          <article class="card">
-            <h3>UNKNOWN - fallback key</h3>
-            <p>Każdy wymiar może zawierać wiersz z kluczem biznesowym <code>'UNKNOWN'</code>. Trafiają tam wiersze ze stagingu z NULL-owym lub pustym kluczem. Gwarantuje że INNER JOIN w krok 5 nie odrzuca tych wierszy.</p>
-          </article>
+          <strong>Wynik:</strong> lista par <code>(name, value)</code> - wszystkie 14 kontroli. Jeśli wszystkie przeszły: ETL zakończony sukcesem. Jeśli choć jedna zawiedzie: <code>ValueError</code> z listą wszystkich błędów naraz, Airflow task FAILED.
         </div>
       </section>
 
