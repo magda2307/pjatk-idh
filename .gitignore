@@ -1,0 +1,9 @@
+.agents/
+.codex/
+.playwright-mcp/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+streamlit-*.png
+streamlit-*.md

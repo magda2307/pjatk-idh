@@ -18,7 +18,7 @@ def test_parse_location_value_handles_socrata_point_lon_lat() -> None:
 
 
 def test_read_and_prepare_csv_populates_coordinates_from_store_location() -> None:
-    raw_file = PROJECT_ROOT / "data" / "raw" / "iowa_liquor_sales_2023_part_000.csv"
+    raw_file = PROJECT_ROOT / "tests" / "fixtures" / "iowa_liquor_sample.csv"
 
     df = read_and_prepare_csv(raw_file)
 
